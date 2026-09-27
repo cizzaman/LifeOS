@@ -1,6 +1,30 @@
 import type { Config } from "tailwindcss";
 import defaultColors from "tailwindcss/colors";
 
+const CHROMATIC = ["red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose"];
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const scale = (pick: (shade: number) => string) => Object.fromEntries(SHADES.map((shade) => [shade, pick(shade)]));
+const fold = (pick: (shade: number) => string, tokens: Record<string, string>) => ({
+  ...Object.fromEntries(CHROMATIC.map((hue) => [hue, scale(pick)])),
+  ...tokens,
+});
+/* Ink: light shades read as primary text, mid as muted, dark as faint. */
+const neutralText = fold((shade) => (shade <= 400 ? "#f0e8d8" : shade <= 600 ? "#98a8b3" : "#6b7d89"), {
+  ok: "var(--ink-1)", warn: "var(--ink-1)", err: "var(--ink-1)",
+  primary: { DEFAULT: "var(--ink-1)", foreground: "var(--ground)" },
+  accent: { DEFAULT: "var(--ink-1)", foreground: "var(--ink-1)" },
+  destructive: { DEFAULT: "var(--ink-1)", foreground: "var(--ink-1)" },
+  dim: { health: "var(--ink-1)", money: "var(--ink-1)", freedom: "var(--ink-1)", creative: "var(--ink-1)", relationships: "var(--ink-1)", rhythms: "var(--ink-1)" },
+});
+/* Lines: one mid grey, so opacity modifiers still land between hairline and figure line. */
+const neutralLine = fold(() => "#4a4a4a", {
+  ok: "var(--line-3)", warn: "var(--line-3)", err: "var(--line-3)",
+  primary: { DEFAULT: "var(--line-3)" },
+  accent: { DEFAULT: "var(--line-3)" },
+  destructive: { DEFAULT: "var(--line-3)" },
+  dim: { health: "var(--line-3)", money: "var(--line-3)", freedom: "var(--line-3)", creative: "var(--line-3)", relationships: "var(--line-3)", rhythms: "var(--line-3)" },
+});
+
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -21,6 +45,15 @@ const config: Config = {
       '5xl': ['3rem', { lineHeight: '1' }],             // 48px
     },
   	extend: {
+  		/* Minimal rule: text, borders, rings and gradients never carry colour. Any chromatic
+  		   Tailwind class resolves to ink or line greys for these utilities; backgrounds, fills
+  		   and strokes keep colour for data marks (dots, tracks, chart series). */
+  		textColor: neutralText,
+  		borderColor: neutralLine,
+  		ringColor: neutralLine,
+  		divideColor: neutralLine,
+  		outlineColor: neutralLine,
+  		gradientColorStops: neutralLine,
   		colors: {
   			/* Tailwind palette folded onto the Pulse palette: every cool hue is the one teal,
   			   every neutral is charcoal, status hues stay distinct. */

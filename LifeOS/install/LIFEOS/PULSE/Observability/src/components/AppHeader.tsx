@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Menu, X, Cpu, Eye, EyeOff } from "lucide-react";
+import { Menu, X, Eye, EyeOff } from "lucide-react";
 import { useObserverMode } from "@/contexts/ObserverModeContext";
 import { TabFreshnessPill } from "@/components/TabFreshnessPill";
 // Nav manifest is shared with the command palette — single source of truth.
@@ -65,23 +64,21 @@ export default function AppHeader() {
 
   const fontStyle = { fontFamily: "var(--font-mono)" };
   const agentsItem = metaNav[0];
-  const AgentsIcon = agentsItem.icon;
 
   return (
     <header
-      className="sticky top-0 z-50 backdrop-blur-md"
-      style={{ background: "rgba(10, 10, 10, 0.85)" }}
+      className="sticky top-0 z-50"
+      style={{ background: "var(--ground)" }}
     >
       {/* ── Tier 1 — persistent global nav (the only always-on menu) ── */}
       <div className="border-b border-line-1">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6">
           <div className="flex items-center min-h-14 py-1.5 gap-4 lg:gap-6">
             <Link href="/" className="flex items-center gap-3 shrink-0">
-              <Image src="/lifeos-logo.png" alt="LifeOS" width={28} height={28} className="h-7 w-7 object-contain" />
-              <span className="text-lg tracking-[0.25em] text-ink-1" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
-                PULSE
-              </span>
               <span className="fig-hub" aria-hidden><i /></span>
+              <span className="text-[17px] text-ink-1" style={{ fontFamily: "var(--font-display)", fontWeight: 500, letterSpacing: "-0.01em" }}>
+                Pulse
+              </span>
             </Link>
 
             {/* Wraps to additional lines when items overflow — same pattern as the
@@ -91,18 +88,16 @@ export default function AppHeader() {
             >
               {tier1.map((item) => {
                 const active = isActive(item.href);
-                const Icon = item.icon;
                 return (
                   <Link
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 lg:px-3 xl:px-3.5 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
-                      active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                      "flex items-center px-2.5 lg:px-3 py-1.5 text-[10px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors duration-200 shrink-0",
+                      active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                     )}
                     style={fontStyle}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
                     {item.label}
                   </Link>
                 );
@@ -114,7 +109,7 @@ export default function AppHeader() {
               <Link
                 href={agentsItem.href}
                 className={cn(
-                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
+                  "hidden md:flex items-center px-3 py-1.5 text-[10px] tracking-[0.16em] uppercase rounded-[10px] transition-colors duration-200 shrink-0",
                   inAgents
                     ? "text-ink-1"
                     : "text-ink-2 hover:text-ink-1"
@@ -125,33 +120,30 @@ export default function AppHeader() {
                   border: inAgents ? "1px solid var(--accent-blue)" : "1px solid var(--line-2)",
                 }}
               >
-                <AgentsIcon className="w-4 h-4 shrink-0" />
                 {agentsItem.label}
               </Link>
 
               <Link
                 href={systemHome}
                 className={cn(
-                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
+                  "hidden md:flex items-center px-3 py-1.5 text-[10px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors duration-200 shrink-0",
                   inSystem
-                    ? "bg-[color:var(--primary-soft)] text-ink-1"
-                    : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04] border border-line-2"
+                    ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1"
+                    : "text-ink-2 hover:text-ink-1 border-line-2"
                 )}
                 style={fontStyle}
               >
-                <Cpu className="w-4 h-4 shrink-0" />
-                SYSTEM
+                System
               </Link>
 
               <button
                 onClick={toggleObserverMode}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] tracking-[0.16em] uppercase transition-all duration-200",
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] border text-[10px] tracking-[0.16em] uppercase transition-colors duration-200",
                   observerMode
-                    ? "text-warn"
-                    : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                    ? "text-ink-1 border-line-3"
+                    : "text-ink-3 border-transparent hover:text-ink-1"
                 )}
-                style={observerMode ? { background: "rgba(245,196,81,0.14)", border: "1px solid rgba(245,196,81,0.3)" } : undefined}
                 title={observerMode ? "Observer mode ON — sensitive data hidden" : "Toggle observer mode"}
               >
                 {observerMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -172,7 +164,7 @@ export default function AppHeader() {
           "the section you're in", never as a second permanent global menu.
           Its lighter ground + "SYSTEM" rail make it visually distinct from Tier 1. ── */}
       {inSystem && (
-        <div className="border-b border-line-1" style={{ background: "rgba(17, 17, 17, 0.6)" }}>
+        <div className="border-b border-line-1" style={{ background: "var(--ground)" }}>
           <div className="max-w-[1920px] mx-auto px-4 sm:px-6">
             <div className="hidden md:flex items-start min-h-11 py-1.5 gap-3">
               <span
@@ -184,18 +176,16 @@ export default function AppHeader() {
               <nav className="flex flex-wrap flex-1 items-center justify-start gap-1 gap-y-1.5 min-w-0">
                 {system.map((item) => {
                   const active = isActive(item.href);
-                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] tracking-[0.14em] uppercase rounded transition-colors shrink-0",
-                        active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                        "flex items-center px-2.5 py-1 text-[10px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors shrink-0",
+                        active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                       )}
                       style={fontStyle}
                     >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
                       {item.label}
                     </Link>
                   );
@@ -209,7 +199,7 @@ export default function AppHeader() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1 backdrop-blur-md" style={{ background: "rgba(10, 10, 10, 0.95)" }}>
+        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1" style={{ background: "var(--ground)" }}>
           <nav className="flex flex-col px-4 py-3 gap-1">
             <div className="label-caps px-3 py-1">Sections</div>
             {tier1.map((item) => {
@@ -217,8 +207,8 @@ export default function AppHeader() {
               const Icon = item.icon;
               return (
                 <Link key={item.label} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-lg transition-colors",
-                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                   )} style={fontStyle}>
                   <Icon className="w-4 h-4" />{item.label}
                 </Link>
@@ -230,8 +220,8 @@ export default function AppHeader() {
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-lg transition-colors",
-                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                   )} style={fontStyle}>
                   <Icon className="w-4 h-4" />{item.label}
                 </Link>
@@ -243,8 +233,8 @@ export default function AppHeader() {
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2 text-[11px] tracking-[0.14em] uppercase rounded-lg transition-colors",
-                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
+                  className={cn("flex items-center gap-2.5 px-3 py-2 text-[11px] tracking-[0.14em] uppercase rounded-[10px] border transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                   )} style={fontStyle}>
                   <Icon className="w-3.5 h-3.5" />{item.label}
                 </Link>

@@ -1,3 +1,9 @@
-# Fonts not included
+# Fonts
 
-This install's stylesheets reference commercially licensed fonts (Matthew Butterick's Concourse/Valkyrie/Advocate/Heliotrope/Equity/Triplicate families) that cannot be redistributed. Browsers fall back to system fonts automatically. To restore the intended look, license the fonts at https://mbtype.com and place the woff2 files here, or point the CSS at fonts you own.
+Pulse uses three SIL Open Font License fonts, shipped here as variable woff2:
+
+- Outfit — display (titles, big numbers)
+- Albert Sans — text
+- Fira Code — labels, numbers, code
+
+They match the minimal Work-modal design from Personal OS. The OFL allows bundling and redistribution with software.

@@ -26,13 +26,13 @@
     --font-mono: 'Fira Code', ui-monospace, monospace;
     /* Ground + surfaces */
     --ground: #0a0a0a;        /* page background */
-    --surface-1: #111111;     /* raised bars, toolbars, table headers */
-    --surface-2: #141414;     /* the card */
-    --surface-3: #1a1a1a;     /* card hover / elevated */
+    --surface-1: #111111;     /* modals, popovers, toolbars */
+    --surface-2: #0a0a0a;     /* the card: the ground itself, drawn by its hairline */
+    --surface-3: #141414;     /* hover / pressed */
     /* Lines */
     --line-1: #1f1f1f;        /* subtle hairline */
     --line-2: #262626;        /* card border */
-    --line-3: #3a3a3a;        /* hover border, figure lines */
+    --line-3: #3a3a3a;        /* panel border, figure lines (the vision line) */
     /* Ink */
     --ink-1: #f0e8d8;         /* primary text */
     --ink-2: #98a8b3;         /* muted text */
@@ -45,7 +45,7 @@
     --ok: #22c55e;
     --warn: #f5c451;
     --err: #f87171;
-    /* Life dimensions */
+    /* Life dimensions — data colours only: chart series and 7px markers, never text or borders */
     --health: #22c55e;
     --money: #f5c451;
     --freedom: #a8e2ee;
@@ -60,17 +60,17 @@
     /* shadcn vars — same palette as HSL triplets */
     --background: 0 0% 4%;            /* #0a0a0a */
     --foreground: 40 44% 89%;         /* #f0e8d8 */
-    --card: 0 0% 8%;                  /* #141414 */
+    --card: 0 0% 4%;                  /* #0a0a0a */
     --card-foreground: 40 44% 89%;
     --popover: 0 0% 7%;               /* #111111 */
     --popover-foreground: 40 44% 89%;
     --primary: 190 56% 52%;           /* #3fb2c9 */
     --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 10%;            /* #1a1a1a */
+    --secondary: 0 0% 8%;             /* #141414 */
     --secondary-foreground: 40 44% 89%;
-    --muted: 0 0% 10%;
+    --muted: 0 0% 8%;
     --muted-foreground: 204 15% 65%;  /* #98a8b3 */
-    --accent: 0 0% 10%;
+    --accent: 0 0% 8%;
     --accent-foreground: 40 44% 89%;
     --destructive: 0 91% 71%;         /* #f87171 */
     --destructive-foreground: 0 0% 4%;
@@ -132,9 +132,10 @@
     color: var(--ink-2);
   }
   :focus-visible {
-    outline: 2px solid var(--accent-blue);
+    outline: 1px solid var(--accent-blue);
     outline-offset: 2px;
   }
+  b, strong { font-weight: 500; }
 }
 
 /* Custom scrollbar - thin & dark */
@@ -189,7 +190,7 @@
 /* Small caps label — the figure-label voice from the Work modals */
 .label-caps {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0.16em;
@@ -200,45 +201,39 @@
 /* Small uppercase metric label (legacy consumer; prefer PanelHeader/StatTile) */
 .metric-label {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: var(--ink-2);
 }
 
-/* Progress bar */
+/* Progress track — the Work modal's 2px line: hairline rail, one teal fill */
 .progress-bar {
-  height: 10px;
-  background: var(--surface-1);
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
+  height: 2px;
+  background: var(--line-2);
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent-blue);
   transition: width 0.3s ease-out;
 }
 
-/* Skeleton loading states */
+/* Skeleton loading states: a hairline block that breathes on the shared clock */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface-2) 0%,
-    var(--surface-3) 50%,
-    var(--surface-2) 100%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
-  border-radius: 4px;
+  background: var(--surface-3);
+  animation: skeleton-breathe calc(var(--cycle) / 5) ease-in-out infinite;
+  border-radius: 2px;
 }
 
-@keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes skeleton-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .skeleton-line {
@@ -270,6 +265,28 @@
 }
 .fig-hub > i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-blue); }
 @keyframes fig-ping { 0%, 8% { opacity: 0; transform: scale(1); } 9% { opacity: 1; transform: scale(1); } 19%, 100% { opacity: 0; transform: scale(1.8); } }
+
+/* ══════════════════════════════════════════════════════════════
+   MINIMAL LAYER — the Work-modal / HYROX-minimalistic rules, applied to
+   every surface after the utilities so stray classes cannot bring back
+   shadows, glows, gradients, heavy weights or oversized radii.
+   ══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-shadow: none !important; text-shadow: none !important; }
+[class*="bg-gradient-"], [class*="backdrop-blur"] { background-image: none !important; backdrop-filter: none !important; }
+.font-semibold, .font-bold, .font-extrabold, .font-black { font-weight: 500 !important; }
+.rounded-xl, .rounded-2xl, .rounded-3xl { border-radius: 10px !important; }
+.animate-pulse-glow, .animate-pulse { animation: none !important; }
+
+/* The 7px figure key: outlined square with a faint tint of its own colour. */
+.fig-key { display: inline-block; flex: none; width: 7px; height: 7px; border: 1px solid currentColor; background: color-mix(in srgb, currentColor 14%, transparent); }
+.fig-key.is-round { border-radius: 50%; }
+.fig-key.is-plan { border-style: dashed; background: transparent; }
+
+/* Tooltips and popovers sit on the modal surface with a figure-line border. */
+.recharts-default-tooltip { background: var(--surface-1) !important; border: 1px solid var(--line-3) !important; border-radius: 10px !important; font: 400 11px/1.6 var(--font-mono) !important; color: var(--ink-1) !important; }
+.recharts-cartesian-axis-tick text, .recharts-label { font-family: var(--font-mono) !important; font-size: 10px !important; fill: var(--ink-3); }
+.recharts-legend-item-text { font: 400 10px/1.6 var(--font-mono); letter-spacing: .1em; color: var(--ink-2) !important; }
+.recharts-cartesian-grid line { stroke: var(--line-1); stroke-dasharray: 2 4; }
 
 /* Reduced motion: stop transitions and one-off motion, but keep the hub's slow ping —
    it carries meaning and runs on the one shared clock. */
