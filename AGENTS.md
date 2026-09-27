@@ -26,6 +26,11 @@ systemctl --user restart com.lifeos.pulse.service
 bun ~/.claude/LIFEOS/TOOLS/Doctor.ts
 ```
 
+## User data
+
+- The personal LifeOS data lives outside this public fork, in the private repo `cizzaman/lifeos-user`, checked out at `~/.config/LIFEOS/USER` (symlinked as `~/.claude/LIFEOS/USER`). `~/.claude/LIFEOS/MEMORY` is a symlink to `USER/MEMORY`, as in the upstream layout; its `.gitignore` keeps runtime logs, caches and credentials local.
+- Never commit anything from the USER tree to this fork. Commit and push USER changes in `~/.config/LIFEOS/USER`.
+
 ## Pulse address
 
 - Loopback port: `31337` (permanent, locally and via Tailscale).
