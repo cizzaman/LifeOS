@@ -62,7 +62,7 @@ export function DimensionRing({ d, onClick }: DimensionRingProps) {
 
   return (
     <div className="dim-ring" onClick={onClick}>
-      <Ring pct={d.cur} ideal={d.ideal} size={120}>
+      <Ring pct={d.cur} ideal={d.ideal} color={d.color} size={96}>
         <div className="mono dim-num">{d.cur}</div>
       </Ring>
       <div className="dim-label">

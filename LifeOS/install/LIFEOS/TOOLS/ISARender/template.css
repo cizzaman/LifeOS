@@ -17,6 +17,8 @@
 
 :root {
   color-scheme: dark;
+  --type-base: clamp(11px, calc(11px + (100vw - 390px) / 525), 13px);
+  --type-figure: calc(var(--type-base) + 7px);
 
   --ground: #0a0a0a;
   --surface-1: #111111;
@@ -85,6 +87,7 @@ html, body {
   color: var(--ink-1);
   font-family: var(--sans);
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -167,14 +170,14 @@ h1, h2 {
 }
 
 h1 {
-  font-size: 32px;
+  font-size: var(--type-figure);
   line-height: 1.15;
   letter-spacing: -0.025em;
   margin: 0 0 24px;
 }
 
 .section h2 {
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.3;
   letter-spacing: -0.01em;
   margin: 12px 0 16px;
@@ -511,10 +514,10 @@ blockquote {
 }
 .isc-count:last-child { border-right: none; }
 
-.isc-count.passed     { color: var(--ok); }
-.isc-count.deferred   { color: var(--warn); }
-.isc-count.anti       { color: var(--err); }
-.isc-count.antecedent { color: var(--antecedent); }
+.isc-count.passed .dot { color: var(--ok); }
+.isc-count.deferred .dot { color: var(--warn); }
+.isc-count.anti .dot { color: var(--err); }
+.isc-count.antecedent .dot { color: var(--antecedent); }
 .isc-count.pending .dot { background: transparent; }
 .isc-count.antecedent .dot { transform: rotate(45deg); width: 6px; height: 6px; }
 
@@ -759,8 +762,8 @@ td code { font-size: 11px; padding: 1px 4px; }
 
 @media (max-width: 768px) {
   #root { padding: 32px 16px 60px; }
-  h1 { font-size: 24px; }
-  .section h2 { font-size: 18px; }
+  h1 { font-size: var(--type-figure); }
+  .section h2 { font-size: 16px; }
   .brand-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
   .phase-slot { padding: 10px 2px; }
   .metadata .meta-line { grid-template-columns: 22px 88px minmax(0, 1fr); gap: 10px; padding: 10px 12px; }

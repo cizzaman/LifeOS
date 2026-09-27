@@ -450,6 +450,8 @@ function pulseIcons(t){document.querySelectorAll('link[rel~="icon"],link[rel="ap
     --review: #a78bfa;
     --queued: #6b7d89;
     --mono: "Fira Code", ui-monospace, monospace;
+    --type-base: clamp(11px, calc(11px + (100vw - 390px) / 525), 13px);
+    --type-figure: calc(var(--type-base) + 7px);
   }
   /* Light yellow — served from the Pulse origin, so localStorage
    * pulse-theme is shared with the rest of the app; dark stays default. */
@@ -472,7 +474,7 @@ function pulseIcons(t){document.querySelectorAll('link[rel~="icon"],link[rel="ap
     --queued: #6b625b;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--ground); color: var(--ink-1); font: 14px/1.5 "Albert Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; padding: 0; background: var(--ground); color: var(--ink-1); font: 14px/1.5 "Albert Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
   a { color: inherit; text-decoration: none; }
   .caps { font-family: var(--mono); font-size: 10px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
   .key, .status-dot, .pill-p0::before, .pill-p1::before, .card .age.overdue::before, .stale-banner::before {
@@ -493,7 +495,7 @@ function pulseIcons(t){document.querySelectorAll('link[rel~="icon"],link[rel="ap
   }
   .brand {
     display: flex; align-items: center; gap: 10px;
-    font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; font-size: 16px; letter-spacing: -0.01em;
+    font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; font-size: var(--type-figure); letter-spacing: -0.01em;
   }
   .brand .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
   .repo { color: var(--ink-2); font-family: var(--mono); font-size: 12px; }
@@ -613,7 +615,7 @@ function pulseIcons(t){document.querySelectorAll('link[rel~="icon"],link[rel="ap
 
   /* ── Setup view ──────────────────────────────────────────────────── */
   .setup { padding: 32px 24px; max-width: 720px; margin: 0 auto; }
-  .setup h2 { font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; font-size: 20px; color: var(--ink-1); margin-top: 0; }
+  .setup h2 { font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; font-size: 16px; color: var(--ink-1); margin-top: 0; }
   .setup pre { background: var(--surface-1); border: 1px solid var(--line-2); padding: 12px; border-radius: 10px; overflow-x: auto; font-family: var(--mono); font-size: 12px; }
   .setup ol { line-height: 1.7; }
 

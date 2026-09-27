@@ -5,8 +5,8 @@
  * Every route page renders inside PageShell; panels, stat tiles, tabs,
  * and pills come from here. They follow the Work-modal rules: hairline
  * panels on the ground, Fira Code caps labels, mono numbers, 7px keys.
- * Colour belongs to data only (chart series, status keys) — never to
- * text, borders or chrome.
+ * Colour belongs to 7px category/status keys, left category rules,
+ * progress and chart marks. Text and the rest of the chrome stay neutral.
  */
 
 import { cn } from "@/lib/utils";
@@ -30,10 +30,10 @@ const DIM_COLOR: Record<Dim, string> = {
   ok: "var(--ok)",
   warn: "var(--warn)",
   err: "var(--err)",
-  neutral: "var(--ink-2)",
+  neutral: "var(--ink-3)",
 };
 
-/** Status dims keep their colour on a 7px marker; every other dim is identity only and stays grey. */
+/** Status dims can be distinguished from life dimensions when needed. */
 const STATUS: ReadonlySet<Dim> = new Set(["ok", "warn", "err"]);
 export const isStatusDim = (dim?: Dim) => dim != null && STATUS.has(dim);
 
@@ -44,18 +44,18 @@ export function dimStyle(_dim: Dim, active = true): CSSProperties {
     : { background: "transparent", color: "var(--ink-2)", border: "1px solid var(--line-2)" };
 }
 
-/** The data colour behind a dim, for chart series and markers only — never text or borders. */
+/** The data colour behind a dim: keys, left category rules, progress and chart marks. */
 export const dimColor = (dim: Dim) => DIM_COLOR[dim];
 
 /**
  * The 7px figure key from the Work illustrations: an outlined square (or circle) with a faint
- * tint of its own colour. Neutral grey unless `colored` or a status dim asks for its colour.
+ * tint of its dimension colour. Pass `colored={false}` to mute a category key; status keys keep their colour.
  */
 export function Marker({
   dim = "neutral",
   shape = "square",
   filled = false,
-  colored = false,
+  colored = true,
 }: {
   dim?: Dim;
   shape?: "square" | "circle";
@@ -88,7 +88,7 @@ export function PageShell({
     return <div className={cn("flex flex-col flex-1 min-h-0", className)}>{children}</div>;
   }
   return (
-    <div className={cn("max-w-[1600px] mx-auto w-full px-4 sm:px-6 py-6 flex flex-col gap-6", className)}>
+    <div className={cn("max-w-[1600px] mx-auto w-full px-4 sm:px-6 py-5 flex flex-col gap-5", className)}>
       {children}
     </div>
   );
@@ -109,9 +109,9 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-3 pb-2", className)}>
+    <div className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-2 pb-3 border-b border-line-1", className)}>
       <div className="min-w-0">
-        <h1 className="text-ink-1" style={{ font: "500 clamp(24px, 3vw, 38px)/1.15 var(--font-display)", letterSpacing: "-0.025em" }}>
+        <h1 className="page-title text-ink-1">
           {title}
         </h1>
         {subtitle && <p className="mt-2 text-[13px] leading-relaxed text-ink-2">{subtitle}</p>}
@@ -129,6 +129,7 @@ export function Panel({
   hover = false,
   as: Tag = "div",
   style,
+  dim,
   onClick,
 }: {
   children?: ReactNode;
@@ -137,6 +138,8 @@ export function Panel({
   hover?: boolean;
   as?: "div" | "section" | "article" | "li";
   style?: CSSProperties;
+  /** Opt-in left category rule; the other three borders remain neutral. */
+  dim?: Dim;
   onClick?: () => void;
 }) {
   // Clickable panels stay keyboard-reachable: role/tabIndex + Enter/Space.
@@ -155,12 +158,13 @@ export function Panel({
   return (
     <Tag
       className={cn(
-        "bg-[color:var(--panel)] border border-line-3 rounded-[10px] p-6 max-sm:p-4",
+        "bg-[color:var(--panel)] border border-line-3 rounded-[10px] p-5 max-sm:p-4 min-w-0",
+        dim && "category-panel",
         hover && "transition-colors duration-200 hover:border-[color:var(--accent-blue)] hover:bg-[color:var(--primary-soft)]",
         onClick && "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-blue)]",
         className
       )}
-      style={style}
+      style={dim ? { '--category-color': dimColor(dim), ...style } as CSSProperties : style}
       onClick={onClick}
       {...interactive}
     >
@@ -184,7 +188,7 @@ export function PanelHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 mb-5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 mb-4", className)}>
       <span className="label-caps">{title}</span>
       {meta && <span className="label-caps text-ink-3" style={{ letterSpacing: "0.1em" }}>{meta}</span>}
       {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
@@ -206,17 +210,16 @@ export function StatTile({
   value: ReactNode;
   unit?: ReactNode;
   icon?: LucideIcon;
-  /** Status dims (ok/warn/err) colour the 7px key; other dims stay grey. */
+  /** Dimension/status colour is confined to the 7px label key. */
   dim?: Dim;
   sub?: ReactNode;
   className?: string;
 }) {
   return (
-    <Panel className={cn("p-5 flex flex-col gap-2", className)}>
+    <Panel className={cn("p-4 flex flex-col gap-2", className)}>
       <div className="flex flex-wrap items-baseline gap-2">
         <span
-          className="text-ink-1"
-          style={{ font: "400 clamp(28px, 3.4vw, 40px)/1.2 var(--font-mono)", letterSpacing: "-0.03em" }}
+          className="stat-value text-ink-1"
         >
           {value}
         </span>

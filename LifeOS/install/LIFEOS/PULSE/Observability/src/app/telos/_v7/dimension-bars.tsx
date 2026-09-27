@@ -5,7 +5,7 @@ import type { Dimension } from "./data";
 // Universal dimension visualization — replaces the ring grid.
 //
 // Each dimension renders as a horizontal row:
-//   [label] [2px track: teal fill = cur, tick = ideal] [numbers] [velo arrow]
+//   [label] [2px track: dimension fill = cur, tick = ideal] [numbers] [velo arrow]
 //
 // The GAP is the visual headline, not the fill. Most life dashboards
 // celebrate what's done; this one shows what's left, because the gap is
@@ -52,11 +52,14 @@ function DimensionBarRow({ d, onClick }: DimensionBarRowProps) {
       onClick={onClick}
       onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}
     >
-      <div className="dim-bar-label">{d.label}</div>
+      <div className="dim-bar-label">
+        <span className="fig-key" style={{ color: `var(${d.color}, var(--ink-3))` }} aria-hidden />
+        {d.label}
+      </div>
 
       <div className="dim-bar-track" aria-label={`${d.label}: ${Math.round(cur)} of ${Math.round(ideal)}, velocity ${d.velo}`}>
         {/* The full track represents 100. Ideal marker is a vertical line. */}
-        <div className="dim-bar-fill" style={{ width: `${curPct}%` }} />
+        <div className="dim-bar-fill" style={{ width: `${curPct}%`, background: `var(${d.color}, var(--accent-blue))` }} />
         <div className="dim-bar-ideal-mark" style={{ left: `${idealPct}%` }} />
       </div>
 

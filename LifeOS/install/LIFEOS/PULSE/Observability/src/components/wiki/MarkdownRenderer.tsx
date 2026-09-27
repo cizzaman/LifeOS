@@ -35,7 +35,7 @@ const LINK =
 
 const components: Components = {
   h1: ({ children }) => (
-    <h1 className="font-display font-medium text-[28px] leading-tight text-ink-1 mb-6 pb-3 border-b border-line-2">
+    <h1 className="page-title text-ink-1 mb-6 pb-3 border-b border-line-2">
       {children}
     </h1>
   ),

@@ -74,13 +74,13 @@ function Hero({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
           <div className="flex items-baseline gap-8 flex-wrap">
             <div>
               <div className="label-caps text-ink-3">New subscribers today</div>
-              <div className="mono text-5xl lg:text-6xl leading-tight text-ink-1">
+              <div className="stat-value text-ink-1">
                 {nl.newToday}
               </div>
             </div>
             <div>
               <div className="label-caps text-ink-3">Total active</div>
-              <div className="mono text-3xl lg:text-4xl leading-tight text-ink-1">
+              <div className="stat-value text-ink-1">
                 {fmt(nl.totalActive)}
               </div>
               <div className="text-xs mt-1 text-ink-2">

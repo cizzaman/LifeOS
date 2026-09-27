@@ -82,7 +82,7 @@ function Banner({
       {focus ? (
         <p
           className="text-ink-1"
-          style={{ font: "500 clamp(20px, 2.4vw, 28px)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
+          style={{ font: "500 var(--type-figure)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
           data-sensitive="strong"
         >
           {focus}

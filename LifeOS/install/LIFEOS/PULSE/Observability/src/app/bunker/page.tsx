@@ -243,7 +243,7 @@ function Readout({ app, onBack }: { app: App; onBack: () => void }) {
 
       <div className="flex items-center gap-3 flex-wrap">
         <Marker dim={dim} />
-        <span className="text-ink-1 font-medium" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{app.name}</span>
+        <span className="text-ink-1 font-medium" style={{ fontSize: "var(--type-figure)", letterSpacing: "0.04em" }}>{app.name}</span>
         <Pill dim="neutral">{app.type.toUpperCase()}</Pill>
         <span className="mono text-ink-2" style={{ fontSize: 13, letterSpacing: "0.08em" }}>{total === 0 ? "NO PROBES" : `${app.pass}/${total} · ${pct}%`}</span>
       </div>

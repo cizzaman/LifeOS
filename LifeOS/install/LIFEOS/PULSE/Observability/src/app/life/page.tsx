@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react";
-import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill, Marker, type Dim } from "@/components/ui/chrome";
 
 // ────────── Types ──────────
 
@@ -163,7 +163,7 @@ function RingMetric({ label, score, valueText }: { label: string; score: number 
 }
 
 function DomainCard({
-  title, href, headline, secondary, children, empty, pulse = false,
+  title, href, headline, secondary, children, empty, dim, pulse = false,
 }: {
   title: string;
   href: string;
@@ -172,20 +172,21 @@ function DomainCard({
   children?: React.ReactNode;
   empty?: string;
   pulse?: boolean;
+  dim?: Dim;
 }) {
   return (
     <Link href={href} className="h-full">
       <Panel hover className={`h-full group flex flex-col gap-2${pulse ? " pulse" : ""}`}>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="fig-key" style={{ color: "var(--ink-3)" }} aria-hidden />
+            <Marker dim={dim} />
             <h2 className="label-caps">{title}</h2>
           </div>
           <ArrowUpRight className="w-4 h-4 shrink-0 text-ink-3 transition-colors group-hover:text-ink-1" strokeWidth={1.5} />
         </div>
         {headline ? (
           <>
-            <div className="text-ink-1" style={{ font: "400 28px/1.2 var(--font-mono)", letterSpacing: "-0.03em" }} data-sensitive>{headline}</div>
+            <div className="stat-value text-ink-1" data-sensitive>{headline}</div>
             {secondary && <div className="text-xs text-ink-2 leading-relaxed" data-sensitive>{secondary}</div>}
           </>
         ) : empty ? (
@@ -215,7 +216,7 @@ function NarrativeBanner({ home }: { home: HomeData | null }) {
             {home.updated && <span className="ml-3 text-ink-3">as of {home.updated}{home.updatedBy ? ` · via ${home.updatedBy}` : ""}</span>}
           </div>
           {home.oneSentence ? (
-            <p className="text-2xl lg:text-3xl font-medium leading-snug text-ink-1" data-sensitive>
+            <p className="page-title text-ink-1" data-sensitive>
               {home.oneSentence}
             </p>
           ) : domains.length > 0 ? (
@@ -292,37 +293,37 @@ function DomainGrid({
     <section>
       <PanelHeader title="Domains" className="mb-4" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <DomainCard title="Business" href="/business"
+        <DomainCard title="Business" href="/business" dim="money"
           headline={rev.total || null}
           secondary={rev.deals ? `${rev.deals} deals · largest ${rev.largest ?? "—"}` : null}
           empty={!rev.total ? "Wire finances pipeline to surface revenue" : undefined}
         />
-        <DomainCard title="Health" href="/health"
+        <DomainCard title="Health" href="/health" dim="health"
           headline={healthFileCount > 0 ? `${healthFileCount} sources` : null}
           secondary="Labs, fitness, nutrition tracked"
           empty={healthFileCount === 0 ? "Add health files to surface trends" : undefined}
         />
-        <DomainCard title="Work" href="/work"
+        <DomainCard title="Work" href="/work" dim="rhythms"
           pulse={projectCount > 0}
           headline={projectCount > 0 ? `${projectCount} active` : null}
           secondary="Projects in flight"
           empty={projectCount === 0 ? "No active projects tracked" : undefined}
         />
-        <DomainCard title="Finances" href="/finances"
+        <DomainCard title="Finances" href="/finances" dim="money"
           headline={accountCount > 0 ? `${accountCount} accounts` : null}
           secondary="Tracked accounts & categories"
           empty={accountCount === 0 ? "Add accounts to Finances/ domain" : undefined}
         />
-        <DomainCard title="Telos Goals" href="/telos"
+        <DomainCard title="Telos Goals" href="/telos" dim="creative"
           headline={goalCount > 0 ? `${goalCount} active` : null}
           secondary={goals?.mission?.[0]?.body?.slice(0, 80) ?? "Telos mission & goals"}
           empty={goalCount === 0 ? "Define goals in Telos/" : undefined}
         />
-        <DomainCard title="Telos" href="/telos"
+        <DomainCard title="Telos" href="/telos" dim="freedom"
           headline={`${goals?.mission?.length ?? 0} missions`}
           secondary={goals?.problems?.length ? `${goals.problems.length} problems · ${goals?.status?.length ?? 0} status entries` : null}
         />
-        <DomainCard title="Air Quality" href="/air"
+        <DomainCard title="Air Quality" href="/air" dim="health"
           headline={airHeadline}
           secondary={airSecondary}
           empty={airMonitorCount === 0 ? "Run the AirGradient poller to prime cache" : undefined}

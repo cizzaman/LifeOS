@@ -42,10 +42,12 @@ const config: Config = {
       'base': ['0.9375rem', { lineHeight: '1.5rem' }],  // 15px
       'lg': ['1.125rem', { lineHeight: '1.625rem' }],   // 18px
       'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px
-      '2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px
-      '3xl': ['1.875rem', { lineHeight: '2.25rem' }],   // 30px
-      '4xl': ['2.25rem', { lineHeight: '2.5rem' }],     // 36px
-      '5xl': ['3rem', { lineHeight: '1' }],             // 48px
+      // Keep legacy large-size utilities on the same 18–20px figure/title scale.
+      '2xl': ['var(--type-figure)', { lineHeight: '1.3' }],
+      '3xl': ['var(--type-figure)', { lineHeight: '1.3' }],
+      '4xl': ['var(--type-figure)', { lineHeight: '1.3' }],
+      '5xl': ['var(--type-figure)', { lineHeight: '1.3' }],
+      '6xl': ['var(--type-figure)', { lineHeight: '1.3' }],
     },
   	extend: {
   		/* Minimal rule: text, borders, rings and gradients never carry colour. Any chromatic

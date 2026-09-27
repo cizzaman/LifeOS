@@ -75,7 +75,7 @@ function Banner({ air }: { air: AirData | null }) {
       </div>
       <p
         className="text-ink-1 mt-2"
-        style={{ font: "500 clamp(22px, 2.5vw, 30px)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
+        style={{ font: "500 var(--type-figure)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
       >
         Worst AQI across {count} monitor{count === 1 ? "" : "s"}:{" "}
         <span className="inline-flex items-baseline gap-2 whitespace-nowrap">

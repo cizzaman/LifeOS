@@ -59,7 +59,7 @@ function fileMeta(name: string): FileMeta {
 function FileCard({ file }: { file: HealthFile }) {
   const meta = fileMeta(file.name);
   return (
-    <Panel hover>
+    <Panel hover dim="health">
       <PanelHeader
         title={meta.label}
         actions={
@@ -133,7 +133,7 @@ function parseSupplements(sections: Section[]): { items: Supplement[]; notes?: s
 function SupplementCard({ s }: { s: Supplement }) {
   const inactive = s.status && !/^active/i.test(s.status);
   return (
-    <Panel hover>
+    <Panel hover dim="health">
       <PanelHeader
         title={s.name}
         actions={
@@ -188,14 +188,17 @@ function SupplementsTab({ sections }: { sections: Section[] }) {
     <div className="space-y-6">
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         <StatTile
+          dim="health"
           label="Tracked"
           value={<span data-sensitive>{items.length}</span>}
         />
         <StatTile
+          dim="health"
           label="Daily"
           value={<span data-sensitive>{daily}</span>}
         />
         <StatTile
+          dim="health"
           label="Categories"
           value={<span data-sensitive>{categories.length}</span>}
         />
@@ -249,10 +252,12 @@ function OverviewTab({ files }: { files: HealthFile[] }) {
     <div className="space-y-6">
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         <StatTile
+          dim="health"
           label="Tracked Sources"
           value={<span data-sensitive>{files.length}</span>}
         />
         <StatTile
+          dim="health"
           label="Lab Panels"
           value={<span data-sensitive>{labs.length}</span>}
         />

@@ -624,7 +624,7 @@ export default function AlgorithmPage() {
                 {evals.map((s) => (
                   <div key={s.suite} className="rounded-[10px] border border-line-3 p-4">
                     <div className="label-caps mb-2 break-all">{s.suite}</div>
-                    <div className="mono text-2xl leading-none text-ink-1">
+                    <div className="stat-value text-ink-1">
                       {Math.round((s.pass_to_k ?? 0) * 100)}%
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-ink-3 mt-1.5">

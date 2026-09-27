@@ -303,7 +303,7 @@ export function Metrics({ telos, onTrace, showIds, openFile }: CommonSectionProp
                 {m.trend > 0 ? "↗" : m.trend < 0 ? "↘" : "·"} {Math.abs(m.trend)}
               </span>
             </div>
-            <MetricSpark pts={m.spark} color="var(--accent-blue)" />
+            <MetricSpark pts={m.spark} color={`var(${m.color}, var(--accent-blue))`} />
             <div className="metric-foot muted">
               feeds {m.feeds.join(", ")}
             </div>

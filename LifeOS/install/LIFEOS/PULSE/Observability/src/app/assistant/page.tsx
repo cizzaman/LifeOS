@@ -1045,7 +1045,7 @@ export default function AssistantPage() {
             ) : (
               <div
                 className="w-20 h-20 rounded-full flex items-center justify-center shrink-0 border border-line-3 text-ink-1"
-                style={{ font: "500 30px/1 var(--font-display)" }}
+                style={{ font: "500 var(--type-figure)/1 var(--font-display)" }}
               >
                 {identity.display_name.charAt(0)}
               </div>

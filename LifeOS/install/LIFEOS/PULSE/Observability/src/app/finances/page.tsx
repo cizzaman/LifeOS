@@ -243,8 +243,6 @@ const TOOLTIP_STYLE = {
 
 const AXIS_TICK = { fill: "var(--ink-3)", fontSize: 10, fontFamily: "var(--font-mono)" };
 
-const HERO_NUMBER = { font: "400 clamp(36px, 4.5vw, 48px)/1.1 var(--font-mono)", letterSpacing: "-0.03em" };
-
 function parseSubheadings(body: string): string[] {
   return body
     .split("\n")
@@ -265,6 +263,7 @@ function KpiChip({
 }) {
   return (
     <StatTile
+      dim="money"
       label={label}
       value={sensitive ? <span data-sensitive>{value}</span> : value}
     />
@@ -330,13 +329,13 @@ function IncomeHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative">
-      <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
+    <Panel dim="money" className="relative">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="label-caps">Total Annual Income</span>
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="label-caps">Total Annual Income</span>
       <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive="strong">
+        <span className="stat-value text-ink-1" data-sensitive="strong">
           {fmtHero(data.annual)}
         </span>
         <span className="mono text-[13px] text-ink-2" data-sensitive>
@@ -346,7 +345,7 @@ function IncomeHero({
       <span className="text-[13px] mt-1 block text-ink-3">
         Private. Toggle Observer mode to blur.
       </span>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-line-2">
         <KpiChip label="Monthly Recurring" value={fmtHero(data.mrr_monthly)} />
         <KpiChip label="MRR Annualized" value={fmtHero(data.mrr_annual)} />
         <KpiChip label="Streams" value={`${data.streams.length}`} sensitive={false} />
@@ -364,13 +363,13 @@ function OutboundHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative">
-      <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
+    <Panel dim="money" className="relative">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="label-caps">Total Annual Expenses</span>
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="label-caps">Total Annual Expenses</span>
       <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive>
+        <span className="stat-value text-ink-1" data-sensitive>
           {fmtHero(data.annual)}
         </span>
         <span className="mono text-[13px] text-ink-2" data-sensitive>
@@ -380,7 +379,7 @@ function OutboundHero({
       <span className="text-[13px] mt-1 block text-ink-3">
         Sum of vendors, personal obligations, and other.
       </span>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-line-2">
         <KpiChip label="Vendors" value={fmtHero(data.vendors_annual)} />
         <KpiChip label="Obligations" value={fmtHero(data.obligations_annual)} />
         <KpiChip label="Other" value={fmtHero(data.other_annual)} />
@@ -406,20 +405,20 @@ function OverallHero({
   const pre = periodView === "monthly" ? data.net_pre_tax_monthly : data.net_pre_tax_annual;
   const post = periodView === "monthly" ? data.net_post_tax_monthly : data.net_post_tax_annual;
   return (
-    <Panel className="relative">
-      <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
+    <Panel dim="money" className="relative">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="label-caps">
+          Net ({periodView === "monthly" ? "Monthly" : "Annual"})
+        </span>
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="label-caps">
-        Net ({periodView === "monthly" ? "Monthly" : "Annual"})
-      </span>
       <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive>
+        <span className="stat-value text-ink-1" data-sensitive>
           {fmtHero(pre)}
         </span>
         <span className="text-[13px] text-ink-2">pre-tax</span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-line-2">
         <KpiChip label="Post-Tax Net" value={fmtHero(post)} />
         <KpiChip
           label="Effective Tax Rate"
@@ -904,7 +903,7 @@ function CategoryBreakdown({ categories, total }: { categories: SpendInsights["b
                   </span>
                 </div>
                 <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: `${barPct}%` }} />
+                  <div className="progress-bar-fill" style={{ width: `${barPct}%`, background: "var(--money)" }} />
                 </div>
               </div>
             );

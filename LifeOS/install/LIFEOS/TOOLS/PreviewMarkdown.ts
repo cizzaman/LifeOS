@@ -33,6 +33,8 @@ const html = `<!DOCTYPE html>
   <style>
     :root {
       color-scheme: dark;
+      --type-base: clamp(11px, calc(11px + (100vw - 390px) / 525), 13px);
+      --type-figure: calc(var(--type-base) + 7px);
       --ground: #0a0a0a;
       --surface-1: #111111;
       --line-1: #1f1f1f;
@@ -63,13 +65,16 @@ const html = `<!DOCTYPE html>
       padding: 20px;
       font-family: "Albert Sans", system-ui, sans-serif;
       font-size: 15px;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
       line-height: 1.65;
       color: var(--ink-1);
       background: var(--ground);
     }
     h1, h2, h3 { font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; color: var(--ink-1); }
-    h1 { font-size: 2em; letter-spacing: -0.02em; margin-bottom: 0.5em; }
-    h2 { border-bottom: 1px solid var(--line-2); padding-bottom: 0.3em; margin-top: 1.5em; }
+    h1 { font-size: var(--type-figure); letter-spacing: -0.02em; margin-bottom: 0.5em; }
+    h2 { font-size: 16px; border-bottom: 1px solid var(--line-2); padding-bottom: 0.3em; margin-top: 1.5em; }
+    h3 { font-size: 15px; }
     h4, h5, h6 { font: 400 10px/1.4 "Fira Code", ui-monospace, monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
     p, li { color: var(--ink-1); }
     li::marker { color: var(--ink-3); }
