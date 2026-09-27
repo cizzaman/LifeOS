@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { THEMES, setTheme, syncStoredTheme, useTheme } from "@/lib/theme";
+import { THEMES, setTheme, syncStoredTheme, useTheme, watchIcons } from "@/lib/theme";
 
 /** Personal OS theme swatches: a circle split between the theme's ground and its accent. */
 const SWATCH: Record<string, { ground: string; accent: string }> = {
@@ -12,7 +12,10 @@ const SWATCH: Record<string, { ground: string; accent: string }> = {
 
 export function ThemeSwitch({ className }: { className?: string }) {
   const theme = useTheme();
-  useEffect(syncStoredTheme, []);
+  useEffect(() => {
+    syncStoredTheme();
+    return watchIcons();
+  }, []);
   return (
     <div role="group" aria-label="Theme" className={cn("flex items-center gap-1", className)}>
       {THEMES.map(({ id, label }) => {

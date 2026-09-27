@@ -22,11 +22,21 @@ export const THEME_EVENT = "pulse-theme";
 
 const valid = (value: unknown): Theme => (value === "light" ? "light" : "dark");
 
+/** The pre-paint script's ICON_SWAP in TypeScript: the tab icon follows the header mark in both themes. */
+function swapIcons(theme: Theme) {
+  document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]').forEach((link) => {
+    const href = link.getAttribute("href") ?? "";
+    const next = href.replace(/(pulse-(?:icon|touch))-(?:dark|light)/, `$1-${theme}`);
+    if (next !== href) link.setAttribute("href", next);
+  });
+}
+
 function apply(theme: Theme) {
   const d = document.documentElement;
   d.setAttribute("data-theme", theme);
   d.classList.toggle("dark", theme === "dark");
   d.style.colorScheme = theme;
+  swapIcons(theme);
 }
 
 export function getTheme(): Theme {
@@ -47,9 +57,17 @@ export function setTheme(theme: Theme) {
 export function syncStoredTheme() {
   let stored: Theme = "dark";
   try { stored = valid(localStorage.getItem(THEME_KEY)); } catch { /* keep dark */ }
+  swapIcons(stored);
   if (getTheme() === stored && document.documentElement.classList.contains("dark") === (stored === "dark")) return;
   apply(stored);
   window.dispatchEvent(new Event(THEME_EVENT));
+}
+
+/** Next re-inserts the metadata icon links on hydration and client navigation; keep every copy on the active theme. */
+export function watchIcons() {
+  const observer = new MutationObserver(() => swapIcons(getTheme()));
+  observer.observe(document.head, { childList: true });
+  return () => observer.disconnect();
 }
 
 function subscribe(onChange: () => void) {

@@ -420,7 +420,13 @@ function renderKanbanHTML(): string {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pulse | Work</title>
-<script>(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>
+<link rel="icon" type="image/svg+xml" href="/pulse-icon-dark.svg" />
+<link rel="icon" type="image/png" sizes="64x64" href="/pulse-icon-dark.png" />
+<link rel="apple-touch-icon" href="/pulse-touch-dark.png" />
+<script>
+function pulseIcons(t){document.querySelectorAll('link[rel~="icon"],link[rel="apple-touch-icon"]').forEach(function(l){var h=l.getAttribute("href")||"",n=h.replace(/(pulse-(?:icon|touch))-(?:dark|light)/,"$1-"+t);if(n!==h)l.setAttribute("href",n);});}
+(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;pulseIcons(t);}catch(e){}})()
+</script>
 <style>
   @font-face { font-family: "Albert Sans"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/albert-sans-latin-wght-normal.woff2") format("woff2-variations"); }
   @font-face { font-family: "Outfit"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/outfit-latin-wght-normal.woff2") format("woff2-variations"); }
@@ -685,6 +691,7 @@ function renderKanbanHTML(): string {
   function apply(t) {
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.style.colorScheme = t;
+    pulseIcons(t);
     document.querySelectorAll(".theme-swatch").forEach(function(b){ b.classList.toggle("active", b.dataset.themeChoice === t); });
   }
   document.querySelectorAll(".theme-swatch").forEach(function(b){

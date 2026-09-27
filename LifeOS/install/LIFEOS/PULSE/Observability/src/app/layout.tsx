@@ -13,8 +13,13 @@ import "./telos/_v7/styles.css";
 export const metadata: Metadata = {
   title: "Pulse | Home",
   description: "LifeOS Observability Dashboard",
+  // The header mark (.fig-hub) on the header ground; theme-script swaps -dark for -light.
   icons: {
-    icon: "/lifeos-logo.svg",
+    icon: [
+      { url: "/pulse-icon-dark.svg", type: "image/svg+xml" },
+      { url: "/pulse-icon-dark.png", type: "image/png", sizes: "64x64" },
+    ],
+    apple: "/pulse-touch-dark.png",
   },
 };
 
