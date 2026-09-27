@@ -46,6 +46,34 @@
   --display: "Outfit", "Albert Sans", system-ui, sans-serif;
 }
 
+/* Light yellow — same tokens, dark stays the default. Switched by the
+ * top-right theme-switch (below) or shared via localStorage `pulse-theme`
+ * when this page is opened from the Pulse origin. */
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --ground: #faf9f5;
+  --surface-1: #fff7ed;
+  --surface-3: #f8ecdc;
+
+  --line-1: #efe4d6;
+  --line-2: #e7d8c8;
+  --line-3: #cfb797;
+
+  --ink-1: #292524;
+  --ink-2: #57534e;
+  --ink-3: #6b625b;
+
+  --accent: #9a5800;
+  --primary-soft: rgba(154, 88, 0, 0.12);
+
+  /* Data only — status keys */
+  --ok: #15803d;
+  --warn: #c27b26;
+  --err: #991b1b;
+  --antecedent: #6d28d9;
+}
+
 * { box-sizing: border-box; }
 
 ::selection { background: var(--primary-soft); color: var(--ink-1); }
@@ -690,6 +718,42 @@ td code { font-size: 11px; padding: 1px 4px; }
 
 .footer .left { overflow-wrap: anywhere; text-align: left; }
 .footer .right { color: var(--ink-2); }
+
+/* ───────────────────────── THEME SWITCH ───────────────────────── */
+/* Standalone pages have no host app to toggle from — two 28px swatches,
+ * fixed top-right, write `pulse-theme` directly. */
+
+.theme-switch {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+}
+
+.theme-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 3px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.theme-swatch:hover { border-color: var(--line-3); }
+.theme-swatch.active { border-color: var(--accent); background: var(--primary-soft); }
+
+.theme-swatch::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(var(--swatch-ground) 0deg 180deg, var(--swatch-accent) 180deg 360deg);
+}
+.theme-swatch-dark  { --swatch-ground: #0a0a0a; --swatch-accent: #3fb2c9; }
+.theme-swatch-light { --swatch-ground: #faf9f5; --swatch-accent: #9a5800; }
 
 /* ───────────────────────── RESPONSIVE ───────────────────────── */
 

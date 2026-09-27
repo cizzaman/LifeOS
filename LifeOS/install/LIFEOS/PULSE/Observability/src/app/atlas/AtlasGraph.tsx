@@ -19,12 +19,12 @@ const KIND_COLOR: Record<string, string> = {
   dns_record: "var(--line-3)",
   target: "var(--warn)",
   system: "var(--err)",
-  repo: "#a78bfa",
-  service: "#5cc4d8",
+  repo: "var(--data-violet)",
+  service: "var(--data-teal)",
   machine: "var(--err)",
-  d1_database: "#f87171",
-  r2_bucket: "#f87171",
-  kv_namespace: "#f87171",
+  d1_database: "var(--data-red)",
+  r2_bucket: "var(--data-red)",
+  kv_namespace: "var(--data-red)",
   device: "var(--ink-3)",
 };
 /** Node colour per asset kind — data only: graph marks and their legend keys. */

@@ -57,10 +57,10 @@ export default function GraphPage() {
         {/* Legend — key colours are the graph node colour scale */}
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1">
           {[
-            { label: "System", color: "#5cc4d8" },
-            { label: "People", color: "#5cc4d8" },
-            { label: "Companies", color: "#f5c451" },
-            { label: "Ideas", color: "#a78bfa" },
+            { label: "System", color: "var(--data-teal)" },
+            { label: "People", color: "var(--data-teal)" },
+            { label: "Companies", color: "var(--data-amber)" },
+            { label: "Ideas", color: "var(--data-violet)" },
           ].map((item) => (
             <span key={item.label} className="inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-2">
               <span className="fig-key is-round" style={{ color: item.color }} />

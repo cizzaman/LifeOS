@@ -3,6 +3,7 @@ import AppHeader from "@/components/AppHeader";
 import ObserverScope from "@/components/ObserverScope";
 import SecurityBanner from "@/components/SecurityBanner";
 import { observerScopeScript } from "@/lib/observer";
+import { themeScript } from "@/lib/theme-script";
 import CommandPalette from "@/components/palette/CommandPalette";
 import TemplateOnboarding from "@/components/TemplateOnboarding";
 import { Providers } from "./providers";
@@ -23,11 +24,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Pre-paint: applies observer class + route scope before first render so
             a reload with observer on never flashes personal data. */}
         <script dangerouslySetInnerHTML={{ __html: observerScopeScript() }} />
+        {/* Theme: the script alone owns data-theme and .dark on <html>, so a client re-render
+            (a redirect, an error boundary) can never put the other theme back. */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
       </head>
       <body className="font-sans">
         <Providers>

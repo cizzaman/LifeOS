@@ -1,4 +1,4 @@
-import { type, space, radius, motion, layout, cssVars, type Mode } from "./Theme";
+import { type, space, radius, motion, layout, cssVars, THEME_PREPAINT_SCRIPT, type Mode } from "./Theme";
 import type { CollectionPage, NarrativePage, ReferencePage, IndexPage, PageData } from "../Schema/PulseSchema";
 import type { DataPlaneIndex } from "../lib/data-plane";
 
@@ -30,11 +30,11 @@ function mdBlock(s: string): string {
   return html;
 }
 
-export function baseStyles(mode: Mode): string {
+export function baseStyles(): string {
   const caps = `font-family: ${type.fontMono}; font-size: 10px; font-weight: ${type.weight.normal}; letter-spacing: 0.16em; text-transform: uppercase;`;
   const key = `content: ""; display: inline-block; flex: none; width: 7px; height: 7px; border: 1px solid currentColor; background: color-mix(in srgb, currentColor 14%, transparent);`;
   return `
-    :root { ${cssVars(mode)} }
+    ${cssVars()}
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: var(--c-bg); color: var(--c-text); font-family: ${type.fontSans}; font-size: 15px; line-height: ${type.lineHeight.normal}; -webkit-font-smoothing: antialiased; }
     a { color: var(--c-text); text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: var(--c-borderStrong); text-underline-offset: 3px; transition: text-decoration-color ${motion.fast}; }
@@ -98,6 +98,10 @@ export function baseStyles(mode: Mode): string {
 }
 
 export function renderShell(opts: {
+  // Seeds the initial data-theme attribute (before THEME_PREPAINT_SCRIPT
+  // corrects it from localStorage). Dark stays the product default; callers
+  // that don't run JS against the output (snapshot/screenshot tooling) still
+  // get a deterministic render, which is the one reason this param stays.
   mode: Mode;
   pageId: string;
   pageTitle: string;
@@ -114,12 +118,13 @@ export function renderShell(opts: {
     .join("\n");
 
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="${escape(mode)}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pulse | ${escape(pageTitle)}</title>
-<style>${baseStyles(mode)}</style>
+${THEME_PREPAINT_SCRIPT}
+<style>${baseStyles()}</style>
 </head>
 <body>
 <div class="layout">

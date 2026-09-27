@@ -155,7 +155,7 @@ export function Panel({
   return (
     <Tag
       className={cn(
-        "bg-transparent border border-line-3 rounded-[10px] p-6 max-sm:p-4",
+        "bg-[color:var(--panel)] border border-line-3 rounded-[10px] p-6 max-sm:p-4",
         hover && "transition-colors duration-200 hover:border-[color:var(--accent-blue)] hover:bg-[color:var(--primary-soft)]",
         onClick && "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-blue)]",
         className

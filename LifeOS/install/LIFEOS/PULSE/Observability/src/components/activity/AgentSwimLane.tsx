@@ -4,6 +4,7 @@ import { useRef, useEffect, useMemo, useCallback } from "react";
 import type { HookEvent } from "@/hooks/useAgentEvents";
 import { useChartData, type TimeRange } from "@/hooks/useChartData";
 import { createChartRenderer, chartColorsFromTokens, type ChartDimensions } from "./ChartRenderer";
+import { useTheme } from "@/lib/theme";
 import { Brain, Wrench, Clock, X, Zap, Loader2 } from "lucide-react";
 
 function formatGap(ms: number): string {
@@ -36,6 +37,7 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
   const processedIdsRef = useRef(new Set<string>());
   const renderLoopRef = useRef<number | null>(null);
   const chartHeight = 80;
+  const theme = useTheme();
 
   const appName = useMemo(() => agentName.split(":")[0], [agentName]);
   const [targetAgent, targetSession] = useMemo(() => agentName.split(":"), [agentName]);
@@ -141,6 +143,11 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
       rendererRef.current?.stopAnimation();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Theme switch — re-resolve the token palette; the running render loop repaints with it.
+  useEffect(() => {
+    rendererRef.current?.updateColors(chartColorsFromTokens());
+  }, [theme]);
 
   // Process events (filter by agent)
   useEffect(() => {

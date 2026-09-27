@@ -99,7 +99,12 @@ const server = Bun.serve({
       console.log('[yt-auth] SUCCESS');
       setTimeout(() => { server.stop(); process.exit(0); }, 200);
       return new Response(
-        `<html><body style="font:15px/1.6 system-ui,sans-serif;background:#0a0a0a;color:#f0e8d8;padding:40px 16px;max-width:40rem;margin:0 auto"><h2 style="font-weight:500">Conveyor ✓</h2><p>YouTube credential minted for: <b>${title}</b></p><p>You can close this tab.</p></body></html>`,
+        `<!doctype html><html><head><meta charset="utf-8">` +
+        `<script>(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>` +
+        `<style>:root{color-scheme:dark;--bg:#0a0a0a;--ink:#f0e8d8}html[data-theme="light"]{color-scheme:light;--bg:#faf9f5;--ink:#292524}` +
+        `body{font:15px/1.6 system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:40px 16px;max-width:40rem;margin:0 auto}` +
+        `h2{font-weight:500}</style></head>` +
+        `<body><h2>Conveyor ✓</h2><p>YouTube credential minted for: <b>${title}</b></p><p>You can close this tab.</p></body></html>`,
         { headers: { 'Content-Type': 'text/html' } },
       );
     } catch (e) {

@@ -772,6 +772,9 @@
 html[data-palette="tokyo-mono"] {
   --health:#b8b5ac; --money:#d6d2c8; --freedom:#e8e3d5; --creative:#b8b5ac; --relationships:#d6d2c8; --rhythms:#b8b5ac; --infrastructure:#a8a59f;
 }
+html[data-theme="light"][data-palette="tokyo-mono"] {
+  --health:#6b625b; --money:#57534e; --freedom:#292524; --creative:#6b625b; --relationships:#57534e; --rhythms:#6b625b; --infrastructure:#8a8178;
+}
 html[data-palette="cb-safe"] {
   --health:#56b4e9; --money:#e69f00; --freedom:#0072b2; --creative:#cc79a7; --relationships:#a78bfa; --rhythms:#009e73; --infrastructure:#7d7d7d;
 }

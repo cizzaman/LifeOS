@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import KnowledgeGraph from "@/components/wiki/KnowledgeGraph";
 import { wikiPageUrl } from "@/lib/wiki-links";
+import { useTheme as usePulseTheme, cssVar } from "@/lib/theme";
 import { Search, ArrowLeft, CornerDownRight, ExternalLink, X } from "lucide-react";
 
 interface MemNode { id: string; title: string; category: string; backlinkCount: number; silo: string; type: string; tags: string[]; pagerank: number }
@@ -30,25 +31,25 @@ function noteUrl(node: MemNode): string | null {
 }
 
 // Stable type identity: same hue everywhere, every time. Overview slots keep
-// knowledge visible next to the much larger work corpus.
-const TYPES: Array<{ key: string; label: string; color: string; slots: number }> = [
-  { key: "person", label: "People", color: "#5cc4d8", slots: 16 },
-  { key: "company", label: "Companies", color: "#f5c451", slots: 14 },
-  { key: "idea", label: "Ideas", color: "#a78bfa", slots: 20 },
-  { key: "blog", label: "Blogs", color: "#98a8b3", slots: 10 },
-  { key: "book", label: "Books", color: "#f87171", slots: 5 },
-  { key: "research", label: "Research", color: "#5cc4d8", slots: 12 },
-  { key: "isa", label: "ISAs", color: "#22c55e", slots: 16 },
-  { key: "lesson", label: "Lessons", color: "#a3e635", slots: 8 },
-  { key: "wisdom", label: "Wisdom", color: "#e879f9", slots: 8 },
+// knowledge visible next to the much larger work corpus. token/fallback (not a
+// literal colour) so the canvas colorMap and the legend swatches both track the
+// active theme's --data-* palette.
+const TYPES: Array<{ key: string; label: string; token: string; fallback: string; slots: number }> = [
+  { key: "person", label: "People", token: "--data-teal", fallback: "#5cc4d8", slots: 16 },
+  { key: "company", label: "Companies", token: "--data-amber", fallback: "#f5c451", slots: 14 },
+  { key: "idea", label: "Ideas", token: "--data-violet", fallback: "#a78bfa", slots: 20 },
+  { key: "blog", label: "Blogs", token: "--data-grey", fallback: "#98a8b3", slots: 10 },
+  { key: "book", label: "Books", token: "--data-red", fallback: "#f87171", slots: 5 },
+  { key: "research", label: "Research", token: "--data-teal", fallback: "#5cc4d8", slots: 12 },
+  { key: "isa", label: "ISAs", token: "--data-green", fallback: "#22c55e", slots: 16 },
+  { key: "lesson", label: "Lessons", token: "--data-lime", fallback: "#a3e635", slots: 8 },
+  { key: "wisdom", label: "Wisdom", token: "--data-pink", fallback: "#e879f9", slots: 8 },
 ];
-const TYPE_COLOR: Record<string, string> = Object.fromEntries(TYPES.map((t) => [t.key, t.color]));
 const KIND_ORDER = ["related", "wikilink", "inferred", "tag"];
 const KIND_LABEL: Record<string, string> = { related: "Declared (typed)", wikilink: "Wikilinks", inferred: "Inferred (similar)", tag: "Shared tags" };
 const NEIGHBOR_CAP = 36;
 const THEME_NODE_CAP = 140;
 
-const key = (type: string) => ({ color: TYPE_COLOR[type] ?? "var(--ink-3)" });
 const TOGGLE = "rounded-full border mono text-[10px] uppercase tracking-[0.1em] transition-colors";
 const TOGGLE_OFF = "border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)]";
 const TOGGLE_ON = "border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)] text-ink-1";
@@ -59,6 +60,15 @@ export default function MemoryGraphPage() {
   const [q, setQ] = useState("");
   const [theme, setTheme] = useState<string | null>(null);
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
+
+  // Resolved once per theme (dark/light), not on every render — canvas colorMap
+  // and legend swatches both read from this.
+  const pulseTheme = usePulseTheme();
+  const TYPE_COLOR = useMemo(
+    () => Object.fromEntries(TYPES.map((t) => [t.key, cssVar(t.token, t.fallback)])) as Record<string, string>,
+    [pulseTheme]
+  );
+  const key = (type: string) => ({ color: TYPE_COLOR[type] ?? "var(--ink-3)" });
 
   // The viewer owns everything from below the header to the bottom of the
   // viewport. Measured, not guessed — the header wraps to a second row at
@@ -243,7 +253,7 @@ export default function MemoryGraphPage() {
                   return (
                     <button key={t.key} onClick={() => toggleType(t.key)}
                       className={"flex items-center gap-2.5 w-full text-left px-2 py-1 rounded-[10px] text-ink-2 hover:text-ink-1 transition-colors " + (off ? "opacity-35" : "")}>
-                      <span className="fig-key" style={{ color: t.color }} />
+                      <span className="fig-key" style={key(t.key)} />
                       <span className="flex-1 text-[13px]">{t.label}</span>
                       <span className="mono text-[10px] text-ink-3">{(typeCounts[t.key] ?? 0).toLocaleString()}</span>
                     </button>

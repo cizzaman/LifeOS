@@ -29,6 +29,8 @@
     --surface-1: #111111;     /* modals, popovers, toolbars */
     --surface-2: #0a0a0a;     /* the card: the ground itself, drawn by its hairline */
     --surface-3: #141414;     /* hover / pressed */
+    --panel: transparent;     /* Panel fill: the ground shows through in dark, cream paper in light */
+    --scrim: rgba(0, 0, 0, 0.6);
     /* Lines */
     --line-1: #1f1f1f;        /* subtle hairline */
     --line-2: #262626;        /* card border */
@@ -52,6 +54,18 @@
     --creative: #f97316;
     --relationships: #a78bfa;
     --rhythms: #3fb2c9;
+    /* Extra data hues for categorical series (graph node types, agent lanes) */
+    --data-teal: #5cc4d8;
+    --data-amber: #f5c451;
+    --data-violet: #a78bfa;
+    --data-red: #f87171;
+    --data-green: #22c55e;
+    --data-lime: #a3e635;
+    --data-pink: #e879f9;
+    --data-grey: #98a8b3;
+    /* Neutral ramp behind the folded Tailwind greys: 50 reads as ink, 950 as ground */
+    --n-50: #f0e8d8; --n-100: #e4ddcf; --n-200: #d9d2c4; --n-300: #b8b5ac; --n-400: #98a8b3; --n-500: #6b7d89;
+    --n-600: #55636d; --n-700: #3a3a3a; --n-750: #4a4a4a; --n-800: #262626; --n-900: #161616; --n-950: #0a0a0a;
     /* One clock for every figure */
     --cycle: 10s;
     /* Legacy alias kept while stragglers migrate */
@@ -84,6 +98,73 @@
     --chart-4: 255 92% 76%;
     --chart-5: 0 91% 71%;
   }
+
+  /* «Light yellow» — the Personal OS light theme: warm paper ground, cream panels and
+     modals, tan hairlines, near-black ink, one brown accent. Same rules as dark:
+     colour only in data. */
+  html[data-theme="light"] {
+    color-scheme: light;
+    --ground: #faf9f5;
+    --surface-1: #fff7ed;
+    --surface-2: #fff7ed;
+    --surface-3: #f8ecdc;
+    --panel: var(--surface-2);
+    --scrim: rgba(41, 37, 36, 0.28);
+    --line-1: #efe4d6;
+    --line-2: #e7d8c8;
+    --line-3: #cfb797;
+    --ink-1: #292524;
+    --ink-2: #57534e;
+    --ink-3: #6b625b;
+    --accent-blue: #9a5800;
+    --accent-soft: #6b3c00;
+    --primary-soft: rgba(154, 88, 0, 0.12);
+    --ok: #15803d;
+    --warn: #c27b26;
+    --err: #991b1b;
+    --health: #15803d;
+    --money: #c27b26;
+    --freedom: #1f7f92;
+    --creative: #c2410c;
+    --relationships: #6d28d9;
+    --rhythms: #9a5800;
+    --neon-blue: #9a5800;
+    --data-teal: #1f7f92;
+    --data-amber: #c27b26;
+    --data-violet: #6d28d9;
+    --data-red: #b91c1c;
+    --data-green: #15803d;
+    --data-lime: #4d7c0f;
+    --data-pink: #a21caf;
+    --data-grey: #6b625b;
+    --n-50: #292524; --n-100: #3a3430; --n-200: #4a433d; --n-300: #57534e; --n-400: #6b625b; --n-500: #8a8178;
+    --n-600: #b3a491; --n-700: #cfb797; --n-750: #cfb797; --n-800: #e7d8c8; --n-900: #f8ecdc; --n-950: #faf9f5;
+
+    --background: 48 33% 97%;         /* #faf9f5 */
+    --foreground: 12 6% 15%;          /* #292524 */
+    --card: 33 100% 96%;              /* #fff7ed */
+    --card-foreground: 12 6% 15%;
+    --popover: 33 100% 96%;
+    --popover-foreground: 12 6% 15%;
+    --primary: 34 100% 30%;           /* #9a5800 */
+    --primary-foreground: 33 100% 96%;
+    --secondary: 34 67% 92%;          /* #f8ecdc */
+    --secondary-foreground: 12 6% 15%;
+    --muted: 34 67% 92%;
+    --muted-foreground: 33 5% 32%;    /* #57534e */
+    --accent: 34 67% 92%;
+    --accent-foreground: 12 6% 15%;
+    --destructive: 0 70% 35%;         /* #991b1b */
+    --destructive-foreground: 33 100% 96%;
+    --border: 31 39% 85%;             /* #e7d8c8 */
+    --input: 31 39% 85%;
+    --ring: 34 100% 30%;
+    --chart-1: 34 100% 30%;
+    --chart-2: 33 67% 45%;
+    --chart-3: 142 72% 29%;
+    --chart-4: 263 70% 50%;
+    --chart-5: 0 70% 35%;
+  }
 }
 
 @layer base {
@@ -93,6 +174,8 @@
   html, body {
     overflow-x: hidden; /* Prevent horizontal scroll on mobile */
   }
+  html { background: var(--ground); }
+  ::selection { background: var(--primary-soft); color: var(--ink-1); }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
@@ -138,7 +221,7 @@
   b, strong { font-weight: 500; }
 }
 
-/* Custom scrollbar - thin & dark */
+/* Custom scrollbar - thin, on the muted ink */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -330,7 +413,7 @@ html.observer-active [data-sensitive]::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(10, 10, 10, 0.15);
+  background: color-mix(in srgb, var(--ground) 15%, transparent);
   border-radius: inherit;
   pointer-events: none;
 }

@@ -1048,14 +1048,41 @@ async function main() {
       if (req.method === "GET" && !pathname.includes(".") && !pathname.startsWith("/api/") && dashboardHealth(config).status === "missing") {
         const cmd = `cd ${PULSE_DIR}/Observability && bun install && bun run build`
         return new Response(
-          `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pulse — dashboard build missing</title></head>` +
-          `<body style="font:15px/1.6 system-ui,sans-serif;background:#0a0a0a;color:#f0e8d8;padding:3rem 1rem;max-width:48rem;margin:0 auto">` +
-          `<h1 style="font-weight:500;font-size:28px;line-height:1.2;color:#f0e8d8">Pulse is running, but the dashboard build is missing</h1>` +
+          `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pulse — dashboard build missing</title>` +
+          `<script>(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>` +
+          `<style>` +
+          `:root{color-scheme:dark;--ground:#0a0a0a;--surface-1:#111111;--line-1:#1f1f1f;--line-2:#262626;--line-3:#3a3a3a;--ink-1:#f0e8d8;--accent:#3fb2c9;--primary-soft:rgba(63,178,201,.12)}` +
+          `html[data-theme="light"]{color-scheme:light;--ground:#faf9f5;--surface-1:#fff7ed;--line-1:#efe4d6;--line-2:#e7d8c8;--line-3:#cfb797;--ink-1:#292524;--accent:#9a5800;--primary-soft:rgba(154,88,0,.12)}` +
+          `body{font:15px/1.6 system-ui,sans-serif;background:var(--ground);color:var(--ink-1);padding:3rem 1rem;max-width:48rem;margin:0 auto}` +
+          `h1{font-weight:500;font-size:28px;line-height:1.2;color:var(--ink-1)}` +
+          `code{background:var(--surface-1);border:1px solid var(--line-2)}` +
+          `pre{font:12px/1.6 ui-monospace,monospace;background:var(--surface-1);border:1px solid var(--line-2);border-radius:10px;padding:1rem;overflow-x:auto}` +
+          `a{color:var(--ink-1);text-decoration-color:var(--line-3);text-underline-offset:3px}` +
+          `.theme-switch{position:fixed;top:16px;right:16px;z-index:100;display:flex;gap:8px}` +
+          `.theme-swatch{width:28px;height:28px;padding:3px;border:1px solid transparent;border-radius:50%;background:transparent;cursor:pointer}` +
+          `.theme-swatch:hover{border-color:var(--line-3)}` +
+          `.theme-swatch.active{border-color:var(--accent);background:var(--primary-soft)}` +
+          `.theme-swatch::before{content:"";display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--swatch-ground) 0deg 180deg,var(--swatch-accent) 180deg 360deg)}` +
+          `.theme-swatch-dark{--swatch-ground:#0a0a0a;--swatch-accent:#3fb2c9}` +
+          `.theme-swatch-light{--swatch-ground:#faf9f5;--swatch-accent:#9a5800}` +
+          `</style></head>` +
+          `<body>` +
+          `<div class="theme-switch" role="group" aria-label="Theme">` +
+          `<button type="button" class="theme-swatch theme-swatch-dark" data-theme-choice="dark" aria-label="Dark theme" title="Dark"></button>` +
+          `<button type="button" class="theme-swatch theme-swatch-light" data-theme-choice="light" aria-label="Light theme" title="Light"></button>` +
+          `</div>` +
+          `<h1>Pulse is running, but the dashboard build is missing</h1>` +
           `<p>The server and APIs are up. The Next.js static export at <code>Observability/out/</code> ` +
           `does not exist (usually a fresh clone or cleaned build artifacts).</p>` +
-          `<p>Rebuild it:</p><pre style="font:12px/1.6 ui-monospace,monospace;background:#111111;border:1px solid #262626;border-radius:10px;padding:1rem;overflow-x:auto">${cmd}</pre>` +
+          `<p>Rebuild it:</p><pre>${cmd}</pre>` +
           `<p>Then reload — no Pulse restart needed.</p>` +
-          `<p><a style="color:#f0e8d8;text-decoration-color:#3a3a3a;text-underline-offset:3px" href="/healthz">/healthz</a> shows full subsystem status.</p>` +
+          `<p><a href="/healthz">/healthz</a> shows full subsystem status.</p>` +
+          `<script>(function(){` +
+          `var KEY="pulse-theme";` +
+          `function apply(t){document.documentElement.setAttribute("data-theme",t);document.documentElement.style.colorScheme=t;document.querySelectorAll(".theme-swatch").forEach(function(b){b.classList.toggle("active",b.dataset.themeChoice===t)});}` +
+          `document.querySelectorAll(".theme-swatch").forEach(function(b){b.addEventListener("click",function(){var t=b.dataset.themeChoice;try{localStorage.setItem(KEY,t)}catch(e){}apply(t)})});` +
+          `apply(document.documentElement.getAttribute("data-theme")||"dark");` +
+          `})();</script>` +
           `</body></html>`,
           { status: 503, headers: { "Content-Type": "text/html" } },
         )

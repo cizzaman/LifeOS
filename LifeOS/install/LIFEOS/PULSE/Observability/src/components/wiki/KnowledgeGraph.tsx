@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
+import { useTheme } from "@/lib/theme";
 
 interface GraphNode {
   id: string;
@@ -27,16 +28,18 @@ interface KnowledgeGraphProps {
   colorMap?: Record<string, string>;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  "system-doc": "#5cc4d8",
-  person: "#5cc4d8",
-  company: "#f5c451",
-  idea: "#a78bfa",
-  blog: "#f87171",
-  book: "#f87171",
+/** DOM-only fallback (the tooltip is real HTML, so it can reference the vars directly). */
+const CATEGORY_CSS_VARS: Record<string, string> = {
+  "system-doc": "var(--data-teal)",
+  person: "var(--data-teal)",
+  company: "var(--data-amber)",
+  idea: "var(--data-violet)",
+  blog: "var(--data-red)",
+  book: "var(--data-red)",
 };
 
-/** Canvas can't read CSS vars per stroke, so resolve the Pulse tokens once. */
+/** Canvas can't read CSS vars per stroke, so resolve the Pulse tokens (including the
+ * category palette) once per theme — the theme-change effect below invalidates the cache. */
 function readTokens() {
   const css = typeof window !== "undefined" ? getComputedStyle(document.documentElement) : null;
   const v = (name: string, fallback: string) => css?.getPropertyValue(name).trim() || fallback;
@@ -47,6 +50,14 @@ function readTokens() {
     ink2: v("--ink-2", "#98a8b3"),
     ink3: v("--ink-3", "#6b7d89"),
     accent: v("--accent-blue", "#3fb2c9"),
+    categoryColors: {
+      "system-doc": v("--data-teal", "#5cc4d8"),
+      person: v("--data-teal", "#5cc4d8"),
+      company: v("--data-amber", "#f5c451"),
+      idea: v("--data-violet", "#a78bfa"),
+      blog: v("--data-red", "#f87171"),
+      book: v("--data-red", "#f87171"),
+    } as Record<string, string>,
   };
 }
 type Tokens = ReturnType<typeof readTokens>;
@@ -80,6 +91,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
   const colorMapRef = useRef(colorMap);
   colorMapRef.current = colorMap;
   const tokensRef = useRef<Tokens | null>(null);
+  const theme = useTheme();
 
   const stateRef = useRef<{
     simNodes: SimNode[];
@@ -100,6 +112,12 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
   const markDirty = useCallback(() => {
     if (stateRef.current) stateRef.current.needsRender = true;
   }, []);
+
+  // Theme switch — drop the cached token read so the next frame re-resolves it, and repaint.
+  useEffect(() => {
+    tokensRef.current = null;
+    markDirty();
+  }, [theme, markDirty]);
 
   const render = useCallback(() => {
     const state = stateRef.current;
@@ -151,7 +169,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
       const isActive = n.id === active;
       const isNeighbor = activeNeighbors?.has(n.id) ?? false;
       const dimmed = active !== null && !isActive && !isNeighbor;
-      const color = cmap?.[n.category] || CATEGORY_COLORS[n.category] || tk.ink3;
+      const color = cmap?.[n.category] || tk.categoryColors[n.category] || tk.ink3;
       const base = dimmed ? dimAlpha : 1;
 
       ctx.beginPath();
@@ -438,7 +456,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     function showTooltip(n: SimNode, mx: number, my: number) {
       const state = stateRef.current;
       if (!state) return;
-      const color = colorMapRef.current?.[n.category] || CATEGORY_COLORS[n.category] || "var(--ink-3)";
+      const color = colorMapRef.current?.[n.category] || CATEGORY_CSS_VARS[n.category] || "var(--ink-3)";
       tooltipEl.innerHTML =
         `<div class="label-caps" style="display: flex; align-items: center; gap: 6px"><span class="fig-key" style="color: ${color}"></span>${n.category.replace("-", " ")}</div>` +
         `<div style="font-size: 13px; line-height: 1.4; color: var(--ink-1); margin-top: 4px">${n.title}</div>` +

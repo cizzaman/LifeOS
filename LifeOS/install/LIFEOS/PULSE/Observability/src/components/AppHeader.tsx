@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Menu, X, Eye, EyeOff } from "lucide-react";
 import { useObserverMode } from "@/contexts/ObserverModeContext";
 import { TabFreshnessPill } from "@/components/TabFreshnessPill";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 // Nav manifest is shared with the command palette — single source of truth.
 // AGENTS (metaNav) is pinned in the right cluster on EVERY page — it's the
 // meta view of the system working on itself, never part of the scrolling row.
@@ -68,7 +69,7 @@ export default function AppHeader() {
   return (
     <header
       className="sticky top-0 z-50"
-      style={{ background: "var(--ground)" }}
+      style={{ background: "var(--surface-2)" }}
     >
       {/* ── Tier 1 — persistent global nav (the only always-on menu) ── */}
       <div className="border-b border-line-1">
@@ -136,6 +137,8 @@ export default function AppHeader() {
                 System
               </Link>
 
+              <ThemeSwitch />
+
               <button
                 onClick={toggleObserverMode}
                 className={cn(
@@ -151,7 +154,7 @@ export default function AppHeader() {
               </button>
               <button
                 onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="flex md:hidden items-center justify-center w-10 h-10 rounded-lg text-ink-3 hover:text-ink-1 hover:bg-white/5 transition-colors"
+                className="flex md:hidden items-center justify-center w-10 h-10 rounded-lg text-ink-3 hover:text-ink-1 hover:bg-[color:var(--surface-3)] transition-colors"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -164,7 +167,7 @@ export default function AppHeader() {
           "the section you're in", never as a second permanent global menu.
           Its lighter ground + "SYSTEM" rail make it visually distinct from Tier 1. ── */}
       {inSystem && (
-        <div className="border-b border-line-1" style={{ background: "var(--ground)" }}>
+        <div className="border-b border-line-1" style={{ background: "var(--surface-2)" }}>
           <div className="max-w-[1920px] mx-auto px-4 sm:px-6">
             <div className="hidden md:flex items-start min-h-11 py-1.5 gap-3">
               <span
@@ -199,7 +202,7 @@ export default function AppHeader() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1" style={{ background: "var(--ground)" }}>
+        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1" style={{ background: "var(--surface-2)" }}>
           <nav className="flex flex-col px-4 py-3 gap-1">
             <div className="label-caps px-3 py-1">Sections</div>
             {tier1.map((item) => {

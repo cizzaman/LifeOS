@@ -256,7 +256,7 @@ export default function CommandPalette() {
       className="fixed inset-0 z-[100] flex items-start justify-center pt-[16vh]"
       onClick={close}
     >
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0" style={{ background: "var(--scrim)" }} />
       <div
         className="relative w-full max-w-xl mx-4 bg-surface-1 border border-line-3 rounded-[10px] overflow-hidden"
         onClick={(e) => e.stopPropagation()}

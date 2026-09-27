@@ -4,11 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{TITLE}}</title>
+<script>(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>
 <style>
 {{CSS}}
 </style>
 </head>
 <body>
+<div class="theme-switch" role="group" aria-label="Theme">
+  <button type="button" class="theme-swatch theme-swatch-dark" data-theme-choice="dark" aria-label="Dark theme" title="Dark"></button>
+  <button type="button" class="theme-swatch theme-swatch-light" data-theme-choice="light" aria-label="Light theme" title="Light"></button>
+</div>
 <div id="root">
 
   <header class="brand-bar">
@@ -51,5 +56,21 @@
   </footer>
 
 </div>
+<script>(function(){
+  var KEY = "pulse-theme";
+  function apply(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.style.colorScheme = t;
+    document.querySelectorAll(".theme-swatch").forEach(function(b){ b.classList.toggle("active", b.dataset.themeChoice === t); });
+  }
+  document.querySelectorAll(".theme-swatch").forEach(function(b){
+    b.addEventListener("click", function(){
+      var t = b.dataset.themeChoice;
+      try { localStorage.setItem(KEY, t); } catch (e) {}
+      apply(t);
+    });
+  });
+  apply(document.documentElement.getAttribute("data-theme") || "dark");
+})();</script>
 </body>
 </html>

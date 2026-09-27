@@ -420,6 +420,7 @@ function renderKanbanHTML(): string {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pulse | Work</title>
+<script>(function(){try{var t=localStorage.getItem("pulse-theme")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>
 <style>
   @font-face { font-family: "Albert Sans"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/albert-sans-latin-wght-normal.woff2") format("woff2-variations"); }
   @font-face { font-family: "Outfit"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/outfit-latin-wght-normal.woff2") format("woff2-variations"); }
@@ -443,6 +444,26 @@ function renderKanbanHTML(): string {
     --review: #a78bfa;
     --queued: #6b7d89;
     --mono: "Fira Code", ui-monospace, monospace;
+  }
+  /* Light yellow — served from the Pulse origin, so localStorage
+   * pulse-theme is shared with the rest of the app; dark stays default. */
+  html[data-theme="light"] {
+    --ground: #faf9f5;
+    --surface-1: #fff7ed;
+    --surface-3: #f8ecdc;
+    --line-1: #efe4d6;
+    --line-2: #e7d8c8;
+    --line-3: #cfb797;
+    --ink-1: #292524;
+    --ink-2: #57534e;
+    --ink-3: #6b625b;
+    --accent: #9a5800;
+    --primary-soft: rgba(154, 88, 0, 0.12);
+    --done: #15803d;
+    --blocked: #991b1b;
+    --inprogress: #c27b26;
+    --review: #6d28d9;
+    --queued: #6b625b;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--ground); color: var(--ink-1); font: 14px/1.5 "Albert Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -590,6 +611,18 @@ function renderKanbanHTML(): string {
   .setup pre { background: var(--surface-1); border: 1px solid var(--line-2); padding: 12px; border-radius: 10px; overflow-x: auto; font-family: var(--mono); font-size: 12px; }
   .setup ol { line-height: 1.7; }
 
+  /* ── Theme switch ────────────────────────────────────────────────── */
+  /* Inline in the topbar (not fixed) — this page already has a header row
+   * ending in the Refresh button; a floating top-right widget would sit on
+   * top of it. */
+  .theme-switch { display: flex; gap: 8px; align-items: center; }
+  .theme-swatch { width: 28px; height: 28px; padding: 3px; border: 1px solid transparent; border-radius: 50%; background: transparent; cursor: pointer; }
+  .theme-swatch:hover { border-color: var(--line-3); }
+  .theme-swatch.active { border-color: var(--accent); background: var(--primary-soft); }
+  .theme-swatch::before { content: ""; display: block; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--swatch-ground) 0deg 180deg, var(--swatch-accent) 180deg 360deg); }
+  .theme-swatch-dark  { --swatch-ground: #0a0a0a; --swatch-accent: #3fb2c9; }
+  .theme-swatch-light { --swatch-ground: #faf9f5; --swatch-accent: #9a5800; }
+
   /* ── Responsive ──────────────────────────────────────────────────── */
   @media (max-width: 720px) {
     .card { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 12px; }
@@ -610,6 +643,10 @@ function renderKanbanHTML(): string {
     <span id="repo" class="repo"></span>
     <span class="grow"></span>
     <span id="meta" class="meta"></span>
+    <div class="theme-switch" role="group" aria-label="Theme">
+      <button type="button" class="theme-swatch theme-swatch-dark" data-theme-choice="dark" aria-label="Dark theme" title="Dark"></button>
+      <button type="button" class="theme-swatch theme-swatch-light" data-theme-choice="light" aria-label="Light theme" title="Light"></button>
+    </div>
     <button id="refresh" class="btn primary">Refresh</button>
   </div>
   <div class="topbar-row2">
@@ -643,6 +680,23 @@ function renderKanbanHTML(): string {
 <main id="root"></main>
 
 <script>
+(function(){
+  var KEY = "pulse-theme";
+  function apply(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.style.colorScheme = t;
+    document.querySelectorAll(".theme-swatch").forEach(function(b){ b.classList.toggle("active", b.dataset.themeChoice === t); });
+  }
+  document.querySelectorAll(".theme-swatch").forEach(function(b){
+    b.addEventListener("click", function(){
+      var t = b.dataset.themeChoice;
+      try { localStorage.setItem(KEY, t); } catch (e) {}
+      apply(t);
+    });
+  });
+  apply(document.documentElement.getAttribute("data-theme") || "dark");
+})();
+
 const root = document.getElementById('root');
 const repoEl = document.getElementById('repo');
 const metaEl = document.getElementById('meta');

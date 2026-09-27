@@ -9,8 +9,10 @@ const fold = (pick: (shade: number) => string, tokens: Palette): Palette => ({
   ...Object.fromEntries(CHROMATIC.map((hue) => [hue, scale(pick)])),
   ...tokens,
 });
+/* Theme-aware colour from a token; keeps Tailwind opacity modifiers working on CSS variables. */
+const tone = (token: string) => `color-mix(in srgb, var(${token}) calc(<alpha-value> * 100%), transparent)`;
 /* Ink: light shades read as primary text, mid as muted, dark as faint. */
-const neutralText = fold((shade) => (shade <= 400 ? "#f0e8d8" : shade <= 600 ? "#98a8b3" : "#6b7d89"), {
+const neutralText = fold((shade) => tone(shade <= 400 ? "--ink-1" : shade <= 600 ? "--ink-2" : "--ink-3"), {
   ok: "var(--ink-1)", warn: "var(--ink-1)", err: "var(--ink-1)",
   primary: { DEFAULT: "var(--ink-1)", foreground: "var(--ground)" },
   accent: { DEFAULT: "var(--ink-1)", foreground: "var(--ink-1)" },
@@ -18,7 +20,7 @@ const neutralText = fold((shade) => (shade <= 400 ? "#f0e8d8" : shade <= 600 ? "
   dim: { health: "var(--ink-1)", money: "var(--ink-1)", freedom: "var(--ink-1)", creative: "var(--ink-1)", relationships: "var(--ink-1)", rhythms: "var(--ink-1)" },
 });
 /* Lines: one mid grey, so opacity modifiers still land between hairline and figure line. */
-const neutralLine = fold(() => "#4a4a4a", {
+const neutralLine = fold(() => tone("--n-750"), {
   ok: "var(--line-3)", warn: "var(--line-3)", err: "var(--line-3)",
   primary: { DEFAULT: "var(--line-3)" },
   accent: { DEFAULT: "var(--line-3)" },
@@ -59,13 +61,16 @@ const config: Config = {
   			/* Tailwind palette folded onto the Pulse palette: every cool hue is the one teal,
   			   every neutral is charcoal, status hues stay distinct. */
   			...(() => {
-  				const teal = { 50: '#effafc', 100: '#cdeef5', 200: '#a8e2ee', 300: '#7cd5e6', 400: '#5cc4d8', 500: '#3fb2c9', 600: '#2f97ad', 700: '#1f6f80', 800: '#17525f', 900: '#103a43', 950: '#0a262c' };
-  				const charcoal = { 50: '#f0e8d8', 100: '#e4ddcf', 200: '#d9d2c4', 300: '#b8b5ac', 400: '#98a8b3', 500: '#6b7d89', 600: '#55636d', 700: '#3a3a3a', 800: '#262626', 900: '#161616', 950: '#0a0a0a' };
-  				const violet = { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#a78bfa', 600: '#8b6fe0', 700: '#6d28d9', 800: '#4c1d95', 900: '#2e1065', 950: '#1e0a45' };
+  				/* Every neutral follows the theme's ramp and every cool hue is the theme accent,
+  				   so a stray gray-900 or teal-500 reads right in both Dark and Light yellow. */
+  				const ramp = Object.fromEntries(SHADES.map((shade) => [shade, tone(`--n-${shade}`)]));
+  				const accent = Object.fromEntries(SHADES.map((shade) => [shade, tone(shade <= 300 ? "--accent-soft" : "--accent-blue")]));
+  				const violet = Object.fromEntries(SHADES.map((shade) => [shade, tone("--data-violet")]));
   				return {
-  					blue: teal, sky: teal, cyan: teal, indigo: teal, teal,
+  					white: tone("--n-50"), black: tone("--n-950"),
+  					blue: accent, sky: accent, cyan: accent, indigo: accent, teal: accent,
   					violet, purple: violet, fuchsia: violet,
-  					slate: charcoal, gray: charcoal, zinc: charcoal, neutral: charcoal, stone: charcoal,
+  					slate: ramp, gray: ramp, zinc: ramp, neutral: ramp, stone: ramp,
   					emerald: defaultColors.green, rose: defaultColors.red, pink: defaultColors.red,
   				};
   			})(),

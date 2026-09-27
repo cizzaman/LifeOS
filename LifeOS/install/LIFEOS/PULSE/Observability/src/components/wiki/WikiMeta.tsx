@@ -87,7 +87,7 @@ export default function WikiMeta({
   void _title;
 
   return (
-    <aside className={cn("w-56 shrink-0 border-l border-line-2 bg-transparent overflow-y-auto h-[calc(100vh-3.5rem)] p-4 space-y-5", className)}>
+    <aside className={cn("w-56 shrink-0 border-l border-line-2 bg-[color:var(--panel)] overflow-y-auto h-[calc(100vh-3.5rem)] p-4 space-y-5", className)}>
       {/* Category */}
       <div className="label-caps text-ink-1">{category.replace("-", " ")}</div>
 

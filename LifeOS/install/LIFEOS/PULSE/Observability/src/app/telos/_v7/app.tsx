@@ -37,9 +37,9 @@ interface LifeosLogoProps {
 }
 
 export function LifeosLogo({ size = 22 }: LifeosLogoProps) {
-  const NAVY = "#1f6f80";
-  const AZ = "#3fb2c9";
-  const SKY = "#a8e2ee";
+  const NAVY = "var(--line-3)";
+  const AZ = "var(--accent-blue)";
+  const SKY = "var(--accent-soft)";
   const W = 100;
   const rowH = 18;
   const gap = 2;

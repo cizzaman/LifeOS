@@ -3,19 +3,19 @@ export const SCHEMA_VERSION = "1.0.0";
 export const colors = {
   light: {
     bg: "#FAF9F5",
-    bgElevated: "#FAF9F5",
-    bgSubtle: "#F1EFE9",
-    border: "#E4E1DA",
-    borderStrong: "#CFCAC0",
-    text: "#1C1B19",
+    bgElevated: "#FFF7ED",
+    bgSubtle: "#F8ECDC",
+    border: "#E7D8C8",
+    borderStrong: "#CFB797",
+    text: "#292524",
     textMuted: "#57534E",
-    textFaint: "#8A857D",
-    accent: "#1F7F92",
-    accentSoft: "rgba(31, 127, 146, 0.10)",
+    textFaint: "#6B625B",
+    accent: "#9A5800",
+    accentSoft: "rgba(154, 88, 0, 0.12)",
     success: "#15803D",
-    warn: "#B45309",
-    error: "#B91C1C",
-    pillTemplate: "#B45309",
+    warn: "#C27B26",
+    error: "#991B1B",
+    pillTemplate: "#C27B26",
     pillCustomized: "#15803D",
   },
   dark: {
@@ -86,7 +86,25 @@ export const layout = {
 
 export type Mode = "light" | "dark";
 
-export function cssVars(mode: Mode): string {
+// localStorage key the Pulse Next app (ThemeSwitch.tsx) writes to. Shared
+// across every LifeOS surface on the same origin so one toggle covers both.
+export const THEME_STORAGE_KEY = "pulse-theme";
+
+// Pre-paint snippet — sets data-theme from localStorage before first paint so
+// there's no dark→light flash. Kept verbatim identical to the Next app's
+// theme-script.ts; do not reformat, the string is reused byte-for-byte.
+export const THEME_PREPAINT_SCRIPT = `<script>(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}")==="light"?"light":"dark";var d=document.documentElement;d.setAttribute("data-theme",t);d.style.colorScheme=t;}catch(e){}})()</script>`;
+
+function cssVarsFor(mode: Mode): string {
   const c = colors[mode];
   return Object.entries(c).map(([k, v]) => `--c-${k}: ${v};`).join(" ");
+}
+
+// Emits both palettes: dark on :root (dark stays the default), light scoped
+// under html[data-theme="light"]. One HTML file works in both themes — the
+// caller's `mode` no longer picks a single inlined palette; it only seeds the
+// initial data-theme attribute (see renderShell), which THEME_PREPAINT_SCRIPT
+// corrects from localStorage before paint.
+export function cssVars(): string {
+  return `:root { ${cssVarsFor("dark")} } html[data-theme="light"] { ${cssVarsFor("light")} }`;
 }

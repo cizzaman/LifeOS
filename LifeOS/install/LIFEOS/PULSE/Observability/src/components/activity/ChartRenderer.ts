@@ -27,40 +27,46 @@ export interface ChartColors {
   surface: string;
 }
 
-export function chartColorsFromTokens(): ChartColors {
+/** Canvas can't read CSS vars per stroke, so every token is resolved live off document state. */
+function readToken(name: string, fallback: string): string {
   const css = typeof window !== "undefined" ? getComputedStyle(document.documentElement) : null;
-  const read = (name: string, fallback: string) => css?.getPropertyValue(name).trim() || fallback;
+  return css?.getPropertyValue(name).trim() || fallback;
+}
+
+export function chartColorsFromTokens(): ChartColors {
   return {
-    primary: read("--accent-blue", "#3fb2c9"),
-    axis: read("--line-3", "#3a3a3a"),
-    grid: read("--line-1", "#1f1f1f"),
-    text: read("--ink-3", "#6b7d89"),
-    label: read("--ink-2", "#98a8b3"),
-    ink: read("--ink-1", "#f0e8d8"),
-    surface: read("--surface-1", "#111111"),
+    primary: readToken("--accent-blue", "#3fb2c9"),
+    axis: readToken("--line-3", "#3a3a3a"),
+    grid: readToken("--line-1", "#1f1f1f"),
+    text: readToken("--ink-3", "#6b7d89"),
+    label: readToken("--ink-2", "#98a8b3"),
+    ink: readToken("--ink-1", "#f0e8d8"),
+    surface: readToken("--surface-1", "#111111"),
   };
 }
 
 // ─── Agent Color Map — the one data colour per agent (canvas key + legend pill) ───
 
-const AGENT_COLORS: Record<string, string> = {
-  pentester: "#f87171",
-  engineer: "#3fb2c9",
-  designer: "#a78bfa",
-  architect: "#a78bfa",
-  intern: "#3fb2c9",
-  artist: "#3fb2c9",
-  "perplexity-researcher": "#f5c451",
-  "claude-researcher": "#f5c451",
-  "gemini-researcher": "#f5c451",
-  main: "#3fb2c9",
-  da: "#3fb2c9",
-  pai: "#3fb2c9",
-  "claude-code": "#3fb2c9",
+const AGENT_COLOR_TOKENS: Record<string, { token: string; fallback: string }> = {
+  pentester: { token: "--data-red", fallback: "#f87171" },
+  engineer: { token: "--accent-blue", fallback: "#3fb2c9" },
+  designer: { token: "--data-violet", fallback: "#a78bfa" },
+  architect: { token: "--data-violet", fallback: "#a78bfa" },
+  intern: { token: "--accent-blue", fallback: "#3fb2c9" },
+  artist: { token: "--accent-blue", fallback: "#3fb2c9" },
+  "perplexity-researcher": { token: "--data-amber", fallback: "#f5c451" },
+  "claude-researcher": { token: "--data-amber", fallback: "#f5c451" },
+  "gemini-researcher": { token: "--data-amber", fallback: "#f5c451" },
+  main: { token: "--accent-blue", fallback: "#3fb2c9" },
+  da: { token: "--accent-blue", fallback: "#3fb2c9" },
+  pai: { token: "--accent-blue", fallback: "#3fb2c9" },
+  "claude-code": { token: "--accent-blue", fallback: "#3fb2c9" },
 };
 
+/** Resolved fresh on every call — draw loops and per-render lookups always get the live theme's colour. */
 export function agentColor(name: string): string {
-  return AGENT_COLORS[name.split(":")[0].toLowerCase()] || "#3fb2c9";
+  const entry = AGENT_COLOR_TOKENS[name.split(":")[0].toLowerCase()];
+  return readToken(entry?.token ?? "--accent-blue", entry?.fallback ?? "#3fb2c9");
 }
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -406,6 +412,11 @@ export class ChartRenderer {
   resize(dimensions: ChartDimensions) {
     this.dimensions = dimensions;
     this.setupCanvas(this.ctx.canvas as HTMLCanvasElement);
+  }
+
+  /** Theme switched — swap in freshly-resolved tokens; the running render loop repaints with them. */
+  updateColors(colors: ChartColors) {
+    this.config.colors = colors;
   }
 
   // ─── Helpers ───

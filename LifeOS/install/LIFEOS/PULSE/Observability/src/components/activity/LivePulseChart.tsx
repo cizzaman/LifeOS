@@ -6,6 +6,7 @@ import { useChartData, type TimeRange } from "@/hooks/useChartData";
 import { useAdvancedMetrics } from "@/hooks/useAdvancedMetrics";
 import { useHeatLevel } from "@/hooks/useHeatLevel";
 import { createChartRenderer, chartColorsFromTokens, agentColor, type ChartDimensions, type ChartConfig } from "./ChartRenderer";
+import { useTheme } from "@/lib/theme";
 import { Loader2 } from "lucide-react";
 
 // ─── Format Helpers ───
@@ -47,6 +48,7 @@ export default function LivePulseChart({
   const processedIdsRef = useRef(new Set<string>());
   const renderLoopRef = useRef<number | null>(null);
   const [chartHeight] = useState(260);
+  const theme = useTheme();
 
   const {
     timeRange,
@@ -195,6 +197,11 @@ export default function LivePulseChart({
       rendererRef.current?.stopAnimation();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Theme switch — re-resolve the token palette; the running render loop repaints with it.
+  useEffect(() => {
+    rendererRef.current?.updateColors(chartColorsFromTokens());
+  }, [theme]);
 
   // Process events
   useEffect(() => {
