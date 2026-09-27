@@ -3,28 +3,32 @@ export const SCHEMA_VERSION = "1.0.0";
 export const colors = {
   light: {
     bg: "#FAF9F5",
-    bgElevated: "#FFF7ED",
-    bgSubtle: "#F8ECDC",
-    border: "#E7D8C8",
-    text: "#292524",
+    bgElevated: "#FAF9F5",
+    bgSubtle: "#F1EFE9",
+    border: "#E4E1DA",
+    borderStrong: "#CFCAC0",
+    text: "#1C1B19",
     textMuted: "#57534E",
-    accent: "#9A5800",
-    accentHover: "#754200",
+    textFaint: "#8A857D",
+    accent: "#1F7F92",
+    accentSoft: "rgba(31, 127, 146, 0.10)",
     success: "#15803D",
     warn: "#B45309",
-    error: "#991B1B",
+    error: "#B91C1C",
     pillTemplate: "#B45309",
     pillCustomized: "#15803D",
   },
   dark: {
     bg: "#0A0A0A",
-    bgElevated: "#111111",
-    bgSubtle: "#181818",
+    bgElevated: "#0A0A0A",
+    bgSubtle: "#141414",
     border: "#262626",
+    borderStrong: "#3A3A3A",
     text: "#F0E8D8",
     textMuted: "#98A8B3",
+    textFaint: "#6B7D89",
     accent: "#3FB2C9",
-    accentHover: "#5CC4D8",
+    accentSoft: "rgba(63, 178, 201, 0.12)",
     success: "#22C55E",
     warn: "#F5C451",
     error: "#F87171",
@@ -47,7 +51,7 @@ export const type = {
     xxl: "36px",
     display: "48px",
   },
-  weight: { normal: 400, medium: 500, semibold: 600, bold: 700 },
+  weight: { normal: 400, medium: 500 },
   lineHeight: { tight: 1.2, snug: 1.35, normal: 1.55, loose: 1.75 },
 } as const;
 
@@ -63,8 +67,7 @@ export const space = {
 } as const;
 
 export const radius = {
-  sm: "4px",
-  md: "8px",
+  none: "0",
   lg: "10px",
   pill: "999px",
 } as const;

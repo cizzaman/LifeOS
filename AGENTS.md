@@ -4,8 +4,9 @@ Fork of `danielmiessler/LifeOS` (`upstream`). `origin` is `cizzaman/LifeOS`. Ins
 
 ## Design
 
-- Pulse and the other LifeOS HTML surfaces use the minimal Work-modal design from Personal OS (`~/Projects/training-health`, `personal_os/web/theme.css` + the `work-goals-vision` rules in `app.css`): charcoal ground, cream ink, one teal accent, hairline borders, Fira Code caps labels, Outfit display, Albert Sans text, 7px markers, one shared 10 s `--cycle`.
-- Tokens live in `LifeOS/install/LIFEOS/PULSE/Observability/src/app/globals.css`; primitives in `src/components/ui/chrome.tsx`. Color only in small markers, underlines and tracks — never whole headlines.
+- Pulse and the other LifeOS HTML surfaces follow Personal OS «HYROX - Minimalistic» (`/hyrox-minimalistic/`) and the Work modals (`~/Projects/training-health`, `personal_os/web/theme.css`, `html[data-hyrox-style="minimalistic"]` and `#workGoalModal` rules in `app.css`): near-monochrome, charcoal ground, cream ink, transparent panels drawn by a 1px `--line-3`, Fira Code 10px caps labels, mono numbers, Outfit titles, Albert Sans text, 7px outlined keys, 2px tracks, 10px radius, no shadows or gradients, one shared 10 s `--cycle`.
+- Colour belongs to data only: chart series, 7px status keys (ok/warn/err) and progress fills. Text, borders, icons, chips and card backgrounds are never coloured; teal marks only hover, focus and the selected item. One series or one bar is teal.
+- Tokens and the minimal layer live in `LifeOS/install/LIFEOS/PULSE/Observability/src/app/globals.css`; primitives in `src/components/ui/chrome.tsx`. `tailwind.config.ts` folds every chromatic `text-*`/`border-*`/`ring-*` class to greys as a safety net.
 - After merging upstream, re-apply the palette: `python3 LifeOS/install/LIFEOS/PULSE/Observability/scripts/remap-palette.py LifeOS/install/LIFEOS/PULSE/Observability/src LifeOS/install/LIFEOS/TOOLS/ISARender/template.css`.
 
 ## Commands

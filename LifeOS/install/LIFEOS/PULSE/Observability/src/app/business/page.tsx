@@ -7,9 +7,7 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
-  Cell,
 } from "recharts";
-import { Building2, Briefcase, TrendingUp, FileText, type LucideIcon } from "lucide-react";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import {
   PageShell,
@@ -17,6 +15,7 @@ import {
   Panel,
   PanelHeader,
   StatTile,
+  Marker,
 } from "@/components/ui/chrome";
 
 interface BusinessData {
@@ -86,52 +85,50 @@ function parseProducts(md?: string): ProductRow[] {
   return out.sort((a, b) => b.revenue - a.revenue);
 }
 
-// Chart series palette — the six life-dimension tokens.
-const PRODUCT_COLORS = [
-  "var(--health)",
-  "var(--money)",
-  "var(--freedom)",
-  "var(--creative)",
-  "var(--relationships)",
-  "var(--rhythms)",
-];
+const AXIS_TICK = { fill: "var(--ink-3)", fontSize: 10, fontFamily: "var(--font-mono)" };
 
 function RevenueByProduct({ products }: { products: ProductRow[] }) {
   if (products.length === 0) return null;
   return (
     <Panel>
-      <PanelHeader title="Revenue by Product" icon={TrendingUp} />
+      <PanelHeader title="Revenue by Product" />
       <div data-sensitive style={{ height: 240 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={products} layout="vertical" margin={{ left: 20, right: 60 }}>
             <XAxis
               type="number"
-              stroke="var(--ink-3)"
-              fontSize={11}
+              stroke="var(--line-3)"
+              tick={AXIS_TICK}
+              tickLine={false}
               tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
             />
             <YAxis
               type="category"
               dataKey="product"
-              stroke="var(--ink-3)"
-              fontSize={11}
+              stroke="var(--line-3)"
+              tick={AXIS_TICK}
+              tickLine={false}
               width={200}
             />
             <Tooltip
+              cursor={{ fill: "var(--surface-3)" }}
               contentStyle={{
                 background: "var(--surface-1)",
-                border: "1px solid var(--line-2)",
-                borderRadius: 8,
-                fontSize: 12,
+                border: "1px solid var(--line-3)",
+                borderRadius: 10,
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
                 color: "var(--ink-1)",
               }}
               formatter={(v: number) => [`$${v.toLocaleString()}`, "Revenue"]}
             />
-            <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
-              {products.map((_, i) => (
-                <Cell key={i} fill={PRODUCT_COLORS[i % PRODUCT_COLORS.length]} />
-              ))}
-            </Bar>
+            <Bar
+              dataKey="revenue"
+              fill="var(--accent-blue)"
+              fillOpacity={0.12}
+              stroke="var(--accent-blue)"
+              strokeWidth={1}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -139,17 +136,11 @@ function RevenueByProduct({ products }: { products: ProductRow[] }) {
         className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-4 border-t border-line-2"
         data-sensitive
       >
-        {products.map((p, i) => (
-          <div key={p.product} className="flex items-center gap-3 text-xs">
-            <span
-              className="w-3 h-3 rounded shrink-0"
-              style={{ background: PRODUCT_COLORS[i % PRODUCT_COLORS.length] }}
-            />
-            <span className="flex-1 truncate text-ink-2" title={p.product}>
-              {p.product}
-            </span>
-            <span style={{ color: PRODUCT_COLORS[i % PRODUCT_COLORS.length] }}>{p.pct}</span>
-            <span className="tabular-nums text-ink-3">{p.deals}</span>
+        {products.map((p) => (
+          <div key={p.product} className="flex items-baseline gap-3 text-xs">
+            <span className="flex-1 min-w-0 break-words text-ink-2">{p.product}</span>
+            <span className="mono text-ink-1">{p.pct}</span>
+            <span className="mono text-ink-3">{p.deals}</span>
           </div>
         ))}
       </div>
@@ -157,22 +148,14 @@ function RevenueByProduct({ products }: { products: ProductRow[] }) {
   );
 }
 
-function SectionGrid({
-  sections,
-  icon: Icon,
-  accent,
-}: {
-  sections?: Array<{ heading: string; body: string }>;
-  icon: LucideIcon;
-  accent: string;
-}) {
+function SectionGrid({ sections }: { sections?: Array<{ heading: string; body: string }> }) {
   if (!sections || sections.length === 0) return null;
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {sections.map((s, i) => (
-        <Panel key={i} style={{ borderLeft: `2px solid ${accent}` }}>
-          <PanelHeader title={s.heading} icon={Icon} className="mb-2" />
-          <div className="text-xs whitespace-pre-wrap line-clamp-6 text-ink-2" data-sensitive>
+        <Panel key={i}>
+          <PanelHeader title={s.heading} className="mb-2" />
+          <div className="text-xs whitespace-pre-wrap text-ink-2" data-sensitive>
             {s.body}
           </div>
         </Panel>
@@ -193,9 +176,9 @@ export default function BusinessPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
-          <h2 className="font-medium" style={{ color: "var(--err)" }}>
-            Failed to load business
+        <Panel>
+          <h2 className="flex items-center gap-2 text-[15px] text-ink-1">
+            <Marker dim="err" /> Failed to load business
           </h2>
           <p className="text-sm text-ink-2">{error}</p>
         </Panel>
@@ -218,7 +201,6 @@ export default function BusinessPage() {
       <PageHeader
         title="Business"
         subtitle="Revenue streams, customers, deals, pipeline."
-        icon={Building2}
         actions={
           data.latestRevenueReport ? (
             <span className="text-[12px] text-ink-3 mono">Report: {data.latestRevenueReport}</span>
@@ -238,12 +220,12 @@ export default function BusinessPage() {
       {(metrics.total || metrics.deals) && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" data-sensitive>
           {metrics.total && (
-            <StatTile label="Latest Revenue" value={metrics.total} dim="money" icon={Building2} />
+            <StatTile label="Latest Revenue" value={metrics.total} />
           )}
           {metrics.deals && <StatTile label="Deals Closed" value={metrics.deals} />}
           {metrics.accounts && <StatTile label="Accounts" value={metrics.accounts} />}
-          {metrics.avgDeal && <StatTile label="Avg Deal" value={metrics.avgDeal} dim="money" />}
-          {metrics.largest && <StatTile label="Largest" value={metrics.largest} dim="money" />}
+          {metrics.avgDeal && <StatTile label="Avg Deal" value={metrics.avgDeal} />}
+          {metrics.largest && <StatTile label="Largest" value={metrics.largest} />}
         </div>
       )}
 
@@ -251,26 +233,20 @@ export default function BusinessPage() {
 
       {data.businessOverview && data.businessOverview.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3">
-            Business Overview
-          </h2>
-          <SectionGrid sections={data.businessOverview} icon={Briefcase} accent="var(--creative)" />
+          <h2 className="label-caps">Business Overview</h2>
+          <SectionGrid sections={data.businessOverview} />
         </section>
       )}
       {data.ulOverview && data.ulOverview.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3">
-            Company Overview
-          </h2>
-          <SectionGrid sections={data.ulOverview} icon={TrendingUp} accent="var(--freedom)" />
+          <h2 className="label-caps">Company Overview</h2>
+          <SectionGrid sections={data.ulOverview} />
         </section>
       )}
       {data.revenueAllSections && data.revenueAllSections.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3">
-            Revenue Details
-          </h2>
-          <SectionGrid sections={data.revenueAllSections} icon={FileText} accent="var(--relationships)" />
+          <h2 className="label-caps">Revenue Details</h2>
+          <SectionGrid sections={data.revenueAllSections} />
         </section>
       )}
     </PageShell>

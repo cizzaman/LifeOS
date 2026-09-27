@@ -5,10 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import MarkdownRenderer from "@/components/wiki/MarkdownRenderer";
 import WikiMeta from "@/components/wiki/WikiMeta";
-import { BookOpen, Clock, FileText, Users, Building2, Lightbulb, Bookmark, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { wikiPageUrl } from "@/lib/wiki-links";
-import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill, type Dim } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill } from "@/components/ui/chrome";
 
 interface WikiPage {
   slug: string;
@@ -64,41 +64,22 @@ interface BookmarkDetail {
   lastModified: string;
 }
 
-const CATEGORY_ICONS: Record<string, typeof FileText> = {
-  "system-doc": BookOpen,
-  person: Users,
-  company: Building2,
-  idea: Lightbulb,
-  book: BookOpen,
-};
-
-// Doc-category color scale — mirrors the knowledge-graph node color scale so the
-// wiki landing and the graph legend read as one coded set. Values are design tokens.
-const CATEGORY_COLOR_VAR: Record<string, string> = {
-  "system-doc": "var(--accent-blue)",
-  person: "var(--freedom)",
-  company: "var(--money)",
-  idea: "var(--relationships)",
-  book: "var(--creative)",
-};
-
 const pageLink = wikiPageUrl;
 
 // Landing page — shown when no doc/knowledge is selected
 function WikiLanding({ data }: { data: WikiIndex }) {
-  const tiles: Array<{ icon: typeof FileText; label: string; count: number; dim?: Dim }> = [
-    { icon: FileText, label: "Total", count: data.stats.totalPages },
-    { icon: BookOpen, label: "System", count: data.stats.totalSystem, dim: "blue" },
-    { icon: Users, label: "People", count: data.stats.totalPeople, dim: "freedom" },
-    { icon: Building2, label: "Companies", count: data.stats.totalCompanies, dim: "money" },
-    { icon: Lightbulb, label: "Ideas", count: data.stats.totalIdeas, dim: "relationships" },
-    { icon: BookOpen, label: "Books", count: data.stats.totalBooks, dim: "creative" },
+  const tiles: Array<{ label: string; count: number }> = [
+    { label: "Total", count: data.stats.totalPages },
+    { label: "System", count: data.stats.totalSystem },
+    { label: "People", count: data.stats.totalPeople },
+    { label: "Companies", count: data.stats.totalCompanies },
+    { label: "Ideas", count: data.stats.totalIdeas },
+    { label: "Books", count: data.stats.totalBooks },
   ];
 
   return (
     <PageShell>
       <PageHeader
-        icon={BookOpen}
         title="System"
         subtitle="System documentation & knowledge archive"
       />
@@ -106,44 +87,36 @@ function WikiLanding({ data }: { data: WikiIndex }) {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map((t) => (
-          <StatTile key={t.label} icon={t.icon} label={t.label} value={t.count} dim={t.dim} />
+          <StatTile key={t.label} label={t.label} value={t.count} />
         ))}
       </div>
 
       {/* Recent changes */}
       <Panel>
-        <PanelHeader title="Recent Changes" icon={Clock} />
-        <div className="space-y-1">
-          {data.recentChanges.slice(0, 20).map((page) => {
-            const Icon = CATEGORY_ICONS[page.category] || FileText;
-            const color = CATEGORY_COLOR_VAR[page.category] || "var(--ink-3)";
-            return (
-              <Link
-                key={page.slug + page.category}
-                href={pageLink(page.category, page.slug)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-3 transition-colors group"
+        <PanelHeader title="Recent Changes" />
+        <div className="flex flex-col">
+          {data.recentChanges.slice(0, 20).map((page) => (
+            <Link
+              key={page.slug + page.category}
+              href={pageLink(page.category, page.slug)}
+              className="flex items-baseline gap-3 py-2 group"
+            >
+              {/* Knowledge-archive entries (people, companies, ideas…) are personal;
+                  system docs stay readable in Observer mode. */}
+              <span
+                className="min-w-0 break-words text-[13px] text-ink-2 group-hover:text-ink-1 transition-colors"
+                data-sensitive={page.category !== "system-doc" ? "" : undefined}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-                {/* Knowledge-archive entries (people, companies, ideas…) are personal;
-                    system docs stay readable in Observer mode. */}
-                <span
-                  className="text-[13px] text-ink-2 group-hover:text-ink-1 transition-colors truncate"
-                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
-                  data-sensitive={page.category !== "system-doc" ? "" : undefined}
-                >
-                  {page.title}
-                </span>
-                <span className="ml-auto text-[13px] text-ink-3 shrink-0 tabular-nums" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-                  {new Date(page.lastModified).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                </span>
-                {page.quality !== undefined && (
-                  <span className={`text-[13px] shrink-0 ${page.quality >= 7 ? "text-ok" : page.quality >= 4 ? "text-warn" : "text-err"}`}>
-                    Q{page.quality}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+                {page.title}
+              </span>
+              <span className="ml-auto mono text-[11px] text-ink-3 shrink-0">
+                {new Date(page.lastModified).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </span>
+              {page.quality != null && (
+                <span className="mono text-[11px] text-ink-3 shrink-0">Q{page.quality}</span>
+              )}
+            </Link>
+          ))}
         </div>
       </Panel>
     </PageShell>
@@ -153,9 +126,9 @@ function WikiLanding({ data }: { data: WikiIndex }) {
 // Document viewer — shown when a doc or knowledge note is selected
 function DocViewer({ detail }: { detail: PageDetail }) {
   return (
-    <div className="flex h-full">
+    <div className="flex h-full max-md:flex-col max-md:h-auto">
       {/* inline flex: `flex-1` here loses its grow to an unlayered CSS rule and collapses the body to width 0 — inline restores it */}
-      <div className="flex-1 overflow-y-auto p-6 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
+      <div className="flex-1 overflow-y-auto p-6 max-sm:p-4 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
         <MarkdownRenderer content={detail.content} />
       </div>
       <WikiMeta
@@ -167,6 +140,7 @@ function DocViewer({ detail }: { detail: PageDetail }) {
         wordCount={detail.wordCount}
         backlinks={detail.backlinks}
         filePath={detail.filePath}
+        className="max-md:w-full max-md:h-auto max-md:border-l-0 max-md:border-t"
       />
     </div>
   );
@@ -178,21 +152,11 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
     <PageShell className="max-w-3xl">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Bookmark className="w-4 h-4 shrink-0" style={{ color: "var(--creative)" }} />
-          <span className="text-[13px] uppercase tracking-wider" style={{ fontFamily: "'Outfit', sans-serif", color: "var(--creative)" }}>
-            Bookmark
-          </span>
-          {detail.favorite && (
-            <span className="text-[13px] text-warn ml-2">Favorite</span>
-          )}
+        <div className="flex items-center gap-3 mb-2">
+          <span className="label-caps">Bookmark</span>
+          {detail.favorite && <span className="label-caps text-ink-3">Favorite</span>}
         </div>
-        <h1
-          className="text-xl font-bold text-ink-1 leading-tight"
-          style={{ fontFamily: "'Albert Sans', sans-serif" }}
-        >
-          {detail.title}
-        </h1>
+        <h1 className="text-ink-1 break-words">{detail.title}</h1>
       </div>
 
       {/* URL */}
@@ -201,17 +165,16 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
           href={detail.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity break-all"
-          style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--accent-blue)" }}
+          className="flex items-center gap-2 mono text-[12px] text-ink-2 hover:text-ink-1 transition-colors break-all"
         >
-          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-          {detail.url.length > 80 ? detail.url.slice(0, 77) + "..." : detail.url}
+          <ExternalLink className="w-3.5 h-3.5 shrink-0 text-ink-3" strokeWidth={1.5} />
+          {detail.url}
         </a>
       )}
 
       {/* Cover image */}
       {detail.cover && (
-        <div className="rounded-lg overflow-hidden border border-line-2 bg-surface-2">
+        <div className="rounded-[10px] overflow-hidden border border-line-3">
           <img
             src={detail.cover}
             alt={detail.title}
@@ -224,10 +187,8 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       {/* Excerpt */}
       {detail.excerpt && (
         <Panel className="p-4">
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Excerpt
-          </div>
-          <p className="text-sm text-ink-2 leading-relaxed" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+          <div className="label-caps mb-2">Excerpt</div>
+          <p className="text-[13px] text-ink-2 leading-relaxed">
             {detail.excerpt}
           </p>
         </Panel>
@@ -236,10 +197,8 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       {/* Note */}
       {detail.note && (
         <Panel className="p-4">
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Note
-          </div>
-          <p className="text-sm text-ink-2 leading-relaxed whitespace-pre-wrap" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+          <div className="label-caps mb-2">Note</div>
+          <p className="text-[13px] text-ink-2 leading-relaxed whitespace-pre-wrap">
             {detail.note}
           </p>
         </Panel>
@@ -249,22 +208,22 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       <div className="grid grid-cols-2 gap-4 text-[13px]">
         {detail.folder && (
           <div>
-            <span className="text-ink-3">Folder</span>
-            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'Albert Sans', sans-serif" }}>{detail.folder}</p>
+            <span className="label-caps text-ink-3">Folder</span>
+            <p className="text-ink-2 mt-0.5">{detail.folder}</p>
           </div>
         )}
         {detail.created && (
           <div>
-            <span className="text-ink-3">Saved</span>
-            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+            <span className="label-caps text-ink-3">Saved</span>
+            <p className="text-ink-2 mt-0.5">
               {new Date(detail.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
         )}
         {detail.tags.length > 0 && (
           <div className="col-span-2">
-            <span className="text-ink-3">Tags</span>
-            <div className="flex flex-wrap gap-1.5 mt-1">
+            <span className="label-caps text-ink-3">Tags</span>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-1">
               {detail.tags.map((tag) => (
                 <Pill key={tag} dim="neutral">{tag}</Pill>
               ))}
@@ -366,19 +325,12 @@ function LifeosPageInner() {
     const requestedSlug = docSlug || knowledgeSlug || bookmarkSlug || "";
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 max-w-md mx-auto text-center">
-        <div className="text-sm text-err mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
-          Page not found
-        </div>
-        <div className="text-[13px] text-ink-2 mb-4 break-all" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-          {requestedSlug}
-        </div>
-        <div className="text-[13px] text-ink-3 mb-4" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-          {errorMessage}
-        </div>
+        <div className="label-caps text-ink-1 mb-2">Page not found</div>
+        <div className="mono text-[12px] text-ink-2 mb-4 break-all">{requestedSlug}</div>
+        <div className="text-[13px] text-ink-3 mb-4">{errorMessage}</div>
         <Link
           href="/system"
-          className="text-[13px] underline underline-offset-2 hover:opacity-80"
-          style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--accent-blue)" }}
+          className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-ink-1 transition-colors"
         >
           Back to wiki index
         </Link>
@@ -389,9 +341,7 @@ function LifeosPageInner() {
   // Loading state
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-[13px] text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-        Loading...
-      </div>
+      <div className="text-[13px] text-ink-3">Loading...</div>
     </div>
   );
 }
@@ -401,9 +351,7 @@ export default function LifeosPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <div className="text-[13px] text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-            Loading...
-          </div>
+          <div className="text-[13px] text-ink-3">Loading...</div>
         </div>
       }
     >

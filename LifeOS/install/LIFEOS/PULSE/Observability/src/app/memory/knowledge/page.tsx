@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import MarkdownRenderer from "@/components/wiki/MarkdownRenderer";
 import WikiMeta from "@/components/wiki/WikiMeta";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
-import { Users, Building2, Lightbulb, Clock, Search, X, FileText, BookOpen, Newspaper, FlaskConical, GraduationCap, Sparkles, Workflow } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Link from "next/link";
 import { wikiPageUrl } from "@/lib/wiki-links";
-import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill, type Dim } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill } from "@/components/ui/chrome";
 
 interface WikiPage {
   slug: string;
@@ -61,37 +61,6 @@ interface PageDetail {
   postDate?: string;
 }
 
-const CATEGORY_ICONS: Record<string, typeof Users> = {
-  person: Users,
-  company: Building2,
-  idea: Lightbulb,
-  blog: Newspaper,
-  book: BookOpen,
-  research: FlaskConical,
-  isa: Workflow,
-  lesson: GraduationCap,
-  wisdom: Sparkles,
-};
-
-const CATEGORY_DIMENSIONS: Record<string, Dim> = {
-  identity: "creative",
-  voice: "creative",
-  mind: "freedom",
-  taste: "relationships",
-  shape: "rhythms",
-  ops: "money",
-  domain: "health",
-  person: "relationships",
-  company: "money",
-  idea: "freedom",
-  blog: "creative",
-  book: "creative",
-  research: "freedom",
-  isa: "rhythms",
-  lesson: "health",
-  wisdom: "freedom",
-};
-
 interface SearchHit {
   slug: string;
   title: string;
@@ -103,19 +72,6 @@ interface SearchHit {
   sourceUrl?: string;
   postDate?: string;
 }
-
-const SEARCH_CATEGORY_ICONS: Record<string, typeof FileText> = {
-  "system-doc": BookOpen,
-  person: Users,
-  company: Building2,
-  idea: Lightbulb,
-  blog: Newspaper,
-  book: BookOpen,
-  research: FlaskConical,
-  isa: Workflow,
-  lesson: GraduationCap,
-  wisdom: Sparkles,
-};
 
 const SEARCH_CATEGORY_LABELS: Record<string, string> = {
   "system-doc": "System",
@@ -170,7 +126,7 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
     <div className="space-y-3">
       <Panel className="p-0">
         <div className="flex items-center gap-3 px-5 py-4">
-          <Search className="w-5 h-5 shrink-0 text-dim-freedom" />
+          <Search className="w-5 h-5 shrink-0 text-ink-3" strokeWidth={1.5} />
           <input
             ref={inputRef}
             type="text"
@@ -186,8 +142,8 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
               }
             }}
             placeholder={`Search ${totalPages.toLocaleString()} entries — people, companies, ideas, blogs, books…`}
-            className="flex-1 bg-transparent outline-none text-ink-1 placeholder:text-ink-3"
-            style={{ fontSize: 18, fontFamily: "'Albert Sans', sans-serif" }}
+            className="flex-1 min-w-0 bg-transparent outline-none text-ink-1 placeholder:text-ink-3"
+            style={{ fontSize: 16 }}
             autoFocus
           />
           {query && (
@@ -199,7 +155,7 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
               className="text-ink-3 hover:text-ink-1 shrink-0 transition-colors"
               aria-label="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" strokeWidth={1.5} />
             </button>
           )}
         </div>
@@ -218,14 +174,12 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
           {results.length > 0 && (
             <div className="max-h-[60vh] overflow-y-auto">
               {Object.entries(grouped).map(([cat, items]) => {
-                const Icon = SEARCH_CATEGORY_ICONS[cat] || FileText;
                 const label = SEARCH_CATEGORY_LABELS[cat] || cat;
                 return (
                   <div key={cat}>
-                    <div className="flex items-center gap-2 px-5 py-2 text-[13px] uppercase tracking-wider border-b border-line-1 text-ink-3">
-                      <Icon className="w-3 h-3" />
-                      {label}
-                      <span className="ml-auto text-ink-3">{items.length}</span>
+                    <div className="flex items-center gap-2 px-5 py-2 border-b border-line-1">
+                      <span className="label-caps">{label}</span>
+                      <span className="ml-auto mono text-[10px] text-ink-3">{items.length}</span>
                     </div>
                     {items.map((r) => (
                       <Link
@@ -233,18 +187,18 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
                         href={wikiPageUrl(r.category, r.slug)}
                         className="flex flex-col gap-1.5 px-5 py-2.5 hover:bg-surface-3 transition-colors border-b border-line-1"
                       >
-                        <div className="flex items-baseline gap-2">
-                          <span className="flex-1 truncate text-ink-1" style={{ fontSize: 14 }}>
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                          <span className="flex-1 min-w-0 break-words text-ink-1" style={{ fontSize: 14 }}>
                             {r.title}
                           </span>
                           {r.author && (
-                            <span className="shrink-0 truncate max-w-[200px] text-ink-2" style={{ fontSize: 13 }}>
+                            <span className="text-ink-2" style={{ fontSize: 13 }}>
                               {r.author}
                             </span>
                           )}
                         </div>
                         {r.excerpt && (
-                          <span className="line-clamp-1 text-ink-3" style={{ fontSize: 13 }}>
+                          <span className="break-words text-ink-3" style={{ fontSize: 13 }}>
                             {r.excerpt}
                           </span>
                         )}
@@ -291,44 +245,41 @@ function KnowledgeLanding({ data }: { data: WikiIndex }) {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { icon: Users, label: "People", count: data.stats.totalPeople, dim: "relationships" as const },
-            { icon: Building2, label: "Companies", count: data.stats.totalCompanies, dim: "money" as const },
-            { icon: Lightbulb, label: "Ideas", count: data.stats.totalIdeas, dim: "freedom" as const },
-            { icon: Newspaper, label: "Blogs", count: data.stats.totalBlogs ?? 0, dim: "creative" as const },
-            { icon: BookOpen, label: "Books", count: data.stats.totalBooks ?? 0, dim: "creative" as const },
-            { icon: FlaskConical, label: "Research", count: data.stats.totalResearch ?? 0, dim: "freedom" as const },
-            { icon: Workflow, label: "ISAs", count: data.stats.totalIsas ?? 0, dim: "rhythms" as const },
-            { icon: GraduationCap, label: "Lessons", count: data.stats.totalLessons ?? 0, dim: "health" as const },
-            { icon: Sparkles, label: "Wisdom", count: data.stats.totalWisdom ?? 0, dim: "freedom" as const },
-          ].map(({ icon: Icon, label, count, dim }) => (
-            <StatTile key={label} icon={Icon} label={label} value={count} dim={dim} />
+            { label: "People", count: data.stats.totalPeople },
+            { label: "Companies", count: data.stats.totalCompanies },
+            { label: "Ideas", count: data.stats.totalIdeas },
+            { label: "Blogs", count: data.stats.totalBlogs ?? 0 },
+            { label: "Books", count: data.stats.totalBooks ?? 0 },
+            { label: "Research", count: data.stats.totalResearch ?? 0 },
+            { label: "ISAs", count: data.stats.totalIsas ?? 0 },
+            { label: "Lessons", count: data.stats.totalLessons ?? 0 },
+            { label: "Wisdom", count: data.stats.totalWisdom ?? 0 },
+          ].map(({ label, count }) => (
+            <StatTile key={label} label={label} value={count} />
           ))}
         </div>
 
         {/* Recent changes */}
         <Panel className="p-0">
-          <PanelHeader title="Recent Changes" icon={Clock} className="px-5 pt-5 mb-0" />
+          <PanelHeader title="Recent Changes" className="px-5 pt-5 mb-0" />
           <div className="divide-y divide-line-1">
             {knowledgeEntries.slice(0, 20).map((page) => {
-              const Icon = CATEGORY_ICONS[page.category] || Lightbulb;
-              const dim = CATEGORY_DIMENSIONS[page.category] || "freedom";
               return (
                 <Link
                   key={page.slug + page.category}
                   href={wikiPageUrl(page.category, page.slug)}
-                  className="flex items-center gap-3 px-5 py-3 hover:bg-surface-3 transition-colors"
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3 hover:bg-surface-3 transition-colors"
                 >
-                  <Icon className="w-4 h-4 shrink-0 text-ink-3" />
-                  <Pill dim={dim}>{page.category}</Pill>
-                  <span className="truncate min-w-0 flex-1 text-ink-1" style={{ fontSize: 14 }}>
+                  <Pill className="w-20 shrink-0">{page.category}</Pill>
+                  <span className="min-w-0 flex-1 break-words text-ink-1" style={{ fontSize: 14 }}>
                     {page.title}
                   </span>
                   {page.author && (
-                    <span className="shrink-0 truncate max-w-[180px] text-ink-2" style={{ fontSize: 13 }}>
+                    <span className="text-ink-2" style={{ fontSize: 13 }}>
                       {page.author}
                     </span>
                   )}
-                  <span className="shrink-0 tabular-nums mono text-ink-3" style={{ fontSize: 12 }}>
+                  <span className="shrink-0 mono text-ink-3" style={{ fontSize: 12 }}>
                     {new Date(page.lastModified).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -374,9 +325,9 @@ function KnowledgePageInner() {
 
   if (isViewingKnowledge && knowledgeDetail) {
     return (
-      <div className="flex h-full">
+      <div className="flex h-full max-md:flex-col max-md:h-auto">
         {/* inline flex: `flex-1` here loses its grow to an unlayered CSS rule and collapses the body to width 0 — inline restores it */}
-        <div className="flex-1 overflow-y-auto p-6 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
+        <div className="flex-1 overflow-y-auto p-6 max-sm:p-4 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
           <MarkdownRenderer content={knowledgeDetail.content} />
         </div>
         <WikiMeta
@@ -393,6 +344,7 @@ function KnowledgePageInner() {
           sourceUrl={knowledgeDetail.sourceUrl}
           postDate={knowledgeDetail.postDate}
           related={knowledgeDetail.related}
+          className="max-md:w-full max-md:h-auto max-md:border-l-0 max-md:border-t"
         />
       </div>
     );

@@ -6,6 +6,7 @@ import type { TweakVals } from "./tweaks";
 import { DimensionBars } from "./dimension-bars";
 import { summarizeTelos } from "./summary";
 import { StillnessKit } from "./stillness-kit";
+import { Marker } from "@/components/ui/chrome";
 
 // Hero — narrative + 6 Current-Ideal gap rings.
 
@@ -175,16 +176,24 @@ export function Hero({ telos, tone, showIds, onTrace, openFile, isPersonalized }
                 if (seg.kind === "text") return <span key={i}>{seg.text}</span>;
                 const cls = `synth-tok synth-tok-${seg.kind}`;
                 if (seg.id) {
+                  const open = () => onTrace(seg.id!);
                   return (
-                    <button
+                    <span
                       key={i}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       className={cls}
-                      onClick={() => onTrace(seg.id!)}
+                      onClick={open}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          open();
+                        }
+                      }}
                       title={`${seg.kind.toUpperCase()} — ${seg.id}`}
                     >
                       {seg.text}
-                    </button>
+                    </span>
                   );
                 }
                 return <span key={i} className={cls}>{seg.text}</span>;
@@ -244,16 +253,16 @@ export function Hero({ telos, tone, showIds, onTrace, openFile, isPersonalized }
               <p className="hero-summary-line"><span className="hero-summary-tag">Position</span>{summary.position}</p>
             )}
             {summary.traction && (
-              <p className="hero-summary-line"><span className="hero-summary-tag hero-summary-tag-ok">Traction</span>{summary.traction}</p>
+              <p className="hero-summary-line"><span className="hero-summary-tag">Traction</span>{summary.traction}</p>
             )}
             {summary.pinch && (
-              <p className="hero-summary-line"><span className="hero-summary-tag hero-summary-tag-warn">Pinch</span>{summary.pinch}</p>
+              <p className="hero-summary-line"><span className="hero-summary-tag">Pinch</span>{summary.pinch}</p>
             )}
             {summary.drift && (
-              <p className="hero-summary-line"><span className="hero-summary-tag hero-summary-tag-warn">Drift</span>{summary.drift}</p>
+              <p className="hero-summary-line"><span className="hero-summary-tag">Drift</span>{summary.drift}</p>
             )}
             {summary.recommendations && (
-              <p className="hero-summary-line hero-summary-line-recs"><span className="hero-summary-tag hero-summary-tag-next">Next</span>{summary.recommendations}</p>
+              <p className="hero-summary-line"><span className="hero-summary-tag">Next</span>{summary.recommendations}</p>
             )}
           </div>
         ) : <div />}
@@ -276,7 +285,7 @@ export function Hero({ telos, tone, showIds, onTrace, openFile, isPersonalized }
       />
 
       {telos.workNarrative && (
-        <p className="hero-work-narrative" style={{padding:'12px 24px 0',color:'var(--text-2)',fontSize:'14px',lineHeight:1.5}}>
+        <p className="hero-work-narrative">
           {telos.workNarrative.summary}
         </p>
       )}
@@ -299,7 +308,7 @@ export function Hero({ telos, tone, showIds, onTrace, openFile, isPersonalized }
                               (s.v>=8?'sharp':s.v>=6?'clear':'scattered');
           return (
             <div key={s.id} className="snap">
-              <span className="snap-dot" style={{background:`var(${s.id==='mood'?'--freedom':s.id==='energy'?'--money':'--creative'})`,opacity:0.35 + (s.v/s.of)*0.65}}/>
+              <Marker />
               <span className="snap-label">{s.label}</span>
               <span className="snap-sep">·</span>
               <span className="snap-value">{label}</span>

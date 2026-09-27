@@ -4,7 +4,8 @@ import defaultColors from "tailwindcss/colors";
 const CHROMATIC = ["red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose"];
 const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const scale = (pick: (shade: number) => string) => Object.fromEntries(SHADES.map((shade) => [shade, pick(shade)]));
-const fold = (pick: (shade: number) => string, tokens: Record<string, string>) => ({
+type Palette = { [key: string]: string | Palette };
+const fold = (pick: (shade: number) => string, tokens: Palette): Palette => ({
   ...Object.fromEntries(CHROMATIC.map((hue) => [hue, scale(pick)])),
   ...tokens,
 });

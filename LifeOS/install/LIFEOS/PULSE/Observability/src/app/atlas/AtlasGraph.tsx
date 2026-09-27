@@ -27,7 +27,8 @@ const KIND_COLOR: Record<string, string> = {
   kv_namespace: "#f87171",
   device: "var(--ink-3)",
 };
-const colorFor = (k: string) => KIND_COLOR[k] ?? "var(--ink-3)";
+/** Node colour per asset kind — data only: graph marks and their legend keys. */
+export const atlasKindColor = (k: string) => KIND_COLOR[k] ?? "var(--ink-3)";
 
 type SimNode = GNode & d3.SimulationNodeDatum;
 type SimLink = d3.SimulationLinkDatum<SimNode> & { kind: string };
@@ -97,7 +98,7 @@ export function AtlasGraph({
     sel.selectAll("*").remove();
 
     const root = sel.append("g");
-    const linkG = root.append("g").attr("stroke", "var(--line-2)").attr("stroke-opacity", 0.45);
+    const linkG = root.append("g").attr("stroke", "var(--line-2)");
     const nodeG = root.append("g");
     const labelG = root.append("g").attr("pointer-events", "none");
 
@@ -110,16 +111,23 @@ export function AtlasGraph({
       .force("x", d3.forceX(W / 2).strength(0.03))
       .force("y", d3.forceY(H / 2).strength(0.03));
 
-    const link = linkG.selectAll("line").data(links).join("line").attr("stroke-width", 0.7);
+    const link = linkG
+      .selectAll("line")
+      .data(links)
+      .join("line")
+      .attr("stroke-width", 1)
+      .attr("vector-effect", "non-scaling-stroke");
 
     const node = nodeG
       .selectAll<SVGCircleElement, SimNode>("circle")
       .data(nodes)
       .join("circle")
       .attr("r", (d) => 4 + Math.sqrt(degree.get(d.id) ?? 1) * 1.6)
-      .attr("fill", (d) => colorFor(d.kind))
-      .attr("stroke", "var(--surface-1)")
+      .attr("fill", (d) => atlasKindColor(d.kind))
+      .attr("fill-opacity", 0.14)
+      .attr("stroke", (d) => atlasKindColor(d.kind))
       .attr("stroke-width", 1)
+      .attr("vector-effect", "non-scaling-stroke")
       .style("cursor", "grab")
       .on("mouseenter", (_e, d) => hoverRef.current(d.id))
       .on("mouseleave", () => hoverRef.current(null))
@@ -131,7 +139,8 @@ export function AtlasGraph({
       .data(nodes.filter((n) => n.kind === "project" || (degree.get(n.id) ?? 0) >= 8))
       .join("text")
       .text((d) => d.display_name)
-      .attr("font-size", 9)
+      .attr("font-size", 10)
+      .attr("font-family", "var(--font-mono)")
       .attr("fill", "var(--ink-2)")
       .attr("dx", 8)
       .attr("dy", 3);
@@ -176,7 +185,7 @@ export function AtlasGraph({
       setHover(id);
       if (id == null) {
         node.attr("opacity", 1);
-        link.attr("stroke-opacity", 0.45).attr("stroke", "var(--line-2)");
+        link.attr("stroke-opacity", 1).attr("stroke", "var(--line-2)");
         label.attr("opacity", 1);
         return;
       }
@@ -185,7 +194,7 @@ export function AtlasGraph({
       label.attr("opacity", (d) => (d.id === id || nbrs.has(d.id) ? 1 : 0.08));
       link
         .attr("stroke", (d) => ((d.source as SimNode).id === id || (d.target as SimNode).id === id ? "var(--accent-blue)" : "var(--line-2)"))
-        .attr("stroke-opacity", (d) => ((d.source as SimNode).id === id || (d.target as SimNode).id === id ? 0.9 : 0.05));
+        .attr("stroke-opacity", (d) => ((d.source as SimNode).id === id || (d.target as SimNode).id === id ? 1 : 0.3));
     };
 
     return () => {
@@ -195,8 +204,8 @@ export function AtlasGraph({
 
   return (
     <div className="relative">
-      <svg ref={svgRef} width="100%" height={600} style={{ background: "var(--surface-1)", borderRadius: 8, touchAction: "none" }} />
-      <div className="absolute left-3 top-3 text-[11px] text-ink-3 pointer-events-none">
+      <svg ref={svgRef} width="100%" height={600} style={{ border: "1px solid var(--line-2)", borderRadius: 10, touchAction: "none" }} />
+      <div className="absolute left-3 top-3 mono text-[10px] text-ink-3 pointer-events-none">
         {nodes.length} nodes · {links.length} edges · drag to pull · scroll to zoom{hover != null ? " · hovering" : ""}
       </div>
     </div>

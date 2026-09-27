@@ -99,7 +99,7 @@ const server = Bun.serve({
       console.log('[yt-auth] SUCCESS');
       setTimeout(() => { server.stop(); process.exit(0); }, 200);
       return new Response(
-        `<html><body style="font-family:monospace;background:#0c0f14;color:#3ddc84;padding:40px"><h2>Conveyor ✓</h2><p>YouTube credential minted for: <b>${title}</b></p><p>You can close this tab.</p></body></html>`,
+        `<html><body style="font:15px/1.6 system-ui,sans-serif;background:#0a0a0a;color:#f0e8d8;padding:40px 16px;max-width:40rem;margin:0 auto"><h2 style="font-weight:500">Conveyor ✓</h2><p>YouTube credential minted for: <b>${title}</b></p><p>You can close this tab.</p></body></html>`,
         { headers: { 'Content-Type': 'text/html' } },
       );
     } catch (e) {

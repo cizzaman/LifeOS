@@ -1,25 +1,8 @@
 "use client";
 
-// HERO: selecting a section tints the whole view in that section's dim color —
-// the date rails, group headers, and list markers shift with it.
-
 import { useEffect, useState, useCallback } from "react";
-import {
-  Building2,
-  Shield,
-  Briefcase,
-  Users,
-  ScrollText,
-  Vote,
-  Gavel,
-  Newspaper,
-  LayoutGrid,
-  RefreshCw,
-  AlertCircle,
-  AlertTriangle,
-  type LucideIcon,
-} from "lucide-react";
-import { PageShell, PageHeader, Panel, Pill, TabBar, EmptyState, dimStyle, type Dim, type TabSpec } from "@/components/ui/chrome";
+import { RefreshCw, AlertCircle } from "lucide-react";
+import { PageShell, PageHeader, Panel, TabBar, EmptyState, type TabSpec } from "@/components/ui/chrome";
 
 type SourceStatus = "ok" | "unavailable" | "empty";
 type Item = { title: string; source: string; url: string; date: string; summary?: string };
@@ -82,20 +65,18 @@ const RANGES: { id: Range; label: string }[] = [
 interface SectionDef {
   key: SectionKey;
   label: string;
-  icon: LucideIcon;
-  dim: Dim;
   emptyHint: string;
 }
 
 const SECTIONS: SectionDef[] = [
-  { key: "construction", label: "Construction", icon: Building2, dim: "money", emptyHint: "No new construction permits in this window." },
-  { key: "crime", label: "Crime", icon: Shield, dim: "err", emptyHint: "No new crime stats in this window." },
-  { key: "business", label: "New Business", icon: Briefcase, dim: "ok", emptyHint: "No new business openings in this window." },
-  { key: "officials", label: "Officials", icon: Users, dim: "blue", emptyHint: "No officials news in this window." },
-  { key: "legislation", label: "Legislation", icon: ScrollText, dim: "relationships", emptyHint: "No pending or enacted laws in this window." },
-  { key: "elections", label: "Elections", icon: Vote, dim: "freedom", emptyHint: "No upcoming elections." },
-  { key: "arrests", label: "Arrests", icon: Gavel, dim: "warn", emptyHint: "No new arrests reported in this window." },
-  { key: "news", label: "Local News", icon: Newspaper, dim: "rhythms", emptyHint: "No local news in this window." },
+  { key: "construction", label: "Construction", emptyHint: "No new construction permits in this window." },
+  { key: "crime", label: "Crime", emptyHint: "No new crime stats in this window." },
+  { key: "business", label: "New Business", emptyHint: "No new business openings in this window." },
+  { key: "officials", label: "Officials", emptyHint: "No officials news in this window." },
+  { key: "legislation", label: "Legislation", emptyHint: "No pending or enacted laws in this window." },
+  { key: "elections", label: "Elections", emptyHint: "No upcoming elections." },
+  { key: "arrests", label: "Arrests", emptyHint: "No new arrests reported in this window." },
+  { key: "news", label: "Local News", emptyHint: "No local news in this window." },
 ];
 
 const SECTION_BY_KEY = Object.fromEntries(SECTIONS.map((s) => [s.key, s])) as Record<SectionKey, SectionDef>;
@@ -144,7 +125,7 @@ function relativeTime(iso: string): string {
    different control class than the section "what" tabs below it. ── */
 function TimePicker({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
   return (
-    <div className="inline-flex rounded-md border border-line-2 overflow-hidden">
+    <div className="inline-flex rounded-[10px] border border-line-2 overflow-hidden">
       {RANGES.map((r, i) => {
         const active = r.id === value;
         return (
@@ -154,13 +135,14 @@ function TimePicker({ value, onChange }: { value: Range; onChange: (r: Range) =>
             onClick={() => onChange(r.id)}
             className={`px-3.5 py-1.5 text-[13px] transition-colors ${
               i > 0 ? "border-l border-line-2" : ""
-            } ${active ? "font-semibold" : "font-medium text-ink-3 hover:text-ink-2"}`}
+            } ${active ? "" : "text-ink-3 hover:text-ink-1"}`}
             style={
               active
                 ? {
                     color: "var(--ink-1)",
-                    background: "color-mix(in srgb, var(--accent-soft) 22%, transparent)",
-                    boxShadow: "inset 0 -2px 0 var(--accent-soft)",
+                    background: "var(--primary-soft)",
+                    outline: "1px solid var(--accent-blue)",
+                    outlineOffset: -1,
                   }
                 : undefined
             }
@@ -178,9 +160,9 @@ function RefreshButton({ refreshing, onClick }: { refreshing: boolean; onClick: 
     <button
       onClick={onClick}
       disabled={refreshing}
-      className="inline-flex items-center gap-2 rounded-md border border-line-2 hover:border-line-3 disabled:opacity-50 px-3 py-1.5 text-sm text-ink-2 transition-colors"
+      className="inline-flex items-center gap-2 rounded-[10px] border border-line-2 hover:border-[color:var(--accent-blue)] hover:text-ink-1 disabled:opacity-50 px-3 py-1.5 text-sm text-ink-2 transition-colors"
     >
-      <RefreshCw className={refreshing ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
+      <RefreshCw className={refreshing ? "w-4 h-4 animate-spin" : "w-4 h-4"} strokeWidth={1.5} />
       {refreshing ? "Researching…" : "Refresh now"}
     </button>
   );
@@ -188,11 +170,9 @@ function RefreshButton({ refreshing, onClick }: { refreshing: boolean; onClick: 
 
 function ItemRow({
   item,
-  dim,
   showAbsoluteDates,
 }: {
   item: Item | HistoryItem;
-  dim: Dim;
   showAbsoluteDates: boolean;
 }) {
   const when = item.date || (item as HistoryItem).digest_date || "";
@@ -202,17 +182,16 @@ function ItemRow({
         href={item.url}
         target="_blank"
         rel="noreferrer"
-        className="block border-l-2 pl-3.5 -ml-0.5 transition-colors"
-        style={{ borderColor: `color-mix(in srgb, ${dimColor(dim)} 45%, transparent)` }}
+        className="block"
       >
-        <div className="text-[14px] font-medium text-ink-1 leading-snug group-hover:text-[color:var(--accent-soft)] transition-colors">
+        <div className="text-[14px] font-medium text-ink-1 leading-snug underline-offset-4 decoration-line-3 group-hover:underline">
           {item.title}
         </div>
         {item.summary ? (
           <p className="mt-1 text-[13px] text-ink-2 leading-relaxed">{item.summary}</p>
         ) : null}
-        <div className="mt-1.5 text-[12px] uppercase tracking-[0.15em] text-ink-3 mono tabular-nums flex items-center gap-2">
-          <span className="truncate max-w-[60%]">{item.source}</span>
+        <div className="mt-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-3 flex flex-wrap items-center gap-2">
+          <span className="min-w-0 break-words">{item.source}</span>
           {when ? (
             <>
               <span className="text-ink-3">·</span>
@@ -223,11 +202,6 @@ function ItemRow({
       </a>
     </li>
   );
-}
-
-function dimColor(dim: Dim): string {
-  // dimStyle returns { color } for active pills — reuse that as the section hue.
-  return (dimStyle(dim, true) as { color?: string }).color ?? "var(--ink-3)";
 }
 
 /* ── Compact card used in the All grid ── */
@@ -248,24 +222,20 @@ function SectionCard({
   daysWithData?: number;
   onOpen: () => void;
 }) {
-  const Icon = section.icon;
-  const dotColor =
+  const keyColor =
     status === "ok" ? "var(--ok)" : status === "empty" ? "var(--ink-3)" : status ? "var(--warn)" : "var(--ink-3)";
   return (
     <Panel as="section" hover className="flex flex-col">
-      <header className="flex items-center justify-between mb-4">
-        <button type="button" onClick={onOpen} className="cursor-pointer" title={`Open ${section.label}`}>
-          <Pill dim={section.dim}>
-            <Icon className="w-3.5 h-3.5" />
-            <span className="uppercase tracking-[0.16em] font-semibold">{section.label}</span>
-          </Pill>
+      <header className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <button type="button" onClick={onOpen} className="label-caps cursor-pointer hover:text-ink-1 transition-colors" title={`Open ${section.label}`}>
+          {section.label}
         </button>
-        <div className="flex items-center gap-2 text-[12px] uppercase tracking-wider text-ink-3 mono tabular-nums">
+        <div className="flex items-center gap-2 mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
           {items.length > 0 ? <span>{items.length}</span> : null}
           {daysWithData != null && daysWithData > 0 ? <span>· {daysWithData}d</span> : null}
           {status ? (
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: dotColor }} />
+              <span className="fig-key" style={{ color: keyColor }} aria-hidden />
               <span>{status}</span>
             </div>
           ) : null}
@@ -273,7 +243,7 @@ function SectionCard({
       </header>
 
       {items.length === 0 ? (
-        <p className="text-sm text-ink-2 italic">
+        <p className="text-sm text-ink-3">
           {status === "unavailable" ? "Source unavailable for this city." : emptyText}
         </p>
       ) : (
@@ -281,14 +251,14 @@ function SectionCard({
           {items.slice(0, 5).map((item, i) => (
             <li key={i} className="group">
               <a href={item.url} target="_blank" rel="noreferrer" className="block">
-                <div className="text-[14px] font-medium text-ink-1 leading-snug group-hover:text-[color:var(--accent-soft)] transition-colors line-clamp-2">
+                <div className="text-[14px] font-medium text-ink-1 leading-snug underline-offset-4 decoration-line-3 group-hover:underline">
                   {item.title}
                 </div>
                 {item.summary && item.summary.toLowerCase() !== item.title.toLowerCase() ? (
-                  <p className="mt-1 text-[13px] text-ink-2 leading-relaxed line-clamp-2">{item.summary}</p>
+                  <p className="mt-1 text-[13px] text-ink-2 leading-relaxed">{item.summary}</p>
                 ) : null}
-                <div className="mt-1 text-[12px] uppercase tracking-[0.15em] text-ink-3 mono tabular-nums flex items-center gap-2">
-                  <span className="truncate max-w-[60%]">{item.source}</span>
+                <div className="mt-1 mono text-[10px] uppercase tracking-[0.1em] text-ink-3 flex flex-wrap items-center gap-2">
+                  <span className="min-w-0 break-words">{item.source}</span>
                   {(item.date || (item as HistoryItem).digest_date) ? (
                     <>
                       <span className="text-ink-3">·</span>
@@ -308,7 +278,7 @@ function SectionCard({
               <button
                 type="button"
                 onClick={onOpen}
-                className="text-[12px] uppercase tracking-[0.15em] mono text-ink-3 hover:text-ink-2 transition-colors"
+                className="mono text-[10px] uppercase tracking-[0.1em] text-ink-3 hover:text-ink-1 transition-colors"
               >
                 +{items.length - 5} more →
               </button>
@@ -332,13 +302,10 @@ function SectionDetail({
   status?: SourceStatus;
   range: Range;
 }) {
-  const Icon = section.icon;
-  const hue = dimColor(section.dim);
   if (items.length === 0) {
     return (
       <Panel>
         <EmptyState
-          icon={Icon}
           title={status === "unavailable" ? "Source unavailable for this city." : section.emptyHint}
         />
       </Panel>
@@ -350,7 +317,7 @@ function SectionDetail({
       <Panel as="section">
         <ul className="space-y-5">
           {items.map((item, i) => (
-            <ItemRow key={i} item={item} dim={section.dim} showAbsoluteDates={false} />
+            <ItemRow key={i} item={item} showAbsoluteDates={false} />
           ))}
         </ul>
       </Panel>
@@ -374,21 +341,18 @@ function SectionDetail({
     <Panel as="section">
       <div className="space-y-7">
         {overflow > 0 ? (
-          <p className="text-[12px] uppercase tracking-[0.15em] text-ink-3 mono">
+          <p className="mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
             showing newest {capped.length} of {items.length} items
           </p>
         ) : null}
         {ordered.map(([date, group]) => (
           <div key={date}>
-            <div
-              className="text-[12px] uppercase tracking-[0.2em] mono mb-3.5 pb-1.5 border-b"
-              style={{ color: hue, borderColor: `color-mix(in srgb, ${hue} 25%, transparent)` }}
-            >
+            <div className="label-caps mb-3.5 pb-1.5 border-b border-line-2">
               {date === "undated" ? "Undated" : shortDate(date)}
             </div>
             <ul className="space-y-5">
               {group.map((item, i) => (
-                <ItemRow key={i} item={item} dim={section.dim} showAbsoluteDates={range !== "week"} />
+                <ItemRow key={i} item={item} showAbsoluteDates={range !== "week"} />
               ))}
             </ul>
           </div>
@@ -470,7 +434,7 @@ export default function LocalPage() {
       <PageShell>
         <PageHeader title="Local" subtitle="Civic intelligence digest for your hometown." />
         <Panel className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-warn mt-0.5 shrink-0" />
+          <AlertCircle className="w-5 h-5 text-ink-3 mt-0.5 shrink-0" strokeWidth={1.5} />
           <div>
             <p className="font-medium text-ink-1">No digest generated yet.</p>
             <p className="text-sm text-ink-2 mt-1">
@@ -489,8 +453,9 @@ export default function LocalPage() {
     return (
       <PageShell>
         <PageHeader title="Local" subtitle="Civic intelligence digest for your hometown." />
-        <Panel className="text-sm text-err" style={{ borderColor: "var(--err)" }}>
-          Error loading digest: {error}
+        <Panel className="flex items-start gap-2 text-sm text-ink-1">
+          <span className="fig-key mt-[7px]" style={{ color: "var(--err)" }} aria-hidden />
+          <span>Error loading digest: {error}</span>
         </Panel>
       </PageShell>
     );
@@ -519,12 +484,10 @@ export default function LocalPage() {
   const totalItems = SECTIONS.reduce((a, s) => a + itemsFor(s.key).length, 0);
 
   const sectionTabs: TabSpec<SectionTab>[] = [
-    { id: "all", label: "All", icon: LayoutGrid, dim: "blue", hint: totalItems || undefined },
+    { id: "all", label: "All", hint: totalItems || undefined },
     ...SECTIONS.map((s) => ({
       id: s.key as SectionTab,
       label: s.label,
-      icon: s.icon,
-      dim: s.dim,
       hint: itemsFor(s.key).length || undefined,
     })),
   ];
@@ -542,8 +505,8 @@ export default function LocalPage() {
         title="Local"
         subtitle={`${meta.city}, ${meta.state} — civic intelligence digest.`}
         actions={
-          <>
-            <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.15em] text-ink-3 mono">
+          <div className="flex flex-wrap items-center justify-end gap-2 max-w-[calc(100vw-2rem)]">
+            <div className="flex flex-wrap items-center gap-2 mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
               {meta.zip ? <span>{meta.zip}</span> : null}
               {meta.county ? (
                 <>
@@ -559,13 +522,13 @@ export default function LocalPage() {
               </span>
             </div>
             <RefreshButton refreshing={refreshing} onClick={refreshNow} />
-          </>
+          </div>
         }
       />
 
       {isStale ? (
-        <Panel className="flex items-center gap-3 py-3" style={{ borderColor: "var(--warn)" }}>
-          <AlertTriangle className="w-4 h-4 text-warn shrink-0" />
+        <Panel className="flex items-center gap-3 py-3">
+          <span className="fig-key" style={{ color: "var(--warn)" }} aria-hidden />
           <p className="text-sm text-ink-2">
             This digest is <span className="text-ink-1 font-medium">{relativeTime(meta.generated_at)}</span> old —
             the daily 6 a.m. job may not be landing. Check the Assistant tab&apos;s cron panel or refresh now.
@@ -576,7 +539,7 @@ export default function LocalPage() {
       {/* WHEN — segmented control, visually distinct from the section pills */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <TimePicker value={range} onChange={setRange} />
-        <span className="text-[12px] uppercase tracking-[0.15em] text-ink-3 mono tabular-nums">{coverage}</span>
+        <span className="mono text-[10px] uppercase tracking-[0.1em] text-ink-3">{coverage}</span>
       </div>
 
       {/* WHAT — section pill tabs */}
@@ -609,7 +572,7 @@ export default function LocalPage() {
       {/* Errors (day view only — history views aggregate many runs) */}
       {range === "day" && section === "all" && meta.errors.length > 0 ? (
         <details className="text-xs text-ink-3 mono">
-          <summary className="cursor-pointer hover:text-ink-2 uppercase tracking-[0.18em]">
+          <summary className="cursor-pointer hover:text-ink-1 uppercase tracking-[0.16em] text-[10px]">
             {meta.errors.length} source error{meta.errors.length === 1 ? "" : "s"}
           </summary>
           <ul className="mt-3 space-y-1 pl-4">

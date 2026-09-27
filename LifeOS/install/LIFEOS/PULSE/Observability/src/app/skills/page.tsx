@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import MarkdownRenderer from "@/components/wiki/MarkdownRenderer";
-import { Zap, ArrowLeft, Pencil, Check, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import {
   PageShell,
@@ -13,8 +13,7 @@ import {
   StatTile,
   TabBar,
   Pill,
-  dimStyle,
-  type Dim,
+  Marker,
 } from "@/components/ui/chrome";
 
 interface SkillMeta {
@@ -44,12 +43,6 @@ interface SkillDetail {
   wordCount: number;
 }
 
-function effortDim(effort: string): Dim {
-  if (effort === "easy" || effort === "low") return "ok";
-  if (effort === "hard" || effort === "high") return "err";
-  return "neutral";
-}
-
 function SkillsLanding({ skills }: { skills: SkillMeta[] }) {
   const [tab, setTab] = useState<"public" | "private">("public");
   const privateSkills = skills.filter(isPrivateSkill);
@@ -60,18 +53,17 @@ function SkillsLanding({ skills }: { skills: SkillMeta[] }) {
     <PageShell>
       <PageHeader
         title="Skills"
-        icon={Zap}
         subtitle="Domain-specific capabilities that activate on trigger phrases. Each skill bundles prompts, workflows, tools, and templates into a self-contained unit."
       />
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))" }}>
-        <StatTile label="Skills" value={skills.length} icon={Zap} dim="creative" />
+        <StatTile label="Skills" value={skills.length} />
       </div>
 
       <TabBar
         tabs={[
-          { id: "public", label: "Public", dim: "blue", hint: publicSkills.length },
-          { id: "private", label: "Private", dim: "creative", hint: privateSkills.length },
+          { id: "public", label: "Public", hint: publicSkills.length },
+          { id: "private", label: "Private", hint: privateSkills.length },
         ]}
         active={tab}
         onChange={setTab}
@@ -102,17 +94,11 @@ function SkillCard({ skill }: { skill: SkillMeta }) {
   return (
     <Link href={`/skills?name=${encodeURIComponent(skill.name)}`} className="block">
       <Panel hover className="h-full flex flex-col gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <Zap className="w-4 h-4 shrink-0 text-dim-creative" />
-          <span className="font-medium text-ink-1 truncate">{skill.name}</span>
-        </div>
-        <p className="text-[13px] leading-relaxed text-ink-2">
-          {skill.description.slice(0, 140)}
-          {skill.description.length > 140 ? "…" : ""}
-        </p>
-        <div className="flex items-center gap-1.5 mt-auto pt-1">
-          <Pill dim={effortDim(skill.effort)}>{skill.effort}</Pill>
-          {skill.hasWorkflows && <Pill dim="relationships">workflows</Pill>}
+        <span className="font-medium text-ink-1 break-words">{skill.name}</span>
+        <p className="text-[13px] leading-relaxed text-ink-2 break-words">{skill.description}</p>
+        <div className="flex items-center gap-3 mt-auto pt-1">
+          <Pill>{skill.effort}</Pill>
+          {skill.hasWorkflows && <Pill>workflows</Pill>}
         </div>
       </Panel>
     </Link>
@@ -141,7 +127,7 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
   });
 
   const btnBase =
-    "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium cursor-pointer";
+    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border mono text-[11px] uppercase tracking-[0.12em] cursor-pointer transition-colors hover:border-[color:var(--accent-blue)] hover:text-ink-1";
 
   const isPrivate = skill.name.startsWith("_") && skill.name === skill.name.toUpperCase();
 
@@ -152,12 +138,12 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
     >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/skills" className="text-ink-2 hover:text-ink-1">
-            <ArrowLeft className="w-5 h-5" />
+          <Link href="/skills" aria-label="Back to skills" className="text-ink-3 hover:text-ink-1 transition-colors">
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           </Link>
-          <div>
-            <h1 className="text-ink-1">{skill.name}</h1>
-            <p className="mt-0.5 text-[13px] text-ink-2">
+          <div className="min-w-0">
+            <h1 className="text-ink-1 break-words">{skill.name}</h1>
+            <p className="mt-0.5 mono text-[11px] text-ink-3">
               {skill.wordCount} words ·{" "}
               {new Date(skill.lastModified).toLocaleDateString("en-US", {
                 month: "short",
@@ -174,18 +160,13 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
               <button
                 onClick={() => mutation.mutate(editContent)}
                 disabled={mutation.isPending}
-                className={btnBase}
+                className={`${btnBase} border-line-3 text-ink-1`}
                 style={{
-                  ...dimStyle("ok"),
                   cursor: mutation.isPending ? "not-allowed" : "pointer",
                   opacity: mutation.isPending ? 0.6 : 1,
                 }}
               >
-                {mutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Check className="w-4 h-4" />
-                )}
+                {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin text-ink-3" strokeWidth={1.5} />}
                 Save
               </button>
               <button
@@ -193,10 +174,8 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
                   setEditing(false);
                   setEditContent(skill.content);
                 }}
-                className={btnBase}
-                style={dimStyle("neutral")}
+                className={`${btnBase} border-line-2 text-ink-2`}
               >
-                <X className="w-4 h-4" />
                 Cancel
               </button>
             </>
@@ -206,10 +185,8 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
                 setEditing(true);
                 setEditContent(skill.content);
               }}
-              className={btnBase}
-              style={dimStyle("neutral")}
+              className={`${btnBase} border-line-2 text-ink-2`}
             >
-              <Pencil className="w-4 h-4" />
               Edit
             </button>
           )}
@@ -217,7 +194,8 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
       </div>
 
       {mutation.isError && (
-        <div className="px-3 py-2 rounded-md text-[13px]" style={dimStyle("err")}>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] border border-line-2 text-[13px] text-ink-2">
+          <Marker dim="err" />
           Failed to save changes.
         </div>
       )}
@@ -226,7 +204,7 @@ function SkillDetailView({ skill }: { skill: SkillDetail }) {
         <textarea
           value={editContent}
           onChange={(e) => setEditContent(e.target.value)}
-          className="w-full h-[600px] rounded-lg p-4 text-sm mono resize-y bg-surface-1 border border-line-2 text-ink-1 outline-none"
+          className="w-full h-[600px] rounded-[10px] p-4 text-[13px] mono resize-y bg-transparent border border-line-2 text-ink-1 outline-none focus:border-[color:var(--accent-blue)] transition-colors"
           spellCheck={false}
         />
       ) : (
@@ -276,7 +254,7 @@ function SkillsPageInner() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-sm text-ink-3">Loading...</div>
+      <div className="text-[13px] text-ink-3">Loading...</div>
     </div>
   );
 }
@@ -286,7 +264,7 @@ export default function SkillsPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <div className="text-sm text-ink-3">Loading...</div>
+          <div className="text-[13px] text-ink-3">Loading...</div>
         </div>
       }
     >

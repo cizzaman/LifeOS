@@ -5,11 +5,11 @@ import type { HookEvent } from "@/hooks/useAgentEvents";
 import type { TimeRange } from "@/hooks/useChartData";
 import EventRow from "./EventRow";
 import IntensityBar from "./IntensityBar";
-import { Box, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 
 interface EventTimelineProps {
   events: HookEvent[];
-  heatLevel?: { intensity: number; color: string; label: string };
+  heatLevel?: { intensity: number; label: string };
   eventsPerMinute?: number;
   timeRange: TimeRange;
   timeRanges: TimeRange[];
@@ -48,7 +48,6 @@ export default function EventTimeline({
       {heatLevel && (
         <IntensityBar
           intensity={heatLevel.intensity}
-          color={heatLevel.color}
           label={heatLevel.label}
           eventsPerMinute={eventsPerMinute ?? 0}
           timeRange={timeRange}
@@ -58,7 +57,7 @@ export default function EventTimeline({
       )}
 
       {/* Column Headers */}
-      <div className="flex items-center justify-between gap-3 px-4 py-2 text-xs font-medium text-[var(--ink-3)] uppercase tracking-wide">
+      <div className="label-caps text-ink-3 flex items-center justify-between gap-3 px-4 py-2 border-b border-line-1">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <span className="w-20">Agent</span>
           <span className="w-24">Hook</span>
@@ -76,12 +75,12 @@ export default function EventTimeline({
                 : "Oldest first — click for most recent first"
             }
             aria-label="Toggle sort order"
-            className="p-0.5 rounded hover:bg-white/[0.06] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors"
+            className="p-0.5 rounded-[10px] text-ink-3 hover:text-ink-1 transition-colors"
           >
             {sortOrder === "desc" ? (
-              <ArrowDownWideNarrow size={13} />
+              <ArrowDownWideNarrow size={13} strokeWidth={1.5} />
             ) : (
-              <ArrowUpWideNarrow size={13} />
+              <ArrowUpWideNarrow size={13} strokeWidth={1.5} />
             )}
           </button>
         </div>
@@ -90,15 +89,12 @@ export default function EventTimeline({
       {/* Scrollable Event List */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-2">
         {sortedEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="bg-white/[0.03] p-6 rounded-2xl mb-4">
-              <Box size={40} className="text-[var(--line-2)]" />
-            </div>
-            <p className="text-base font-medium text-[var(--ink-2)] mb-1">No events yet</p>
-            <p className="text-sm text-[var(--line-2)]">Events will appear here as they stream in</p>
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <p className="label-caps">No events yet</p>
+            <p className="text-[13px] text-ink-3">Events will appear here as they stream in</p>
           </div>
         ) : (
-          <div className="space-y-1.5 divide-y divide-[rgba(107,125,137,0.1)]">
+          <div className="space-y-1.5 divide-y divide-line-1">
             {sortedEvents.map((event) => (
               <EventRow key={`${event.id}-${event.timestamp}`} event={event} />
             ))}

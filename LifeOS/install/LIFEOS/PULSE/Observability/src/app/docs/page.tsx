@@ -5,17 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import MarkdownRenderer from "@/components/wiki/MarkdownRenderer";
 import WikiMeta from "@/components/wiki/WikiMeta";
-import {
-  BookOpen,
-  Compass,
-  Sparkles,
-  ArrowRight,
-  Folder,
-} from "lucide-react";
 import Link from "next/link";
 import { wikiPageUrl } from "@/lib/wiki-links";
 import { PageShell, PageHeader, Panel, StatTile, Pill } from "@/components/ui/chrome";
-import type { LucideIcon } from "lucide-react";
 
 interface TreeNode {
   label: string;
@@ -59,7 +51,7 @@ interface PageDetail {
 
 // The card look, matching chrome Panel + hover, applied to Link elements.
 const CARD_CLASS =
-  "flex flex-col gap-2 bg-surface-2 border border-line-2 rounded-xl p-5 transition-colors duration-200 hover:bg-surface-3 hover:border-line-3";
+  "flex flex-col gap-2 bg-transparent border border-line-3 rounded-[10px] p-5 transition-colors duration-200 hover:border-[color:var(--accent-blue)] hover:bg-[color:var(--primary-soft)]";
 
 const START_HERE_SLUGS = [
   {
@@ -91,16 +83,8 @@ function flattenTree(nodes: TreeNode[] | undefined): TreeNode[] {
   return out;
 }
 
-function SectionHeading({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
-  return (
-    <h2
-      className="flex items-center gap-2 mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-      style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
-    >
-      <Icon className="w-4 h-4" />
-      {children}
-    </h2>
-  );
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return <h2 className="label-caps mb-4">{children}</h2>;
 }
 
 function DocsLanding({ data }: { data: WikiIndex }) {
@@ -135,17 +119,16 @@ function DocsLanding({ data }: { data: WikiIndex }) {
         <PageHeader
           title="Docs"
           subtitle="LifeOS subsystem architecture, algorithm, and reference"
-          icon={BookOpen}
         />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatTile icon={BookOpen} label="Documents" value={data.stats.totalSystem} dim="rhythms" />
-          <StatTile icon={Folder} label="Sections" value={groups.length} dim="relationships" />
+          <StatTile label="Documents" value={data.stats.totalSystem} />
+          <StatTile label="Sections" value={groups.length} />
         </div>
 
         {startHere.length > 0 && (
           <div>
-            <SectionHeading icon={Sparkles}>Start Here</SectionHeading>
+            <SectionHeading>Start Here</SectionHeading>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {startHere.map((entry) => (
                 <Link
@@ -153,14 +136,11 @@ function DocsLanding({ data }: { data: WikiIndex }) {
                   href={wikiPageUrl(entry.category ?? "system-doc", entry.slug)}
                   className={`${CARD_CLASS} group`}
                 >
-                  <div className="text-base font-semibold text-ink-1">{entry.title}</div>
-                  <div className="text-[13px] leading-relaxed text-ink-3">{entry.tagline}</div>
-                  <div className="mt-auto flex items-center gap-2 pt-2">
-                    <Pill dim="creative">start here</Pill>
-                    <span className="flex items-center gap-1 text-[13px] uppercase tracking-[0.2em] text-dim-creative">
-                      Open
-                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                    </span>
+                  <div className="text-base font-medium text-ink-1">{entry.title}</div>
+                  <div className="text-[13px] leading-relaxed text-ink-2">{entry.tagline}</div>
+                  <div className="mt-auto flex items-center gap-3 pt-2">
+                    <Pill>start here</Pill>
+                    <span className="label-caps text-ink-3 group-hover:text-ink-1 transition-colors">Open</span>
                   </div>
                 </Link>
               ))}
@@ -170,7 +150,7 @@ function DocsLanding({ data }: { data: WikiIndex }) {
 
         {groups.length > 0 && (
           <div>
-            <SectionHeading icon={Compass}>Browse by Section</SectionHeading>
+            <SectionHeading>Browse by Section</SectionHeading>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {groups.map((group) => {
                 const firstChild = group.children?.find((c) => c.slug);
@@ -182,19 +162,12 @@ function DocsLanding({ data }: { data: WikiIndex }) {
                 return (
                   <Link key={group.label} href={href} className={CARD_CLASS}>
                     <div className="flex items-center justify-between gap-2">
-                      <div
-                        className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-                        style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
-                      >
-                        {group.label}
-                      </div>
+                      <div className="label-caps text-ink-1 break-words min-w-0">{group.label}</div>
                       {group.count !== undefined && (
-                        <Pill dim="freedom" className="tabular-nums">
-                          {group.count}
-                        </Pill>
+                        <span className="mono text-[11px] text-ink-3 shrink-0">{group.count}</span>
                       )}
                     </div>
-                    <div className="text-[13px] text-ink-3 leading-relaxed line-clamp-2">
+                    <div className="text-[13px] text-ink-2 leading-relaxed">
                       {(group.children ?? [])
                         .filter((c) => c.slug)
                         .slice(0, 3)
@@ -211,36 +184,36 @@ function DocsLanding({ data }: { data: WikiIndex }) {
 
         {data.recentChanges.length > 0 && (
           <div>
-            <SectionHeading icon={Sparkles}>Recently Updated</SectionHeading>
+            <SectionHeading>Recently Updated</SectionHeading>
             <Panel className="p-0">
-              <div className="divide-y divide-line-1">
+              <div className="divide-y divide-line-2">
                 {data.recentChanges.slice(0, 6).map((page, index) => (
                   <Link
                     key={page.slug}
                     href={wikiPageUrl(page.category, page.slug)}
-                    className="flex items-center gap-4 px-5 py-3 hover:bg-surface-3 transition-colors"
+                    className="flex items-center gap-4 px-5 py-3 group"
                   >
-                    <div className="mono text-ink-3 tabular-nums shrink-0" style={{ fontSize: 13 }}>
+                    <div className="mono text-[11px] text-ink-3 shrink-0">
                       {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-ink-1" style={{ fontSize: 14 }}>
+                      <div className="text-[14px] text-ink-2 group-hover:text-ink-1 transition-colors break-words">
                         {page.title}
                       </div>
-                      <div className="text-ink-3" style={{ fontSize: 13 }}>
+                      <div className="mono text-[11px] text-ink-3">
                         {page.category} · {page.wordCount.toLocaleString()} words
                       </div>
                     </div>
-                    <div className="hidden sm:flex items-center gap-2 shrink-0">
-                      <Pill dim="rhythms">updated</Pill>
-                      <span className="text-ink-3 tabular-nums" style={{ fontSize: 12 }}>
+                    <div className="hidden sm:flex items-center gap-3 shrink-0">
+                      <Pill>updated</Pill>
+                      <span className="mono text-[11px] text-ink-3">
                         {new Date(page.lastModified).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                         })}
                       </span>
                     </div>
-                    <Pill dim="relationships" className="shrink-0">
+                    <Pill className="shrink-0">
                       {qualityLabel(page.quality)}
                     </Pill>
                   </Link>
@@ -282,9 +255,9 @@ function DocsPageInner() {
 
   if (isViewing && docDetail) {
     return (
-      <div className="flex h-full">
+      <div className="flex h-full max-md:flex-col max-md:h-auto">
         {/* inline flex: `flex-1` here loses its grow to an unlayered CSS rule and collapses the body to width 0 — inline restores it */}
-        <div className="flex-1 overflow-y-auto p-6 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
+        <div className="flex-1 overflow-y-auto p-6 max-sm:p-4 max-w-4xl" style={{ flex: "1 1 auto", minWidth: 0 }}>
           <MarkdownRenderer content={docDetail.content} />
         </div>
         <WikiMeta
@@ -296,6 +269,7 @@ function DocsPageInner() {
           wordCount={docDetail.wordCount}
           backlinks={docDetail.backlinks}
           filePath={docDetail.filePath}
+          className="max-md:w-full max-md:h-auto max-md:border-l-0 max-md:border-t"
         />
       </div>
     );
@@ -307,7 +281,7 @@ function DocsPageInner() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-sm text-ink-3">Loading...</div>
+      <div className="text-[13px] text-ink-3">Loading...</div>
     </div>
   );
 }
@@ -317,7 +291,7 @@ export default function DocsPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <div className="text-sm text-ink-3">Loading...</div>
+          <div className="text-[13px] text-ink-3">Loading...</div>
         </div>
       }
     >

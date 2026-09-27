@@ -5,89 +5,8 @@ import type { HookEvent } from "@/hooks/useAgentEvents";
 import { useChartData, type TimeRange } from "@/hooks/useChartData";
 import { useAdvancedMetrics } from "@/hooks/useAdvancedMetrics";
 import { useHeatLevel } from "@/hooks/useHeatLevel";
-import { createChartRenderer, type ChartDimensions, type ChartConfig } from "./ChartRenderer";
-import {
-  Settings2,
-  Hammer,
-  Cpu,
-  DollarSign,
-  Sparkles,
-  Moon,
-  Loader2,
-  FileText,
-  FilePlus,
-  FileEdit,
-  Search,
-  FolderSearch,
-  Globe,
-  Terminal,
-  Send,
-  MessageSquare,
-  Wrench,
-  Cog,
-  Play,
-  Code,
-  type LucideIcon,
-} from "lucide-react";
-
-// ─── Tool Icons ───
-
-const TOOL_ICON_MAP: Record<string, LucideIcon> = {
-  Read: FileText,
-  Write: FilePlus,
-  Edit: FileEdit,
-  Bash: Terminal,
-  BashOutput: Terminal,
-  Grep: Search,
-  Glob: FolderSearch,
-  WebFetch: Globe,
-  WebSearch: Globe,
-  Task: Send,
-  TodoWrite: MessageSquare,
-  NotebookEdit: Code,
-  NotebookRead: Code,
-  Skill: Cog,
-  SlashCommand: Play,
-};
-
-const TOOL_STYLE_MAP: Record<string, { bg: string; text: string }> = {
-  Read: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
-  Write: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
-  Edit: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
-  Grep: { bg: "bg-[#a78bfa]/10", text: "text-[#a78bfa]" },
-  Glob: { bg: "bg-[#a78bfa]/10", text: "text-[#a78bfa]" },
-  Bash: { bg: "bg-[#22c55e]/10", text: "text-[#22c55e]" },
-  BashOutput: { bg: "bg-[#22c55e]/10", text: "text-[#22c55e]" },
-  WebFetch: { bg: "bg-[#f97316]/10", text: "text-[#f97316]" },
-  WebSearch: { bg: "bg-[#f97316]/10", text: "text-[#f97316]" },
-  Task: { bg: "bg-[#f87171]/10", text: "text-[#f87171]" },
-  TodoWrite: { bg: "bg-[#f87171]/10", text: "text-[#f87171]" },
-};
-
-const DEFAULT_STYLE = { bg: "bg-[rgba(107,125,137,0.1)]", text: "text-[var(--ink-2)]" };
-
-// ─── Agent Colors ───
-
-const AGENT_HEX_COLORS: Record<string, string> = {
-  pentester: "#f87171",
-  engineer: "#3fb2c9",
-  designer: "#a78bfa",
-  architect: "#a78bfa",
-  intern: "#3fb2c9",
-  artist: "#3fb2c9",
-  "perplexity-researcher": "#f5c451",
-  "claude-researcher": "#f5c451",
-  "gemini-researcher": "#f5c451",
-  main: "#3fb2c9",
-  da: "#3fb2c9",
-  pai: "#3fb2c9",
-  "claude-code": "#3fb2c9",
-};
-
-function getHexColorForApp(name: string): string {
-  const key = name.split(":")[0].toLowerCase();
-  return AGENT_HEX_COLORS[key] || "#5cc4d8";
-}
+import { createChartRenderer, chartColorsFromTokens, agentColor, type ChartDimensions, type ChartConfig } from "./ChartRenderer";
+import { Loader2 } from "lucide-react";
 
 // ─── Format Helpers ───
 
@@ -104,7 +23,7 @@ function formatTokens(tokens: number): string {
 interface LivePulseChartProps {
   events: HookEvent[];
   externalTimeRange?: TimeRange;
-  onHeatUpdate?: (data: { intensity: number; color: string; label: string }) => void;
+  onHeatUpdate?: (data: { intensity: number; label: string }) => void;
   onEventsPerMinuteUpdate?: (epm: number) => void;
   onTimeRangeChange?: (range: TimeRange) => void;
   onAllAgentsUpdate?: (ids: string[]) => void;
@@ -223,7 +142,7 @@ export default function LivePulseChart({
     animationDuration: 300,
     barWidth: 3,
     barGap: 1,
-    colors: { primary: "#3fb2c9", glow: "#5cc4d8", axis: "#333", text: "#55636d" },
+    colors: chartColorsFromTokens(),
   });
 
   const getDimensions = (): ChartDimensions => ({
@@ -312,112 +231,80 @@ export default function LivePulseChart({
   return (
     <div className="flex flex-col">
       {/* Header Bar: Skills, Workflows, Tools, Tokens, Cost */}
-      <div className="px-5 py-2 border-b border-white/[0.03]">
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="px-5 py-3 border-b border-line-2">
+        <div className="flex items-center gap-x-6 gap-y-2 flex-wrap">
           {/* Skills */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm text-[var(--ink-3)] font-medium uppercase">SKILLS:</span>
+          <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+            <span className="label-caps">Skills</span>
             {skills.length === 0 ? (
-              <span className="text-sm font-medium text-[var(--ink-3)]">—</span>
+              <span className="mono text-[12px] text-ink-3">—</span>
             ) : (
               skills.slice(0, 3).map((s) => (
-                <div key={s.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#a78bfa]/10">
-                  <Settings2 size={14} className="text-[#a78bfa]" />
-                  <span className="font-medium text-[#a78bfa]">{s.name}</span>
-                </div>
+                <span key={s.name} className="mono text-[12px] text-ink-1">{s.name}</span>
               ))
             )}
           </div>
-
-          <span className="text-[var(--line-2)]">|</span>
 
           {/* Workflows */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm text-[var(--ink-3)] font-medium uppercase">WORKFLOWS:</span>
+          <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+            <span className="label-caps">Workflows</span>
             {workflows.length === 0 ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,125,137,0.2)]">
-                <Hammer size={14} className="text-[var(--ink-3)]" />
-                <span className="font-medium text-[var(--ink-3)]">None</span>
-              </div>
+              <span className="mono text-[12px] text-ink-3">None</span>
             ) : (
               workflows.slice(0, 3).map((w) => (
-                <div key={w.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#5cc4d8]/10">
-                  <Hammer size={14} className="text-[#5cc4d8]" />
-                  <span className="font-medium text-[#5cc4d8]">{w.name}</span>
-                </div>
+                <span key={w.name} className="mono text-[12px] text-ink-1">{w.name}</span>
               ))
             )}
           </div>
 
-          <span className="text-[var(--line-2)]">|</span>
-
           {/* Tools */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm text-[var(--ink-3)] font-medium uppercase">TOOLS:</span>
-            {topTools.length === 0 ? (
-              ["Read", "Edit", "Bash"].map((t) => {
-                const Icon = TOOL_ICON_MAP[t] || Wrench;
-                return (
-                  <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,125,137,0.2)]">
-                    <Icon size={14} className="text-[var(--ink-3)]" />
-                    <span className="font-medium text-[var(--ink-3)]">{t}</span>
-                  </div>
-                );
-              })
-            ) : (
-              topTools.filter((t) => t.tool !== "unknown").slice(0, 4).map((tool) => {
-                const Icon = TOOL_ICON_MAP[tool.tool] || Wrench;
-                const style = TOOL_STYLE_MAP[tool.tool] || DEFAULT_STYLE;
-                return (
-                  <div key={tool.tool} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm ${style.bg}`}>
-                    <Icon size={14} className={style.text} />
-                    <span className={`font-medium ${style.text}`}>{tool.tool}</span>
-                    <span className={`font-bold ${style.text}`}>{tool.count}</span>
-                  </div>
-                );
-              })
-            )}
+          <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+            <span className="label-caps">Tools</span>
+            {topTools.length === 0
+              ? ["Read", "Edit", "Bash"].map((t) => (
+                  <span key={t} className="mono text-[12px] text-ink-3">{t}</span>
+                ))
+              : topTools.filter((t) => t.tool !== "unknown").slice(0, 4).map((tool) => (
+                  <span key={tool.tool} className="inline-flex items-baseline gap-1.5 mono text-[12px] text-ink-1">
+                    {tool.tool}
+                    <span className="text-ink-3">{tool.count}</span>
+                  </span>
+                ))}
           </div>
 
           <div className="flex-1" />
 
           {/* Tokens */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm shrink-0"
-            style={{ backgroundColor: "rgba(245,196,81,0.15)" }}
-          >
-            <Cpu size={14} className="text-[#f5c451]" />
-            <span className="font-medium text-[#f5c451]">
+          <div className="flex items-baseline gap-2 shrink-0">
+            <span className="label-caps">Tokens</span>
+            <span className="mono text-[12px] text-ink-1">
               {formatTokens(totalTokens.input)}/{formatTokens(totalTokens.output)}
             </span>
           </div>
 
           {/* Cost */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm shrink-0"
-            style={{ backgroundColor: "rgba(34,197,94,0.15)" }}
-          >
-            <DollarSign size={14} className="text-[#22c55e]" />
-            <span className="font-medium text-[#22c55e]">${estimatedCost.toFixed(2)}</span>
+          <div className="flex items-baseline gap-2 shrink-0">
+            <span className="label-caps">Cost</span>
+            <span className="mono text-[12px] text-ink-1">${estimatedCost.toFixed(2)}</span>
           </div>
         </div>
 
-        {/* Agent Pills Bar */}
-        <div className="flex gap-2 min-h-[32px] mt-2 pt-2 border-t border-white/[0.03]">
+        {/* Agent Pills Bar — the legend for the chart's agent keys */}
+        <div className="flex flex-wrap gap-2 min-h-[32px] mt-3 pt-3 border-t border-line-1">
           {stableAgentNames.length === 0 ? (
             ["User", "Agent"].map((name) => (
               <div
                 key={name}
-                className="flex-1 min-w-0 text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-2 justify-center bg-[rgba(107,125,137,0.2)]"
+                className="flex-1 min-w-0 px-3 py-1.5 rounded-[10px] border border-line-2 flex items-center gap-2 justify-center"
               >
-                <Moon size={10} className="shrink-0 text-[var(--ink-3)]" />
-                <span className="font-mono truncate text-[var(--ink-3)]">{name}</span>
+                <span className="fig-key" style={{ color: "var(--ink-3)" }} aria-hidden />
+                <span className="mono text-[11px] truncate text-ink-3">{name}</span>
               </div>
             ))
           ) : (
             stableAgentNames.map((name) => {
               const active = isAgentActive(name);
-              const color = getHexColorForApp(name);
+              const color = agentColor(name);
               const count = name === "User"
                 ? allEvents.filter((e) => e.hook_event_type === "UserPromptSubmit" && e.timestamp && Date.now() - e.timestamp < currentConfig.duration).length
                 : agentActionCounts[name] || 0;
@@ -432,27 +319,14 @@ export default function LivePulseChart({
                 <button
                   key={name}
                   onClick={() => matchingAgentId && onAgentPillClick?.(matchingAgentId)}
-                  className={`flex-1 min-w-0 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-2 justify-center ${
-                    active ? "text-white" : "text-[var(--ink-2)] opacity-40 hover:opacity-70"
+                  className={`flex-1 min-w-0 px-3 py-1.5 rounded-[10px] border transition-colors cursor-pointer flex items-center gap-2 justify-center hover:border-[color:var(--accent-blue)] ${
+                    active ? "border-line-3 text-ink-1" : "border-line-2 text-ink-3 hover:text-ink-2"
                   }`}
-                  style={{
-                    borderColor: color + (active ? "60" : "20"),
-                    backgroundColor: color + (active ? "20" : "05"),
-                  }}
                 >
-                  {active ? (
-                    <Sparkles size={10} className="shrink-0" style={{ color }} />
-                  ) : (
-                    <Moon size={10} className="shrink-0 opacity-50" />
-                  )}
-                  <span className="font-mono truncate">{name}</span>
+                  <span className="fig-key" style={{ color: active ? color : "var(--ink-3)" }} aria-hidden />
+                  <span className="mono text-[11px] truncate">{name}</span>
                   {count >= 1 && (
-                    <span
-                      className="px-1.5 py-0.5 text-[16px] font-bold rounded min-w-[20px] text-center shrink-0"
-                      style={{ backgroundColor: color, color: "var(--ground)" }}
-                    >
-                      {count}
-                    </span>
+                    <span className="mono text-[11px] text-ink-3 shrink-0">{count}</span>
                   )}
                 </button>
               );
@@ -463,7 +337,7 @@ export default function LivePulseChart({
 
       {/* Canvas Chart */}
       <div className="px-5 py-4">
-        <div ref={containerRef} className="relative rounded-xl overflow-hidden">
+        <div ref={containerRef} className="relative overflow-hidden">
           <canvas
             ref={canvasRef}
             className="w-full cursor-crosshair"
@@ -471,9 +345,9 @@ export default function LivePulseChart({
           />
           {!hasData && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-3 text-[var(--ink-3)] text-base">
-                <Loader2 size={20} strokeWidth={2} className="animate-spin text-blue-500" />
-                <span className="font-medium">Waiting for events...</span>
+              <div className="flex items-center gap-2 text-ink-3 text-[13px]">
+                <Loader2 size={14} strokeWidth={1.5} className="animate-spin" />
+                <span>Waiting for events...</span>
               </div>
             </div>
           )}

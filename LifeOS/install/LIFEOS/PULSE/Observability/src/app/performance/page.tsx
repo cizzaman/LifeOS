@@ -1,18 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  DollarSign,
-  AlertTriangle,
-  TrendingUp,
-  Cpu,
-  Zap,
-  Clock,
-  BarChart3,
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import {
   PageShell,
@@ -21,7 +9,9 @@ import {
   PanelHeader,
   StatTile,
   TabBar,
+  Marker,
   dimStyle,
+  type Dim,
   type TabSpec,
 } from "@/components/ui/chrome";
 
@@ -106,6 +96,12 @@ function shortModel(m: string): string {
 const rowHoverIn = (e: React.MouseEvent<HTMLTableRowElement>) => (e.currentTarget.style.background = "var(--surface-3)");
 const rowHoverOut = (e: React.MouseEvent<HTMLTableRowElement>) => (e.currentTarget.style.background = "transparent");
 
+/** Outlined bar mark: 1px stroke in the series colour over a faint fill of the same colour. */
+const barMark = (color = "var(--accent-blue)"): React.CSSProperties => ({
+  border: `1px solid ${color}`,
+  background: `color-mix(in srgb, ${color} 12%, transparent)`,
+});
+
 function CostTab({ data }: { data: CostData | null }) {
   if (!data) return <div className="p-8 text-ink-3">Loading cost data...</div>;
 
@@ -125,17 +121,13 @@ function CostTab({ data }: { data: CostData | null }) {
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
-          icon={DollarSign}
-          dim="money"
           label={`Total (${data.days}d)`}
           value={formatCost(data.totalCost)}
           sub={`${data.totalSessions.toLocaleString()} sessions`}
         />
-        <StatTile icon={TrendingUp} dim="money" label="Avg / Session" value={formatCost(data.avgCostPerSession)} />
-        <StatTile icon={Cpu} dim="money" label="Total Tokens" value={formatTokens(data.totalTokens)} />
+        <StatTile label="Avg / Session" value={formatCost(data.avgCostPerSession)} />
+        <StatTile label="Total Tokens" value={formatTokens(data.totalTokens)} />
         <StatTile
-          icon={Zap}
-          dim="money"
           label="Cache Read $"
           value={formatCost(data.costBreakdown.cacheRead)}
           sub={`${Math.round((data.costBreakdown.cacheRead / Math.max(data.totalCost, 0.01)) * 100)}% of total`}
@@ -147,18 +139,18 @@ function CostTab({ data }: { data: CostData | null }) {
         <PanelHeader title="Cost Breakdown" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Input", val: data.costBreakdown.input, color: "var(--money)" },
-            { label: "Output", val: data.costBreakdown.output, color: "var(--creative)" },
-            { label: "Cache Write", val: data.costBreakdown.cacheWrite, color: "var(--rhythms)" },
-            { label: "Cache Read", val: data.costBreakdown.cacheRead, color: "var(--health)" },
+            { label: "Input", val: data.costBreakdown.input },
+            { label: "Output", val: data.costBreakdown.output },
+            { label: "Cache Write", val: data.costBreakdown.cacheWrite },
+            { label: "Cache Read", val: data.costBreakdown.cacheRead },
           ].map((item) => (
             <div key={item.label}>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-2 h-2 rounded-full" style={{ background: item.color }} />
-                <span className="text-xs text-ink-3">{item.label}</span>
+                <Marker />
+                <span className="label-caps">{item.label}</span>
               </div>
-              <div className="text-lg font-medium text-ink-1">{formatCost(item.val)}</div>
-              <div className="text-xs text-ink-3">
+              <div className="mono text-lg text-ink-1">{formatCost(item.val)}</div>
+              <div className="mono text-xs text-ink-3">
                 {Math.round((item.val / Math.max(data.totalCost, 0.01)) * 100)}%
               </div>
             </div>
@@ -171,21 +163,17 @@ function CostTab({ data }: { data: CostData | null }) {
         <PanelHeader title="Cost by Model" />
         <div className="space-y-2">
           {data.byModel.map((m) => (
-            <div key={m.model} className="flex items-center gap-3">
+            <div key={m.model} className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="text-xs w-20 shrink-0 text-ink-1">{shortModel(m.model)}</span>
-              <div className="flex-1 h-5 rounded bg-surface-3 overflow-hidden">
+              <div className="progress-bar flex-1 min-w-[120px]">
                 <div
-                  className="h-full flex items-center px-2"
-                  style={{
-                    width: `${Math.max((m.cost / Math.max(data.totalCost, 1)) * 100, 8)}%`,
-                    background: "var(--money)",
-                  }}
-                >
-                  <span className="text-[12px] whitespace-nowrap font-semibold" style={{ color: "var(--ground)" }}>
-                    {formatCost(m.cost)} · {m.sessions} sessions
-                  </span>
-                </div>
+                  className="progress-bar-fill"
+                  style={{ width: `${Math.max((m.cost / Math.max(data.totalCost, 1)) * 100, 1)}%` }}
+                />
               </div>
+              <span className="mono text-[12px] text-ink-2">
+                {formatCost(m.cost)} · {m.sessions} sessions
+              </span>
             </div>
           ))}
         </div>
@@ -199,16 +187,16 @@ function CostTab({ data }: { data: CostData | null }) {
             {data.dailyCosts.slice(-30).map((d) => (
               <div key={d.day} className="flex-1 flex flex-col items-center justify-end gap-1">
                 <div
-                  className="w-full rounded-t-sm min-h-[2px] transition-all"
-                  style={{ height: `${(d.cost / maxDaily) * 100}%`, background: "var(--money)" }}
+                  className="w-full min-h-[2px] transition-all"
+                  style={{ height: `${(d.cost / maxDaily) * 100}%`, ...barMark() }}
                   title={`${d.day}: ${formatCost(d.cost)}`}
                 />
               </div>
             ))}
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-[12px] text-ink-3">{data.dailyCosts[0]?.day?.slice(5)}</span>
-            <span className="text-[12px] text-ink-3">
+            <span className="mono text-[10px] text-ink-3">{data.dailyCosts[0]?.day?.slice(5)}</span>
+            <span className="mono text-[10px] text-ink-3">
               {data.dailyCosts[data.dailyCosts.length - 1]?.day?.slice(5)}
             </span>
           </div>
@@ -221,12 +209,12 @@ function CostTab({ data }: { data: CostData | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-line-1">
-                <th className="text-left py-2 pr-3 text-ink-3">Cost</th>
-                <th className="text-left py-2 pr-3 text-ink-3">Model</th>
-                <th className="text-right py-2 pr-3 text-ink-3">Msgs</th>
-                <th className="text-right py-2 pr-3 text-ink-3">Tokens</th>
-                <th className="text-left py-2 text-ink-3">Date</th>
+              <tr className="label-caps border-b border-line-2">
+                <th className="text-left py-2 pr-3 font-normal">Cost</th>
+                <th className="text-left py-2 pr-3 font-normal">Model</th>
+                <th className="text-right py-2 pr-3 font-normal">Msgs</th>
+                <th className="text-right py-2 pr-3 font-normal">Tokens</th>
+                <th className="text-left py-2 font-normal">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -237,11 +225,11 @@ function CostTab({ data }: { data: CostData | null }) {
                   onMouseEnter={rowHoverIn}
                   onMouseLeave={rowHoverOut}
                 >
-                  <td className="py-2 pr-3 font-medium text-ink-1">{formatCost(s.costTotal)}</td>
+                  <td className="py-2 pr-3 mono text-ink-1">{formatCost(s.costTotal)}</td>
                   <td className="py-2 pr-3 text-ink-1">{shortModel(s.primaryModel)}</td>
-                  <td className="py-2 pr-3 text-right text-ink-2">{s.messageCount}</td>
-                  <td className="py-2 pr-3 text-right text-ink-2">{formatTokens(s.totalTokens)}</td>
-                  <td className="py-2 text-ink-3">{(s.lastTimestamp || "").slice(0, 10)}</td>
+                  <td className="py-2 pr-3 text-right mono text-ink-2">{s.messageCount}</td>
+                  <td className="py-2 pr-3 text-right mono text-ink-2">{formatTokens(s.totalTokens)}</td>
+                  <td className="py-2 mono text-ink-3">{(s.lastTimestamp || "").slice(0, 10)}</td>
                 </tr>
               ))}
             </tbody>
@@ -260,22 +248,16 @@ function FailuresTab({ data }: { data: FailureData | null }) {
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
-          icon={AlertTriangle}
-          dim="creative"
           label="Overall Failure Rate"
           value={`${data.overallRate}%`}
           sub={`${data.totalFailures.toLocaleString()} failures / ${data.totalCalls.toLocaleString()} calls`}
         />
         <StatTile
-          icon={BarChart3}
-          dim="creative"
           label="Top Offender"
           value={data.byTool[0]?.tool || "—"}
           sub={`${data.byTool[0]?.failures ?? 0} failures (${data.byTool[0]?.failureRate ?? 0}%)`}
         />
         <StatTile
-          icon={Clock}
-          dim="creative"
           label="Trend"
           value={data.trend.length >= 2 ? `${data.trend[data.trend.length - 1]?.rate ?? 0}%` : "—"}
           sub="Most recent day"
@@ -289,12 +271,12 @@ function FailuresTab({ data }: { data: FailureData | null }) {
           <div className="flex items-end gap-2 h-24">
             {data.trend.map((d) => (
               <div key={d.day} className="flex-1 flex flex-col items-center justify-end gap-1">
-                <span className="text-[12px] text-ink-3">{d.rate}%</span>
+                <span className="mono text-[10px] text-ink-3">{d.rate}%</span>
                 <div
-                  className="w-full rounded-t-sm min-h-[2px]"
-                  style={{ height: `${Math.min(d.rate * 5, 100)}%`, background: "var(--creative)" }}
+                  className="w-full min-h-[2px]"
+                  style={{ height: `${Math.min(d.rate * 5, 100)}%`, ...barMark() }}
                 />
-                <span className="text-[12px] text-ink-3">{d.day.slice(5)}</span>
+                <span className="mono text-[10px] text-ink-3">{d.day.slice(5)}</span>
               </div>
             ))}
           </div>
@@ -307,12 +289,12 @@ function FailuresTab({ data }: { data: FailureData | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-line-1">
-                <th className="text-left py-2 pr-4 text-ink-3">Tool</th>
-                <th className="text-right py-2 pr-4 text-ink-3">Failures</th>
-                <th className="text-right py-2 pr-4 text-ink-3">Total Calls</th>
-                <th className="text-right py-2 pr-4 text-ink-3">Rate</th>
-                <th className="text-left py-2 text-ink-3" style={{ width: "30%" }}>Bar</th>
+              <tr className="label-caps border-b border-line-2">
+                <th className="text-left py-2 pr-4 font-normal">Tool</th>
+                <th className="text-right py-2 pr-4 font-normal">Failures</th>
+                <th className="text-right py-2 pr-4 font-normal">Total Calls</th>
+                <th className="text-right py-2 pr-4 font-normal">Rate</th>
+                <th className="text-left py-2 font-normal" style={{ width: "30%" }}>Bar</th>
               </tr>
             </thead>
             <tbody>
@@ -326,14 +308,14 @@ function FailuresTab({ data }: { data: FailureData | null }) {
                     onMouseLeave={rowHoverOut}
                   >
                     <td className="py-2 pr-4 font-medium text-ink-1">{t.tool}</td>
-                    <td className="py-2 pr-4 text-right text-err">{t.failures}</td>
-                    <td className="py-2 pr-4 text-right text-ink-2">{t.calls.toLocaleString()}</td>
-                    <td className="py-2 pr-4 text-right text-ink-1">{t.failureRate}%</td>
+                    <td className="py-2 pr-4 text-right mono text-ink-1">{t.failures}</td>
+                    <td className="py-2 pr-4 text-right mono text-ink-2">{t.calls.toLocaleString()}</td>
+                    <td className="py-2 pr-4 text-right mono text-ink-1">{t.failureRate}%</td>
                     <td className="py-2">
-                      <div className="h-2.5 rounded bg-surface-3 overflow-hidden">
+                      <div className="progress-bar">
                         <div
-                          className="h-full"
-                          style={{ width: `${Math.min(t.failureRate * 2, 100)}%`, background: "var(--creative)" }}
+                          className="progress-bar-fill"
+                          style={{ width: `${Math.min(t.failureRate * 2, 100)}%` }}
                         />
                       </div>
                     </td>
@@ -369,51 +351,43 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
     <div className="space-y-6">
       {/* Alerts */}
       {snap.alerts.length > 0 && (
-        <div
-          className="rounded-xl border p-5"
-          style={{ borderColor: "rgba(248,113,113,0.4)", background: "rgba(248,113,113,0.08)" }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-err" />
-            <span className="text-sm font-medium text-err">Active Alerts</span>
+        <Panel>
+          <div className="flex items-center gap-2 mb-3">
+            <Marker dim="err" />
+            <span className="label-caps text-ink-1">Active Alerts</span>
           </div>
-          <ul className="text-sm space-y-1" style={{ color: "var(--err)" }}>
+          <ul className="text-sm space-y-1 text-ink-1">
             {snap.alerts.map((a, i) => (
               <li key={i}>• {a}</li>
             ))}
           </ul>
-        </div>
+        </Panel>
       )}
 
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
-          icon={ShieldCheck}
-          dim="freedom"
+          dim={fiveH > 80 ? "warn" : "ok"}
           label="Subscription 5h"
           value={`${fiveH}%`}
           sub={fiveH > 80 ? "approaching cap" : "healthy"}
         />
         <StatTile
-          icon={TrendingUp}
-          dim="freedom"
+          dim={sevenD > 80 ? "warn" : "ok"}
           label="Subscription 7d"
           value={`${sevenD}%`}
           sub={sevenD > 80 ? "approaching cap" : "healthy"}
         />
         <StatTile
-          icon={DollarSign}
-          dim="money"
           label="API Spend MTD"
           value={apiSpend !== null ? `$${apiSpend.toFixed(2)}` : "—"}
           sub={apiSpend !== null ? snap.api_spend.source : "set ANTHROPIC_ADMIN_API_KEY"}
         />
         <StatTile
-          icon={bypassSites.length > 0 ? XCircle : CheckCircle2}
-          dim={bypassSites.length > 0 ? "err" : "health"}
+          dim={bypassSites.length > 0 ? "err" : "ok"}
           label="Bypass call sites"
           value={String(bypassSites.length)}
-          sub={bypassSites.length === 0 ? "✅ all guarded" : "🚨 review and patch"}
+          sub={bypassSites.length === 0 ? "all guarded" : "review and patch"}
         />
       </div>
 
@@ -422,42 +396,24 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
         <PanelHeader
           title={`Call Sites (${data.sites.length})`}
           actions={
-            <span className="text-xs text-ink-3">
+            <span className="mono text-[10px] text-ink-3">
               baseline: {data.baseline_updated ? new Date(data.baseline_updated).toLocaleString() : "none"}
             </span>
           }
         />
         <div className="space-y-1" style={{ fontSize: 12 }}>
-          {bypassSites.map((s, i) => (
-            <div key={`b-${i}`} className="flex items-start gap-2 py-1">
-              <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-err" />
+          {([
+            ...bypassSites.map((site) => ({ site, dim: "err" as Dim, key: "b" })),
+            ...unknownSites.map((site) => ({ site, dim: "warn" as Dim, key: "u" })),
+            ...legitSites.map((site) => ({ site, dim: "ok" as Dim, key: "l" })),
+          ]).map(({ site, dim, key }, i) => (
+            <div key={`${key}-${i}`} className="flex items-start gap-2 py-1">
+              <span className="pt-[5px]"><Marker dim={dim} /></span>
               <div className="flex-1 min-w-0">
-                <div className="mono truncate text-err">
-                  {s.file}:{s.line}
+                <div className="mono break-all text-ink-1">
+                  {site.file}:{site.line}
                 </div>
-                <div className="text-ink-3 text-[12px]">{s.reason}</div>
-              </div>
-            </div>
-          ))}
-          {unknownSites.map((s, i) => (
-            <div key={`u-${i}`} className="flex items-start gap-2 py-1">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-warn" />
-              <div className="flex-1 min-w-0">
-                <div className="mono truncate text-warn">
-                  {s.file}:{s.line}
-                </div>
-                <div className="text-ink-3 text-[12px]">{s.reason}</div>
-              </div>
-            </div>
-          ))}
-          {legitSites.map((s, i) => (
-            <div key={`l-${i}`} className="flex items-start gap-2 py-1">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "var(--health)" }} />
-              <div className="flex-1 min-w-0">
-                <div className="mono truncate text-ink-1">
-                  {s.file}:{s.line}
-                </div>
-                <div className="text-ink-3 text-[12px]">{s.reason}</div>
+                <div className="text-ink-3 text-[12px]">{site.reason}</div>
               </div>
             </div>
           ))}
@@ -481,8 +437,7 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
                   title={`${new Date(h.ts).toLocaleTimeString()} — 5h=${pct}%, sites=${h.call_sites.total} (bypass=${h.call_sites.bypass})`}
                   style={{
                     height: `${Math.max(pct, 2)}%`,
-                    background: alert ? "var(--err)" : "var(--money)",
-                    borderRadius: 2,
+                    ...barMark(alert ? "var(--err)" : undefined),
                     minWidth: 8,
                   }}
                 />
@@ -491,8 +446,8 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
           )}
         </div>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-[12px] text-ink-3">{data.total_entries} total ledger entries</span>
-          <span className="text-[12px] text-ink-3 mono">
+          <span className="mono text-[10px] text-ink-3">{data.total_entries} total ledger entries</span>
+          <span className="mono text-[10px] text-ink-3">
             last sample: {new Date(snap.ts).toLocaleTimeString()}
           </span>
         </div>
@@ -502,19 +457,19 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
       <Panel className="opacity-85">
         <div className="text-xs text-ink-3 space-y-1">
           <div>
-            <span className="mono" style={{ color: "var(--money)" }}>
+            <span className="mono text-ink-1">
               bun ~/.claude/LIFEOS/TOOLS/CostTracker.ts status
             </span>{" "}
             — human-readable snapshot
           </div>
           <div>
-            <span className="mono" style={{ color: "var(--money)" }}>
+            <span className="mono text-ink-1">
               bun ~/.claude/LIFEOS/TOOLS/CostTracker.ts scan
             </span>{" "}
             — re-run static scan
           </div>
           <div>
-            <span className="mono" style={{ color: "var(--money)" }}>
+            <span className="mono text-ink-1">
               bun ~/.claude/LIFEOS/TOOLS/CostTracker.ts baseline
             </span>{" "}
             — lock a new known-good snapshot
@@ -526,9 +481,9 @@ function AnthropicTab({ data }: { data: AnthropicData | null }) {
 }
 
 const TABS: TabSpec<Tab>[] = [
-  { id: "cost", label: "Cost", icon: DollarSign, dim: "money" },
-  { id: "failures", label: "Failures", icon: AlertTriangle, dim: "creative" },
-  { id: "anthropic", label: "Anthropic", icon: ShieldCheck, dim: "freedom" },
+  { id: "cost", label: "Cost" },
+  { id: "failures", label: "Failures" },
+  { id: "anthropic", label: "Anthropic" },
 ];
 
 export default function PerformancePage() {
@@ -578,11 +533,8 @@ export default function PerformancePage() {
           key={d}
           type="button"
           onClick={() => setDays(d)}
-          className="px-2.5 py-1 rounded-full text-[12px] font-medium cursor-pointer transition-colors"
-          style={{
-            ...dimStyle("money", days === d),
-            ...(days === d ? { color: "var(--ink-1)" } : {}),
-          }}
+          className="px-2.5 py-1 rounded-full mono text-[11px] cursor-pointer transition-colors"
+          style={dimStyle("neutral", days === d)}
         >
           {d}d
         </button>
@@ -593,7 +545,6 @@ export default function PerformancePage() {
   return (
     <PageShell>
       <PageHeader
-        icon={BarChart3}
         title="Performance"
         subtitle="Runtime cost, tool failures, and Anthropic subscription guardrails."
         actions={tab === "cost" ? daysSwitcher : undefined}

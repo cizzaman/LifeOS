@@ -22,16 +22,9 @@ export default function ObserverScope() {
   if (!observerMode || scope !== "full") return null;
 
   return (
-    <div className="fixed inset-x-0 top-24 z-50 flex justify-center pointer-events-none">
-      <div
-        className="flex items-center gap-2 px-4 py-2 rounded-full text-[12px] tracking-[0.14em] font-medium"
-        style={{
-          background: "rgba(245,196,81,0.12)",
-          border: "1px solid rgba(245,196,81,0.35)",
-          color: "rgb(245,196,81)",
-          backdropFilter: "blur(6px)",
-        }}
-      >
+    <div className="fixed inset-x-0 top-24 z-50 flex justify-center pointer-events-none px-4">
+      <div className="label-caps text-ink-1 flex items-center gap-2 px-4 py-2 rounded-[10px] bg-surface-1 border border-line-3">
+        <span aria-hidden className="fig-key" style={{ color: "var(--ink-3)" }} />
         OBSERVER MODE — personal page hidden
       </div>
     </div>

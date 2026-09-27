@@ -60,8 +60,6 @@ export function useTweaks(): TweakState {
     if (typeof document === "undefined") return;
     document.documentElement.dataset.density = vals.density;
     document.documentElement.dataset.palette = vals.paletteMode;
-    document.documentElement.style.setProperty('--accent', `oklch(72% 0.17 ${vals.accentHue})`);
-    document.documentElement.style.setProperty('--accent-2', `oklch(80% 0.13 ${vals.accentHue})`);
   },[vals]);
   return { vals, set, visible };
 }

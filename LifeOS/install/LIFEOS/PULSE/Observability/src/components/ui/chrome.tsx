@@ -37,10 +37,10 @@ const DIM_COLOR: Record<Dim, string> = {
 const STATUS: ReadonlySet<Dim> = new Set(["ok", "warn", "err"]);
 export const isStatusDim = (dim?: Dim) => dim != null && STATUS.has(dim);
 
-/** Chips and toggles: never coloured. Active is ink on a figure line; inactive is muted on a hairline. */
+/** Chips and toggles: never coloured by dim. Active is the one selection style (teal line on primary-soft); inactive is muted on a hairline. */
 export function dimStyle(_dim: Dim, active = true): CSSProperties {
   return active
-    ? { background: "transparent", color: "var(--ink-1)", border: "1px solid var(--line-3)" }
+    ? { background: "var(--primary-soft)", color: "var(--ink-1)", border: "1px solid var(--accent-blue)" }
     : { background: "transparent", color: "var(--ink-2)", border: "1px solid var(--line-2)" };
 }
 
@@ -116,7 +116,7 @@ export function PageHeader({
         </h1>
         {subtitle && <p className="mt-2 text-[13px] leading-relaxed text-ink-2">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 max-w-full">{actions}</div>}
     </div>
   );
 }

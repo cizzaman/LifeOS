@@ -1,35 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  DollarSign,
-  Landmark,
-  CreditCard,
-  PiggyBank,
-  Receipt,
-  Target,
-  Lock,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Mail,
-  Globe,
-  BookOpen,
-  Mic,
-  Briefcase,
-  Home,
-  Users,
-  Cpu,
-  Server,
-  Scissors,
-  Trophy,
-  Sparkles,
-  PieChart,
-  ArrowDownCircle,
-  ArrowUpCircle,
-  ArrowLeftRight,
-  type LucideIcon,
-} from "lucide-react";
-import {
   Sankey,
   Rectangle,
   Tooltip,
@@ -51,7 +22,7 @@ import {
   StatTile,
   TabBar,
   Pill,
-  type Dim,
+  Marker,
   type TabSpec,
 } from "@/components/ui/chrome";
 
@@ -243,60 +214,36 @@ function fmtPct(rate: number | null | undefined): string {
   return `${(n * 100).toFixed(1)}%`;
 }
 
-// ─── Palette — chart color scales (kept as literals; the Sankey/line series
-// coloring keys off these exact values). Semantic dimension/status/chrome
-// colors elsewhere on the page come from the design tokens in globals.css. ───
+// ─── Series colours — the same three data colours as the trend chart legend:
+// income, expenses, net. Chart marks only; text and chrome stay neutral. ───
 
-const DIMENSION_PALETTE = ["#22c55e", "#f5c451", "#a8e2ee", "#f97316", "#a78bfa", "#3fb2c9"];
-const SANKEY_INCOME_PALETTE = ["#22c55e", "#f5c451"];
-const SANKEY_OUTFLOW_PALETTE = ["#fbd57a", "#f97316"];
+const SERIES = {
+  income: "var(--money)",
+  outbound: "var(--creative)",
+  net: "var(--freedom)",
+} as const;
 
 const SANKEY_COLORS: Record<string, string> = {
-  "Gross Income": "#f5c451",
-  "Net": "#a8e2ee",
-  "Expenses": "#f97316",
-  "Vendors": "#fbd57a",
-  "Obligations": "#f97316",
-  "Other": "#fbd57a",
+  "Gross Income": SERIES.income,
+  "Net": SERIES.net,
+  "Expenses": SERIES.outbound,
+  "Vendors": SERIES.outbound,
+  "Obligations": SERIES.outbound,
+  "Other": SERIES.outbound,
 };
 
-const INCOME_ICON: Record<string, LucideIcon> = {
-  newsletter: Mail,
-  podcast: Mic,
-  sponsor: Mail,
-  membership: Users,
-  course: BookOpen,
-  speaking: Mic,
-  consulting: Briefcase,
-  product: Globe,
+const TOOLTIP_STYLE = {
+  backgroundColor: "var(--surface-1)",
+  border: "1px solid var(--line-3)",
+  borderRadius: 10,
+  color: "var(--ink-1)",
+  fontFamily: "var(--font-mono)",
+  fontSize: 11,
 };
 
-const OUTBOUND_ICON: Record<string, LucideIcon> = {
-  aws: Server,
-  cloudflare: Server,
-  anthropic: Cpu,
-  openai: Cpu,
-  elevenlabs: Cpu,
-  mortgage: Home,
-  property_tax: Home,
-  home_insurance: Home,
-  tesla_lease: TrendingDown,
-  auto_insurance: TrendingDown,
-  mobile_phone: Receipt,
-  home_internet: Receipt,
-};
+const AXIS_TICK = { fill: "var(--ink-3)", fontSize: 10, fontFamily: "var(--font-mono)" };
 
-function pickIcon(
-  key: string,
-  table: Record<string, LucideIcon>,
-  fallback: LucideIcon,
-): LucideIcon {
-  const lower = key.toLowerCase();
-  for (const k of Object.keys(table)) {
-    if (lower.includes(k) || k.includes(lower)) return table[k];
-  }
-  return fallback;
-}
+const HERO_NUMBER = { font: "400 clamp(36px, 4.5vw, 48px)/1.1 var(--font-mono)", letterSpacing: "-0.03em" };
 
 function parseSubheadings(body: string): string[] {
   return body
@@ -310,102 +257,64 @@ function parseSubheadings(body: string): string[] {
 function KpiChip({
   label,
   value,
-  tone,
   sensitive = true,
 }: {
   label: string;
   value: string;
-  tone: "income" | "outbound" | "net" | "neutral";
   sensitive?: boolean;
 }) {
-  const dim: Dim | undefined =
-    tone === "income"
-      ? "money"
-      : tone === "outbound"
-        ? "creative"
-        : tone === "net"
-          ? "freedom"
-          : undefined;
   return (
     <StatTile
       label={label}
-      dim={dim}
       value={sensitive ? <span data-sensitive>{value}</span> : value}
     />
   );
 }
 
 function SourceBadge({ source }: { source: string }) {
-  return <Pill dim="rhythms">{source}</Pill>;
+  return <Pill>{source}</Pill>;
 }
 
 function ScopeBadge({ scope }: { scope: string }) {
-  return <Pill dim="money">{scope}</Pill>;
+  return <Pill>{scope}</Pill>;
 }
 
-function LineRow({ line, tone }: { line: ResolvedLine; tone: "income" | "outbound" }) {
-  const Icon = pickIcon(
-    line.id,
-    tone === "income" ? INCOME_ICON : OUTBOUND_ICON,
-    tone === "income" ? Wallet : Receipt,
-  );
-  const toneColor = tone === "income" ? "var(--money)" : "var(--creative)";
-  const accentClass =
-    tone === "income" ? "[border-left-color:var(--money)]" : "[border-left-color:var(--creative)]";
+function LineRow({ line }: { line: ResolvedLine }) {
   return (
-    <Panel className={`p-4 border-l-2 ${accentClass}`}>
-      <div className="flex items-start gap-3">
-        <Icon className="w-4 h-4 mt-1 shrink-0" color={toneColor} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium truncate">{line.name}</span>
-            <ScopeBadge scope={line.scope} />
-            <SourceBadge source={line.source} />
-          </div>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span
-              className="text-lg font-medium tabular-nums"
-              style={{ color: toneColor }}
-              data-sensitive
-            >
-              {fmtHero(line.monthly_usd)}
-            </span>
-            <span className="text-xs text-ink-2">/mo</span>
-            <span className="ml-auto text-xs tabular-nums text-ink-2" data-sensitive>
-              {fmtHero(line.annual_usd)}/yr
-            </span>
-          </div>
-          {line.notes && (
-            <p className="mt-1 text-[12px] line-clamp-2 text-ink-2">{line.notes}</p>
-          )}
-        </div>
+    <Panel className="p-4">
+      <div className="flex items-center gap-x-3 gap-y-1.5 flex-wrap">
+        <span className="text-[14px] text-ink-1 break-words">{line.name}</span>
+        <ScopeBadge scope={line.scope} />
+        <SourceBadge source={line.source} />
       </div>
+      <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+        <span className="mono text-[18px] text-ink-1" data-sensitive>
+          {fmtHero(line.monthly_usd)}
+        </span>
+        <span className="text-xs text-ink-2">/mo</span>
+        <span className="ml-auto mono text-[12px] text-ink-2" data-sensitive>
+          {fmtHero(line.annual_usd)}/yr
+        </span>
+      </div>
+      {line.notes && (
+        <p className="mt-1 text-[12px] text-ink-2">{line.notes}</p>
+      )}
     </Panel>
   );
 }
 
 function StreamCard({ stream }: { stream: Stream }) {
-  const Icon = pickIcon(stream.label, INCOME_ICON, Wallet);
   return (
-    <Panel className="p-4 border-l-2 [border-left-color:var(--money)]">
-      <div className="flex items-start gap-3">
-        <Icon className="w-4 h-4 mt-1 shrink-0" color="var(--money)" />
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium truncate block">{stream.label}</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span
-              className="text-lg font-medium tabular-nums"
-              style={{ color: "var(--money)" }}
-              data-sensitive
-            >
-              {fmtHero(stream.annual)}
-            </span>
-            <span className="text-xs text-ink-2">/yr</span>
-            <span className="ml-auto text-xs tabular-nums text-ink-2" data-sensitive>
-              {fmtHero(stream.annual / 12)}/mo
-            </span>
-          </div>
-        </div>
+    <Panel className="p-4">
+      <span className="text-[14px] text-ink-1 block break-words">{stream.label}</span>
+      <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+        <span className="mono text-[18px] text-ink-1" data-sensitive>
+          {fmtHero(stream.annual)}
+        </span>
+        <span className="text-xs text-ink-2">/yr</span>
+        <span className="ml-auto mono text-[12px] text-ink-2" data-sensitive>
+          {fmtHero(stream.annual / 12)}/mo
+        </span>
       </div>
     </Panel>
   );
@@ -421,31 +330,27 @@ function IncomeHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative border-l-2 [border-left-color:var(--money)]">
+    <Panel className="relative">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="text-[13px] font-medium uppercase tracking-wider text-ink-2">Total Annual Income</span>
-      <div className="flex items-baseline gap-3 mt-1">
-        <span
-          className="text-5xl font-medium tabular-nums"
-          style={{ color: "var(--money)", letterSpacing: "-0.02em" }}
-          data-sensitive="strong"
-        >
+      <span className="label-caps">Total Annual Income</span>
+      <div className="flex items-baseline gap-3 mt-2 flex-wrap">
+        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive="strong">
           {fmtHero(data.annual)}
         </span>
-        <span className="text-sm text-ink-2" data-sensitive>
+        <span className="mono text-[13px] text-ink-2" data-sensitive>
           {fmtHero(data.monthly)}/mo
         </span>
       </div>
-      <span className="text-sm mt-1 block text-ink-2">
-        <Lock className="inline w-3 h-3 mr-1" /> Private. Toggle Observer mode to blur.
+      <span className="text-[13px] mt-1 block text-ink-3">
+        Private. Toggle Observer mode to blur.
       </span>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-        <KpiChip label="Monthly Recurring" value={fmtHero(data.mrr_monthly)} tone="income" />
-        <KpiChip label="MRR Annualized" value={fmtHero(data.mrr_annual)} tone="income" />
-        <KpiChip label="Streams" value={`${data.streams.length}`} tone="neutral" sensitive={false} />
-        <KpiChip label="Monthly Income" value={fmtHero(data.monthly)} tone="income" />
+        <KpiChip label="Monthly Recurring" value={fmtHero(data.mrr_monthly)} />
+        <KpiChip label="MRR Annualized" value={fmtHero(data.mrr_annual)} />
+        <KpiChip label="Streams" value={`${data.streams.length}`} sensitive={false} />
+        <KpiChip label="Monthly Income" value={fmtHero(data.monthly)} />
       </div>
     </Panel>
   );
@@ -459,34 +364,29 @@ function OutboundHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative border-l-2 [border-left-color:var(--creative)]">
+    <Panel className="relative">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="text-[13px] font-medium uppercase tracking-wider text-ink-2">Total Annual Expenses</span>
-      <div className="flex items-baseline gap-3 mt-1">
-        <span
-          className="text-5xl font-medium tabular-nums"
-          style={{ color: "var(--creative)", letterSpacing: "-0.02em" }}
-          data-sensitive
-        >
+      <span className="label-caps">Total Annual Expenses</span>
+      <div className="flex items-baseline gap-3 mt-2 flex-wrap">
+        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive>
           {fmtHero(data.annual)}
         </span>
-        <span className="text-sm text-ink-2" data-sensitive>
+        <span className="mono text-[13px] text-ink-2" data-sensitive>
           {fmtHero(data.monthly)}/mo
         </span>
       </div>
-      <span className="text-sm mt-1 block text-ink-2">
-        <Lock className="inline w-3 h-3 mr-1" /> Sum of vendors, personal obligations, and other.
+      <span className="text-[13px] mt-1 block text-ink-3">
+        Sum of vendors, personal obligations, and other.
       </span>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-        <KpiChip label="Vendors" value={fmtHero(data.vendors_annual)} tone="outbound" />
-        <KpiChip label="Obligations" value={fmtHero(data.obligations_annual)} tone="outbound" />
-        <KpiChip label="Other" value={fmtHero(data.other_annual)} tone="outbound" />
+        <KpiChip label="Vendors" value={fmtHero(data.vendors_annual)} />
+        <KpiChip label="Obligations" value={fmtHero(data.obligations_annual)} />
+        <KpiChip label="Other" value={fmtHero(data.other_annual)} />
         <KpiChip
           label="Lines Tracked"
           value={`${data.vendors.length + data.obligations.length + data.other.length}`}
-          tone="neutral"
           sensitive={false}
         />
       </div>
@@ -505,35 +405,25 @@ function OverallHero({
 }) {
   const pre = periodView === "monthly" ? data.net_pre_tax_monthly : data.net_pre_tax_annual;
   const post = periodView === "monthly" ? data.net_post_tax_monthly : data.net_post_tax_annual;
-  const preColor = pre >= 0 ? "var(--freedom)" : "var(--creative)";
   return (
-    <Panel className="relative border-l-2 [border-left-color:var(--freedom)]">
+    <Panel className="relative">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
-      <span className="text-[13px] font-medium uppercase tracking-wider text-ink-2">
+      <span className="label-caps">
         Net ({periodView === "monthly" ? "Monthly" : "Annual"})
       </span>
-      <div className="flex items-baseline gap-3 mt-1">
-        <span
-          className="text-5xl font-medium tabular-nums"
-          style={{ color: preColor, letterSpacing: "-0.02em" }}
-          data-sensitive
-        >
+      <div className="flex items-baseline gap-3 mt-2 flex-wrap">
+        <span className="text-ink-1" style={HERO_NUMBER} data-sensitive>
           {fmtHero(pre)}
         </span>
-        <span className="text-sm text-ink-2">pre-tax</span>
+        <span className="text-[13px] text-ink-2">pre-tax</span>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-        <KpiChip
-          label="Post-Tax Net"
-          value={fmtHero(post)}
-          tone={post >= 0 ? "net" : "outbound"}
-        />
+        <KpiChip label="Post-Tax Net" value={fmtHero(post)} />
         <KpiChip
           label="Effective Tax Rate"
           value={fmtPct(data.effective_tax_rate)}
-          tone="neutral"
           sensitive={false}
         />
         <KpiChip
@@ -541,14 +431,12 @@ function OverallHero({
           value={fmtHero(
             periodView === "monthly" ? data.net_pre_tax_annual : data.net_pre_tax_monthly,
           )}
-          tone="net"
         />
         <KpiChip
           label={periodView === "monthly" ? "Annual Post-Tax" : "Monthly Post-Tax"}
           value={fmtHero(
             periodView === "monthly" ? data.net_post_tax_annual : data.net_post_tax_monthly,
           )}
-          tone="net"
         />
       </div>
     </Panel>
@@ -559,34 +447,31 @@ function OverallHero({
 
 function TrendChart({ trend }: { trend: TrendPoint[] }) {
   return (
-    <Panel className="border-l-2 [border-left-color:var(--money)]">
-      <PanelHeader icon={ArrowLeftRight} title="Income vs Expenses — 12 Month Trend" />
+    <Panel>
+      <PanelHeader title="Income vs Expenses — 12 Month Trend" />
       <div className="w-full h-64" data-sensitive>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={trend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--line-1)" />
-            <XAxis dataKey="month" stroke="var(--ink-3)" fontSize={11} />
+            <CartesianGrid strokeDasharray="2 4" stroke="var(--line-1)" vertical={false} />
+            <XAxis dataKey="month" stroke="var(--line-3)" tick={AXIS_TICK} tickLine={false} />
             <YAxis
-              stroke="var(--ink-3)"
-              fontSize={11}
+              stroke="var(--line-3)"
+              tick={AXIS_TICK}
+              tickLine={false}
               tickFormatter={(v) => `${currencySymbol}${Math.round(v / 1000)}K`}
             />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--surface-1)",
-                border: "1px solid var(--line-1)",
-                borderRadius: 8,
-                color: "var(--ink-1)",
-              }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "var(--line-3)", strokeWidth: 1 }} />
+            <Legend
+              iconSize={10}
+              wrapperStyle={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--ink-3)" }}
             />
-            <Legend wrapperStyle={{ fontSize: 12, color: "var(--ink-2)" }} />
-            <Line type="monotone" dataKey="income" stroke="var(--money)" strokeWidth={2} dot={false} name="Income" />
-            <Line type="monotone" dataKey="outbound" stroke="var(--creative)" strokeWidth={2} dot={false} name="Expenses" />
-            <Line type="monotone" dataKey="net" stroke="var(--freedom)" strokeWidth={2} dot={false} name="Net" />
+            <Line type="monotone" dataKey="income" stroke={SERIES.income} strokeWidth={1.5} dot={false} name="Income" />
+            <Line type="monotone" dataKey="outbound" stroke={SERIES.outbound} strokeWidth={1.5} dot={false} name="Expenses" />
+            <Line type="monotone" dataKey="net" stroke={SERIES.net} strokeWidth={1.5} dot={false} name="Net" />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p className="text-[12px] mt-2 text-ink-2">
+      <p className="text-[12px] mt-2 text-ink-3">
         Flat baseline until Phase 2 collectors accumulate historical monthly data.
       </p>
     </Panel>
@@ -598,7 +483,6 @@ function TrendChart({ trend }: { trend: TrendPoint[] }) {
 interface SankeyNodePayload {
   name?: string;
   category?: string;
-  colorIndex?: number;
   value?: number;
 }
 
@@ -613,16 +497,15 @@ interface SankeyNodeProps {
 function SankeyNode(props: SankeyNodeProps) {
   const { x = 0, y = 0, width = 0, height = 0, payload } = props;
   const name = payload?.name ?? "";
-  const colorIndex = payload?.colorIndex ?? 0;
   const color =
     SANKEY_COLORS[name] ||
     (payload?.category === "income"
-      ? SANKEY_INCOME_PALETTE[colorIndex % SANKEY_INCOME_PALETTE.length]
+      ? SERIES.income
       : payload?.category === "outbound"
-        ? SANKEY_OUTFLOW_PALETTE[colorIndex % SANKEY_OUTFLOW_PALETTE.length]
+        ? SERIES.outbound
         : payload?.category === "net"
-          ? DIMENSION_PALETTE[2]
-        : "#6b7d89");
+          ? SERIES.net
+          : "var(--ink-3)");
   const isLeft = x < 300;
   return (
     <g>
@@ -632,8 +515,9 @@ function SankeyNode(props: SankeyNodeProps) {
         width={width}
         height={height}
         fill={color}
-        fillOpacity={0.9}
-        radius={[3, 3, 3, 3]}
+        fillOpacity={0.12}
+        stroke={color}
+        strokeWidth={1}
       />
       <text
         x={isLeft ? x - 8 : x + width + 8}
@@ -641,8 +525,8 @@ function SankeyNode(props: SankeyNodeProps) {
         textAnchor={isLeft ? "end" : "start"}
         dominantBaseline="central"
         fill="var(--ink-1)"
-        fontSize={12}
-        fontWeight={500}
+        fontSize={11}
+        fontFamily="var(--font-mono)"
       >
         {name}
       </text>
@@ -651,8 +535,9 @@ function SankeyNode(props: SankeyNodeProps) {
         y={y + height / 2 + 16}
         textAnchor={isLeft ? "end" : "start"}
         dominantBaseline="central"
-        fill="var(--ink-2)"
-        fontSize={11}
+        fill="var(--ink-3)"
+        fontSize={10}
+        fontFamily="var(--font-mono)"
         data-sensitive
       >
         {payload?.value != null ? `${fmtHero(payload.value / 12)}/mo` : ""}
@@ -688,14 +573,17 @@ function SankeyLink(props: SankeyLinkProps) {
   } = props;
   const sourceName = payload?.source?.name ?? "";
   const targetName = payload?.target?.name ?? "";
-  const color = SANKEY_COLORS[targetName] || SANKEY_COLORS[sourceName] || "#6b7d89";
+  const color =
+    SANKEY_COLORS[targetName] ||
+    SANKEY_COLORS[sourceName] ||
+    (payload?.source?.category === "income" ? SERIES.income : "var(--ink-3)");
   return (
     <path
       d={`M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
       fill="none"
       stroke={color}
       strokeWidth={linkWidth}
-      strokeOpacity={0.25}
+      strokeOpacity={0.12}
     />
   );
 }
@@ -703,7 +591,6 @@ function SankeyLink(props: SankeyLinkProps) {
 interface SankeyNodeDatum {
   name: string;
   category: "income" | "outbound" | "pool" | "net";
-  colorIndex?: number;
 }
 
 interface SankeyLinkDatum {
@@ -724,9 +611,7 @@ function FinancesSankey({
   const data = useMemo<{ nodes: SankeyNodeDatum[]; links: SankeyLinkDatum[] }>(() => {
     const nodes: SankeyNodeDatum[] = [];
     const links: SankeyLinkDatum[] = [];
-    incomeStreams.forEach((s, i) =>
-      nodes.push({ name: s.label, category: "income", colorIndex: i }),
-    );
+    incomeStreams.forEach((s) => nodes.push({ name: s.label, category: "income" }));
     nodes.push({ name: "Gross Income", category: "pool" });
     const grossIdx = nodes.length - 1;
     incomeStreams.forEach((s, i) => {
@@ -762,8 +647,8 @@ function FinancesSankey({
   if (data.nodes.length === 0) return null;
 
   return (
-    <Panel className="p-4">
-      <div className="w-full h-[460px]" data-sensitive>
+    <Panel className="p-4 overflow-x-auto">
+      <div className="w-full min-w-[1200px] h-[460px]" data-sensitive>
         <Sankey
           width={1200}
           height={460}
@@ -773,15 +658,7 @@ function FinancesSankey({
           nodePadding={50}
           margin={{ top: 20, bottom: 20, left: 100, right: 100 }}
         >
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--surface-1)",
-              border: "1px solid var(--line-1)",
-              borderRadius: 8,
-              color: "var(--ink-1)",
-            }}
-            formatter={(v: number) => fmtExact(v)}
-          />
+          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => fmtExact(v)} />
         </Sankey>
       </div>
     </Panel>
@@ -792,15 +669,15 @@ function FinancesSankey({
 
 type TabKey = "income" | "outbound" | "overall" | "plan";
 const TABS: TabSpec<TabKey>[] = [
-  { id: "income", label: "Income", icon: ArrowUpCircle, dim: "money", hint: "1" },
-  { id: "outbound", label: "Expenses", icon: ArrowDownCircle, dim: "creative", hint: "2" },
-  { id: "overall", label: "Overall", icon: ArrowLeftRight, dim: "freedom", hint: "3" },
-  { id: "plan", label: "Flywheel", icon: TrendingUp, dim: "relationships", hint: "4" },
+  { id: "income", label: "Income", hint: "1" },
+  { id: "outbound", label: "Expenses", hint: "2" },
+  { id: "overall", label: "Overall", hint: "3" },
+  { id: "plan", label: "Flywheel", hint: "4" },
 ];
 
 const PERIOD_TABS: TabSpec<"monthly" | "annual">[] = [
-  { id: "monthly", label: "Monthly", dim: "freedom" },
-  { id: "annual", label: "Annual", dim: "freedom" },
+  { id: "monthly", label: "Monthly" },
+  { id: "annual", label: "Annual" },
 ];
 
 // ─── Section renderers ───
@@ -808,39 +685,24 @@ const PERIOD_TABS: TabSpec<"monthly" | "annual">[] = [
 function SectionGroup({
   title,
   items,
-  icon: Icon,
   freshness,
 }: {
   title: string;
   items?: Section[];
-  icon: LucideIcon;
   freshness?: FreshnessData;
 }) {
   if (!items || items.length === 0) return null;
-  const accent =
-    title === "Investments" ? "var(--health)" : title === "Goals" ? "var(--relationships)" : "var(--money)";
-  const accentClass =
-    title === "Investments"
-      ? "[border-left-color:var(--health)]"
-      : title === "Goals"
-        ? "[border-left-color:var(--relationships)]"
-        : "[border-left-color:var(--money)]";
   return (
     <section>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-          <Icon className="w-4 h-4" color={accent} /> {title}
-        </h2>
+        <h2 className="label-caps">{title}</h2>
         {freshness && <FreshnessIndicator freshness={freshness} />}
       </div>
       <div className="prob-grid">
         {items.map((item, i) => (
-          <Panel key={i} className={`border-l-2 ${accentClass}`}>
-            <h3 className="text-sm font-medium mb-1">{item.heading}</h3>
-            <div
-              className="text-xs whitespace-pre-wrap line-clamp-5 text-ink-2"
-              data-sensitive
-            >
+          <Panel key={i}>
+            <h3 className="text-[14px] text-ink-1 mb-1">{item.heading}</h3>
+            <div className="text-xs whitespace-pre-wrap text-ink-2" data-sensitive>
               {item.body}
             </div>
           </Panel>
@@ -851,41 +713,26 @@ function SectionGroup({
 }
 
 function AccountCategory({ item }: { item: Section }) {
-  const ACCOUNT_ICON: Record<string, LucideIcon> = {
-    Banking: Landmark,
-    "Credit Cards": CreditCard,
-    "Investment Accounts": PiggyBank,
-    Investments: PiggyBank,
-    "Account Processing": Receipt,
-  };
-  const Icon = ACCOUNT_ICON[item.heading] || DollarSign;
   const subs = parseSubheadings(item.body);
   return (
-    <Panel className="border-l-2 [border-left-color:var(--money)]">
-      <div className="flex items-center gap-2 mb-1">
-        <Icon className="w-4 h-4" color="var(--money)" />
-        <h3 className="text-sm font-medium uppercase tracking-wider">{item.heading}</h3>
-        <span className="ml-auto text-xs text-ink-2">
+    <Panel>
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="label-caps">{item.heading}</h3>
+        <span className="ml-auto mono text-[10px] text-ink-3">
           {subs.length > 0 ? `${subs.length} items` : ""}
         </span>
       </div>
       {subs.length > 0 ? (
         <div className="space-y-2" data-sensitive>
           {subs.map((s, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm">
-              <span
-                className="w-1.5 h-1.5 rounded-full shrink-0"
-                style={{ backgroundColor: "var(--rhythms)", opacity: 0.6 }}
-              />
+            <div key={i} className="flex items-center gap-2 text-[13px] text-ink-1">
+              <span className="w-1 h-1 rounded-full shrink-0 bg-ink-3" />
               <span>{s}</span>
             </div>
           ))}
         </div>
       ) : (
-        <div
-          className="text-xs whitespace-pre-wrap line-clamp-5 text-ink-2"
-          data-sensitive
-        >
+        <div className="text-xs whitespace-pre-wrap text-ink-2" data-sensitive>
           {item.body}
         </div>
       )}
@@ -904,9 +751,7 @@ function IncomeTab({ data }: { data: FinancesDataV2 }) {
       {income && <IncomeHero data={income} freshness={incomeFreshness} />}
       {streams.length > 0 && (
         <section>
-          <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" color="var(--money)" /> Income Streams
-          </h2>
+          <h2 className="label-caps mb-4">Income Streams</h2>
           <div className="prob-grid">
             {streams.map((s) => (
               <StreamCard key={s.label} stream={s} />
@@ -920,35 +765,31 @@ function IncomeTab({ data }: { data: FinancesDataV2 }) {
 
 function OutboundSubgroup({
   title,
-  icon: Icon,
   lines,
 }: {
   title: string;
-  icon: LucideIcon;
   lines: ResolvedLine[];
 }) {
   if (lines.length === 0) return null;
   const total = lines.reduce((s, l) => s + l.annual_usd, 0);
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-          <Icon className="w-4 h-4" color="var(--creative)" /> {title}
-        </h3>
-        <span className="text-xs tabular-nums text-ink-2" data-sensitive>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="label-caps">{title}</h3>
+        <span className="mono text-[12px] text-ink-2" data-sensitive>
           {fmtHero(total / 12)}/mo · {fmtHero(total)}/yr
         </span>
       </div>
       <div className="prob-grid">
         {lines.map((l) => (
-          <LineRow key={l.id} line={l} tone="outbound" />
+          <LineRow key={l.id} line={l} />
         ))}
       </div>
     </section>
   );
 }
 
-function InsightLineRow({ line, accent }: { line: InsightLine; accent: string }) {
+function InsightLineRow({ line }: { line: InsightLine }) {
   // Honest cadence labels — only true monthly_recurring shows /yr projection prominently.
   // observed_one_month and one_time show "$X observed (1mo)" so the user sees what we actually saw.
   const isUncertain = line.cadence === "observed_one_month" || (line.cadence === "one_time" && line.charge_count >= 2);
@@ -960,16 +801,11 @@ function InsightLineRow({ line, accent }: { line: InsightLine; accent: string })
         : line.cadence === "observed_one_month"
           ? `${line.charge_count}× in 1mo · observed only`
           : "one-time";
-  const confidenceColor =
-    line.confidence === "high" ? "var(--health)" : line.confidence === "medium" ? "var(--money)" : "var(--ink-2)";
   return (
-    <div
-      className="bg-surface-2 border border-line-2 rounded-xl p-3.5 border-l-2"
-      style={{ borderLeftColor: accent }}
-    >
+    <div className="border border-line-2 rounded-[10px] p-3.5">
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
-        <span className="text-sm font-medium truncate">{line.display}</span>
-        <span className="text-base font-medium tabular-nums" style={{ color: accent }} data-sensitive>
+        <span className="text-[14px] text-ink-1 break-words">{line.display}</span>
+        <span className="mono text-[15px] text-ink-1" data-sensitive>
           {isUncertain ? fmtHero(line.observed_usd) : fmtHero(line.annual_usd)}
           <span className="text-[12px] text-ink-2 ml-1">{isUncertain ? "observed" : "/yr"}</span>
         </span>
@@ -983,7 +819,7 @@ function InsightLineRow({ line, accent }: { line: InsightLine; accent: string })
         )}
         <span>{cadenceLabel}</span>
         <span>·</span>
-        <span style={{ color: confidenceColor }}>conf: {line.confidence}</span>
+        <span>conf: {line.confidence}</span>
         {line.tags.length > 0 && (
           <>
             <span>·</span>
@@ -992,7 +828,7 @@ function InsightLineRow({ line, accent }: { line: InsightLine; accent: string })
         )}
       </div>
       {line.reason && (
-        <p className="text-[12px] mt-1" style={{ color: "var(--err)" }}>{line.reason}</p>
+        <p className="text-[12px] mt-1 text-ink-2">{line.reason}</p>
       )}
     </div>
   );
@@ -1000,15 +836,11 @@ function InsightLineRow({ line, accent }: { line: InsightLine; accent: string })
 
 function InsightSection({
   title,
-  icon: Icon,
-  accent,
   description,
   lines,
   emptyHint,
 }: {
   title: string;
-  icon: LucideIcon;
-  accent: string;
   description?: string;
   lines: InsightLine[];
   emptyHint: string;
@@ -1017,25 +849,23 @@ function InsightSection({
     <section>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div>
-          <h3 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-            <Icon className="w-4 h-4" color={accent} /> {title}
-          </h3>
+          <h3 className="label-caps">{title}</h3>
           {description && <p className="text-[12px] text-ink-2 mt-1">{description}</p>}
         </div>
         {lines.length > 0 && (
-          <span className="text-xs tabular-nums text-ink-2" data-sensitive>
+          <span className="mono text-[12px] text-ink-2" data-sensitive>
             {fmtHero(lines.reduce((s, l) => s + l.annual_usd, 0))}/yr · {lines.length} item{lines.length === 1 ? "" : "s"}
           </span>
         )}
       </div>
       {lines.length === 0 ? (
         <Panel className="p-4">
-          <p className="text-xs text-ink-2">{emptyHint}</p>
+          <p className="text-xs text-ink-3">{emptyHint}</p>
         </Panel>
       ) : (
         <div className="prob-grid">
           {lines.map((l, i) => (
-            <InsightLineRow key={`${l.display}-${i}`} line={l} accent={accent} />
+            <InsightLineRow key={`${l.display}-${i}`} line={l} />
           ))}
         </div>
       )}
@@ -1057,29 +887,24 @@ function CategoryBreakdown({ categories, total }: { categories: SpendInsights["b
   return (
     <section>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-          <PieChart className="w-4 h-4" color="var(--relationships)" /> Spending By Category
-        </h3>
-        <span className="text-xs tabular-nums text-ink-2" data-sensitive>{fmtHero(total)}/yr total observed</span>
+        <h3 className="label-caps">Spending By Category</h3>
+        <span className="mono text-[12px] text-ink-2" data-sensitive>{fmtHero(total)}/yr total observed</span>
       </div>
       <Panel className="p-4">
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-3">
           {categories.map((c) => {
             const pct = total > 0 ? Math.round((c.annual_usd / total) * 100) : 0;
             const barPct = (c.annual_usd / max) * 100;
             return (
-              <div key={c.category} className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between text-xs">
-                  <span className="font-medium">{CATEGORY_LABEL[c.category] ?? c.category}</span>
-                  <span className="tabular-nums text-ink-2" data-sensitive>
+              <div key={c.category} className="flex flex-col gap-1.5">
+                <div className="flex items-baseline justify-between gap-x-3 flex-wrap text-xs">
+                  <span className="text-[13px] text-ink-1">{CATEGORY_LABEL[c.category] ?? c.category}</span>
+                  <span className="mono text-ink-2" data-sensitive>
                     {fmtHero(c.annual_usd)}/yr · {c.merchants} {c.merchants === 1 ? "merchant" : "merchants"} · {pct}%
                   </span>
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--surface-1)" }}>
-                  <div
-                    className="h-full"
-                    style={{ width: `${barPct}%`, background: "var(--money)", opacity: 0.8 }}
-                  />
+                <div className="progress-bar">
+                  <div className="progress-bar-fill" style={{ width: `${barPct}%` }} />
                 </div>
               </div>
             );
@@ -1092,19 +917,17 @@ function CategoryBreakdown({ categories, total }: { categories: SpendInsights["b
 
 function SpendInsightsSection({ insights }: { insights: SpendInsights }) {
   return (
-    <div className="space-y-6 pt-4" style={{ borderTop: "1px solid var(--line-1)" }}>
+    <div className="space-y-6 pt-4 border-t border-line-1">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" color="var(--money)" /> Spending Analysis
-          </h2>
+          <h2 className="label-caps">Spending Analysis</h2>
           <p className="text-[12px] text-ink-2 mt-1">
-            Derived from statement CSVs in <code className="text-ink-1">FINANCES/Statements/*</code>.
-            Re-run with <code className="text-ink-1">bun ~/.claude/LIFEOS/USER/FINANCES/Tools/StatementAnalyzer.ts</code>.
+            Derived from statement CSVs in <code className="mono text-ink-1">FINANCES/Statements/*</code>.
+            Re-run with <code className="mono text-ink-1">bun ~/.claude/LIFEOS/USER/FINANCES/Tools/StatementAnalyzer.ts</code>.
           </p>
         </div>
         {insights.statement_spend.generated_at && (
-          <span className="text-[12px] text-ink-2">
+          <span className="mono text-[12px] text-ink-3">
             {insights.statement_spend.record_count} merchants · generated{" "}
             {new Date(insights.statement_spend.generated_at).toLocaleDateString("en-US", {
               month: "short", day: "numeric", year: "numeric",
@@ -1117,8 +940,6 @@ function SpendInsightsSection({ insights }: { insights: SpendInsights }) {
 
       <InsightSection
         title="Top Bills"
-        icon={Trophy}
-        accent="var(--money)"
         description="Highest annualized spend across all sources (transfers excluded)."
         lines={insights.top_bills}
         emptyHint="No statement aggregate yet — run StatementAnalyzer.ts to populate."
@@ -1126,8 +947,6 @@ function SpendInsightsSection({ insights }: { insights: SpendInsights }) {
 
       <InsightSection
         title="Top AI Services"
-        icon={Cpu}
-        accent="var(--relationships)"
         description="What the AI stack actually costs — sorted by annualized spend."
         lines={insights.top_ai_services}
         emptyHint="No AI services detected yet. Drop more CSV exports under FINANCES/Statements/."
@@ -1135,8 +954,6 @@ function SpendInsightsSection({ insights }: { insights: SpendInsights }) {
 
       <InsightSection
         title="Top Infrastructure Services"
-        icon={Server}
-        accent="var(--freedom)"
         description="Cloud, hosting, dev, monitoring, networking."
         lines={insights.top_infrastructure_services}
         emptyHint="No infrastructure services detected yet."
@@ -1144,8 +961,6 @@ function SpendInsightsSection({ insights }: { insights: SpendInsights }) {
 
       <InsightSection
         title="Cut Candidates"
-        icon={Scissors}
-        accent="var(--creative)"
         description="Subscriptions flagged for review — single-use annuals, low-value recurring, overlapping tools."
         lines={insights.cut_candidates}
         emptyHint="No obvious cut candidates. Stack is lean (or analyzer needs more data)."
@@ -1162,7 +977,7 @@ function OutboundTab({ data }: { data: FinancesDataV2 }) {
       <Panel>
         <p className="text-sm text-center text-ink-2">
           Expenses data unavailable. Check{" "}
-          <code className="text-ink-1">
+          <code className="mono text-ink-1">
             ~/.claude/LIFEOS/USER/FINANCES/vendors.yaml
           </code>
           .
@@ -1173,17 +988,9 @@ function OutboundTab({ data }: { data: FinancesDataV2 }) {
   return (
     <div className="space-y-6">
       <OutboundHero data={outbound} freshness={outboundFreshness} />
-      <OutboundSubgroup
-        title="Vendors & Services"
-        icon={Server}
-        lines={outbound.vendors}
-      />
-      <OutboundSubgroup
-        title="Personal Obligations"
-        icon={Home}
-        lines={outbound.obligations}
-      />
-      <OutboundSubgroup title="Other" icon={Receipt} lines={outbound.other} />
+      <OutboundSubgroup title="Vendors & Services" lines={outbound.vendors} />
+      <OutboundSubgroup title="Personal Obligations" lines={outbound.obligations} />
+      <OutboundSubgroup title="Other" lines={outbound.other} />
       {data.insights && <SpendInsightsSection insights={data.insights} />}
     </div>
   );
@@ -1227,9 +1034,7 @@ function OverallTab({
       {data.accounts && data.accounts.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2 flex items-center gap-2">
-              <Landmark className="w-4 h-4" color="var(--money)" /> Accounts
-            </h2>
+            <h2 className="label-caps">Accounts</h2>
             <FreshnessIndicator freshness={data.freshness_per_card?.accounts} />
           </div>
           <div className="prob-grid">
@@ -1242,14 +1047,12 @@ function OverallTab({
       <SectionGroup
         title="Investments"
         items={data.investments}
-        icon={PiggyBank}
         freshness={data.freshness_per_card?.investments}
       />
-      <SectionGroup title="Goals" items={data.goals} icon={Target} />
+      <SectionGroup title="Goals" items={data.goals} />
       <SectionGroup
         title="Taxes"
         items={data.taxes}
-        icon={Receipt}
         freshness={data.freshness_per_card?.taxes}
       />
     </div>
@@ -1291,12 +1094,12 @@ function PlanBody({ body }: { body: string }) {
             <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>{head.map((h, j) => (
-                  <th key={j} className="text-left px-2 py-1.5 text-xs uppercase tracking-wide text-ink-2" style={{ borderBottom: "1px solid var(--line-1)" }}>{h}</th>
+                  <th key={j} className="label-caps text-left px-2 py-1.5 border-b border-line-2">{h}</th>
                 ))}</tr>
               </thead>
               <tbody>{rest.map((r, ri) => (
                 <tr key={ri}>{r.map((c, ci) => (
-                  <td key={ci} className="px-2 py-1.5" style={{ color: ci === 0 ? "var(--ink-1)" : "var(--ink-2)", borderBottom: "1px solid var(--line-1)" }}>{c}</td>
+                  <td key={ci} className={`px-2 py-1.5 border-b border-line-1 ${ci === 0 ? "text-ink-1" : "text-ink-2"}`}>{c}</td>
                 ))}</tr>
               ))}</tbody>
             </table>
@@ -1325,36 +1128,25 @@ function PlanBody({ body }: { body: string }) {
 
 function FlywheelLoop({ stages }: { stages: { n: number; stage: string; text: string }[] }) {
   if (!stages.length) return null;
-  // Distinct per-stage loop colors (chart-style scale, not semantic tokens).
-  const palette = ["#3fb2c9", "#3FB68B", "#f5c451", "#a78bfa", "#4FC3E0", "#F2789F"];
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-4 h-4" color="var(--accent-blue)" />
-        <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2">The Flywheel</h2>
-        <span className="text-[12px] text-ink-2 ml-1">↻ each turn spins the next</span>
+      <div className="flex items-baseline gap-3 mb-4 flex-wrap">
+        <h2 className="label-caps">The Flywheel</h2>
+        <span className="text-[12px] text-ink-3">↻ each turn spins the next</span>
       </div>
       <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        {stages.map((s, i) => {
-          const color = palette[i % palette.length];
-          return (
-            <div
-              key={s.n}
-              className="bg-surface-2 border border-line-2 rounded-xl p-5 border-t-[3px]"
-              style={{ borderTopColor: color }}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold"
-                  style={{ background: color, color: "var(--ground)" }}>{s.n}</span>
-                <span className="font-medium text-ink-1">{s.stage}</span>
-                <span className="ml-auto text-lg" style={{ color, opacity: 0.7 }}>
-                  {i === stages.length - 1 ? "↻" : "→"}
-                </span>
-              </div>
-              <p className="text-sm text-ink-2">{s.text}</p>
+        {stages.map((s, i) => (
+          <div key={s.n} className="border border-line-3 rounded-[10px] p-5">
+            <div className="flex items-baseline gap-2.5 mb-1.5">
+              <span className="mono text-[11px] text-ink-3">{s.n}</span>
+              <span className="text-ink-1">{s.stage}</span>
+              <span className="ml-auto mono text-ink-3">
+                {i === stages.length - 1 ? "↻" : "→"}
+              </span>
             </div>
-          );
-        })}
+            <p className="text-sm text-ink-2">{s.text}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -1366,7 +1158,7 @@ function PlanTab({ data }: { data: FinancesDataV2 }) {
     return (
       <Panel>
         <p className="text-sm text-center text-ink-2">
-          No plan yet. Create <code>USER/FINANCES/PLAN.md</code> — the flywheel, targets, and product ladder render here.
+          No plan yet. Create <code className="mono text-ink-1">USER/FINANCES/PLAN.md</code> — the flywheel, targets, and product ladder render here.
         </p>
       </Panel>
     );
@@ -1381,11 +1173,8 @@ function PlanTab({ data }: { data: FinancesDataV2 }) {
       </div>
 
       {about && (
-        <Panel className="border-l-2 [border-left-color:var(--money)]">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4" color="var(--money)" />
-            <span className="text-xs uppercase tracking-widest text-ink-2">{about.heading}</span>
-          </div>
+        <Panel>
+          <PanelHeader title={about.heading} className="mb-2" />
           <PlanBody body={about.body} />
         </Panel>
       )}
@@ -1394,20 +1183,17 @@ function PlanTab({ data }: { data: FinancesDataV2 }) {
 
       {plan.targets && (
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4" color="var(--health)" />
-            <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2">Targets</h2>
-          </div>
+          <h2 className="label-caps mb-4">Targets</h2>
           <Panel className="overflow-x-auto">
             <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>{plan.targets.headers.map((h, j) => (
-                  <th key={j} className="text-left px-2 py-2 text-xs uppercase tracking-wide text-ink-2" style={{ borderBottom: "1px solid var(--line-1)" }}>{h}</th>
+                  <th key={j} className="label-caps text-left px-2 py-2 border-b border-line-2">{h}</th>
                 ))}</tr>
               </thead>
               <tbody>{plan.targets.rows.map((r, ri) => (
                 <tr key={ri}>{r.map((c, ci) => (
-                  <td key={ci} className="px-2 py-2" style={{ color: ci === 0 ? "var(--ink-1)" : "var(--ink-2)", borderBottom: "1px solid var(--line-1)" }}>{c}</td>
+                  <td key={ci} className={`px-2 py-2 border-b border-line-1 ${ci === 0 ? "text-ink-1" : "text-ink-2"}`}>{c}</td>
                 ))}</tr>
               ))}</tbody>
             </table>
@@ -1417,10 +1203,7 @@ function PlanTab({ data }: { data: FinancesDataV2 }) {
 
       {rest.map((s, i) => (
         <section key={i}>
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4" color="var(--relationships)" />
-            <h2 className="text-sm font-medium uppercase tracking-widest text-ink-2">{s.heading}</h2>
-          </div>
+          <h2 className="label-caps mb-3">{s.heading}</h2>
           <Panel>
             <PlanBody body={s.body} />
           </Panel>
@@ -1486,9 +1269,11 @@ export default function FinancesPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel className="border-l-2 [border-left-color:var(--err)]">
-          <h2 className="font-medium text-err">Failed to load finances</h2>
-          <p className="text-sm text-err">{error}</p>
+        <Panel>
+          <h2 className="flex items-center gap-2 text-[15px] text-ink-1">
+            <Marker dim="err" /> Failed to load finances
+          </h2>
+          <p className="text-sm text-ink-2">{error}</p>
         </Panel>
       </PageShell>
     );
@@ -1507,7 +1292,6 @@ export default function FinancesPage() {
   return (
     <PageShell>
       <PageHeader
-        icon={DollarSign}
         title="Finances"
         subtitle="Income · Expenses · Overall · Flywheel · Press 1/2/3/4 to switch tabs"
       />

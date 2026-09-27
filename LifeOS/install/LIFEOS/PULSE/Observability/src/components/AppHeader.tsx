@@ -84,7 +84,7 @@ export default function AppHeader() {
             {/* Wraps to additional lines when items overflow — same pattern as the
                 Tier-2 System row. Never clips items behind a hidden scrollbar. */}
             <nav
-              className="hidden md:flex flex-wrap flex-1 items-center justify-start xl:justify-center gap-1 gap-y-1 min-w-0"
+              className="hidden md:flex flex-wrap flex-1 items-center justify-start xl:justify-center gap-0.5 gap-y-1 min-w-0"
             >
               {tier1.map((item) => {
                 const active = isActive(item.href);
@@ -93,7 +93,7 @@ export default function AppHeader() {
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      "flex items-center px-2.5 lg:px-3 py-1.5 text-[10px] tracking-[0.16em] uppercase rounded-[10px] border transition-colors duration-200 shrink-0",
+                      "flex items-center px-2 2xl:px-3 py-1.5 text-[10px] tracking-[0.14em] 2xl:tracking-[0.16em] uppercase rounded-[10px] border transition-colors duration-200 shrink-0",
                       active ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)] text-ink-1" : "border-transparent text-ink-2 hover:text-ink-1"
                     )}
                     style={fontStyle}

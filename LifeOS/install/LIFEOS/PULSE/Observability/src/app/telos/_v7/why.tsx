@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { Challenge, Dimension, Goal, Strategy, Telos } from "./data";
+import type { Challenge, Goal, Strategy, Telos } from "./data";
 
 function relatedFor(telos: Telos, hoverId: string | null): Set<string> {
   if (!hoverId) return new Set();
@@ -50,7 +50,6 @@ function progressLine(g: Goal): ReactNode {
 
 interface GoalCardProps {
   g: Goal;
-  dim?: Dimension;
   hover: Set<string>;
   active: boolean;
   onHover: (id: string | null) => void;
@@ -58,8 +57,7 @@ interface GoalCardProps {
   showIds: boolean;
 }
 
-function GoalCard({ g, dim, hover, active, onHover, onOpen, showIds }: GoalCardProps) {
-  const color = dim ? `var(${dim.color})` : "var(--accent-live)";
+function GoalCard({ g, hover, active, onHover, onOpen, showIds }: GoalCardProps) {
   const faded = hover.size > 0 && !active;
   return (
     <div
@@ -69,15 +67,15 @@ function GoalCard({ g, dim, hover, active, onHover, onOpen, showIds }: GoalCardP
       onClick={() => onOpen(g)}
     >
       <div className="card-row">
-        {showIds && <span className="card-id mono" style={{ color }}>{g.id}</span>}
+        {showIds && <span className="card-id mono">{g.id}</span>}
         <div className="card-title">{sentenceCase(g.title)}</div>
       </div>
       <div className="card-progress">{progressLine(g)}</div>
-      <div className="bar"><div className="bar-fill" style={{ width: g.pct + "%", background: color }} /></div>
+      <div className="bar"><div className="bar-fill" style={{ width: g.pct + "%" }} /></div>
       <div className="card-foot">
         <div className="card-dims">
           {g.dims.map((d) => (
-            <span key={d} className="dim-tag" style={{ ["--c" as string]: `var(--${d})` } as React.CSSProperties}>{d}</span>
+            <span key={d} className="dim-tag">{d}</span>
           ))}
         </div>
         <span className="card-pct mono">{g.pct}%</span>
@@ -103,7 +101,7 @@ function ChallengeCard({ c, hover, active, onHover, showIds }: ChallengeCardProp
       onMouseLeave={() => onHover(null)}
     >
       <div className="card-row">
-        {showIds && <span className="card-id mono" style={{ color: "var(--warm)" }}>{c.id}</span>}
+        {showIds && <span className="card-id mono">{c.id}</span>}
         <div className="card-title">{c.title}</div>
       </div>
       <div className="card-note">{c.note}</div>
@@ -135,7 +133,7 @@ function StrategyCard({ s, hover, active, onHover, showIds }: StrategyCardProps)
       onMouseLeave={() => onHover(null)}
     >
       <div className="card-row">
-        {showIds && <span className="card-id mono" style={{ color: "var(--accent-2)" }}>{s.id}</span>}
+        {showIds && <span className="card-id mono">{s.id}</span>}
         <div className="card-title">{head}</div>
         {s.active && <span className="badge-now">doing this</span>}
       </div>
@@ -161,9 +159,6 @@ interface ColumnsViewProps {
 
 function ColumnsView({ telos, hover, setHover, onOpenGoal, showIds }: ColumnsViewProps) {
   const rel = relatedFor(telos, hover);
-  const dimMap: Record<string, Dimension> = Object.fromEntries(
-    telos.dimensions.map((d) => [d.id, d]),
-  );
   return (
     <div className="why-cols">
       <div className="col">
@@ -176,7 +171,6 @@ function ColumnsView({ telos, hover, setHover, onOpenGoal, showIds }: ColumnsVie
             <GoalCard
               key={g.id}
               g={g}
-              dim={dimMap[g.dims[0]]}
               hover={rel}
               active={rel.has(g.id)}
               onHover={setHover}
@@ -294,39 +288,25 @@ function ForceView({ telos, hover, setHover, onOpenGoal }: ForceViewProps) {
   return (
     <div className="force-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} className="force-svg" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <linearGradient id="lg-cg" x1="0" x2="1">
-            <stop offset="0" stopColor="var(--warm)" stopOpacity=".55" />
-            <stop offset="1" stopColor="var(--text-4)" stopOpacity=".15" />
-          </linearGradient>
-          <linearGradient id="lg-sc" x1="0" x2="1">
-            <stop offset="0" stopColor="var(--text-4)" stopOpacity=".15" />
-            <stop offset="1" stopColor="var(--accent-2)" stopOpacity=".6" />
-          </linearGradient>
-          <linearGradient id="lg-sg" x1="0" x2="1">
-            <stop offset="0" stopColor="var(--accent-2)" stopOpacity=".6" />
-            <stop offset="1" stopColor="var(--ok)" stopOpacity=".45" />
-          </linearGradient>
-        </defs>
-
         {([
-          ["Goals", colX.G, "var(--ok)"],
-          ["Challenges", colX.C, "var(--sky)"],
-          ["Strategies", colX.S, "var(--accent-2)"],
-        ] as const).map(([t, x, c]) => (
+          ["Goals", colX.G],
+          ["Challenges", colX.C],
+          ["Strategies", colX.S],
+        ] as const).map(([t, x]) => (
           <g key={t}>
             <text
               x={x}
               y={36}
               textAnchor="middle"
-              fill="var(--text-2)"
-              fontSize="14"
-              fontFamily="var(--sans)"
-              fontWeight="500"
+              fill="var(--ink-2)"
+              fontSize="10"
+              fontFamily="var(--font-mono)"
+              letterSpacing="0.16em"
+              style={{ textTransform: "uppercase" }}
             >
               {t}
             </text>
-            <line x1={x} y1={50} x2={x} y2={H - 20} stroke={c} strokeOpacity=".07" strokeDasharray="2 4" />
+            <line x1={x} y1={50} x2={x} y2={H - 20} stroke="var(--line-2)" strokeDasharray="2 4" />
           </g>
         ))}
 
@@ -337,23 +317,20 @@ function ForceView({ telos, hover, setHover, onOpenGoal }: ForceViewProps) {
           const active = linkActive(l);
           const xm = (a.x + b.x) / 2;
           const d = `M ${a.x} ${a.y} C ${xm} ${a.y}, ${xm} ${b.y}, ${b.x} ${b.y}`;
-          const grad = l.kind === "CG" ? "url(#lg-cg)" : l.kind === "SC" ? "url(#lg-sc)" : "url(#lg-sg)";
           return (
             <path
               key={i}
               d={d}
               fill="none"
-              stroke={grad}
+              stroke={rel.size > 0 && active ? "var(--accent-blue)" : "var(--line-3)"}
               strokeWidth={active ? 1.4 : 0.7}
-              strokeOpacity={active ? 1 : 0.22}
+              strokeOpacity={active ? 1 : 0.4}
             />
           );
         })}
 
         {nodes.map((n) => {
           const active = rel.size === 0 || rel.has(n.id);
-          const color =
-            n.kind === "G" ? "var(--ok)" : n.kind === "C" ? "var(--warm)" : "var(--accent-2)";
           return (
             <g
               key={n.id}
@@ -372,11 +349,10 @@ function ForceView({ telos, hover, setHover, onOpenGoal }: ForceViewProps) {
                 width="180"
                 height="30"
                 rx="4"
-                fill="var(--bg-2)"
-                stroke={color}
-                strokeOpacity={active ? 0.55 : 0.2}
+                fill="var(--ground)"
+                stroke={rel.size > 0 && active ? "var(--accent-blue)" : "var(--line-3)"}
               />
-              <text x={n.x} y={n.y + 5} textAnchor="middle" fill="var(--text)" fontSize="12" fontFamily="var(--sans)">
+              <text x={n.x} y={n.y + 5} textAnchor="middle" fill="var(--ink-1)" fontSize="12" fontFamily="var(--font-sans)">
                 {n.title.length > 26 ? n.title.slice(0, 24) + "…" : n.title}
               </text>
             </g>

@@ -57,7 +57,7 @@ export function Stranded({ telos, showIds, openFile }: StrandedProps) {
       <button className="str-toggle" onClick={()=>setOpen(o=>!o)}>
         <span className="str-head-title">Unassigned</span>
         <span className="str-head-count">{n} items drifting without a home</span>
-        <Icons.Chev size={14} style={{transform:open?'rotate(180deg)':'none',transition:'transform 200ms',marginLeft:'auto',color:'var(--text-3)'}}/>
+        <Icons.Chev size={14} style={{transform:open?'rotate(180deg)':'none',transition:'transform 200ms',marginLeft:'auto',color:'var(--ink-3)'}}/>
       </button>
       {open && (
         <div className="str-body">

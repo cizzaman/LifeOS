@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Radar, Circle, GitCommit, Cpu, MonitorSmartphone, Sparkles, Github } from "lucide-react";
-import { PageShell, PageHeader, Panel, PanelHeader, StatTile, EmptyState } from "@/components/ui/chrome";
+import { GitCommit, Cpu, MonitorSmartphone, Github } from "lucide-react";
+import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Marker } from "@/components/ui/chrome";
 
 /**
  * Conduit tab — LifeOS's sensory layer. This component holds ZERO data; it fetches
@@ -42,23 +42,12 @@ const ratioPct = (r: DailyRecord) =>
     ? Math.round((r.creationMinutes / (r.creationMinutes + r.consumptionMinutes)) * 100)
     : 0;
 
-const kindColor: Record<string, string> = {
-  creation: "text-ok",
-  consumption: "text-warn",
-  neutral: "text-ink-2",
-};
-
 const sourceIcon: Record<string, React.ReactNode> = {
-  appFocus: <MonitorSmartphone className="w-4 h-4" />,
-  git: <GitCommit className="w-4 h-4" />,
-  claudeSession: <Cpu className="w-4 h-4" />,
-  github: <Github className="w-4 h-4" />,
+  appFocus: <MonitorSmartphone className="w-4 h-4" strokeWidth={1.5} />,
+  git: <GitCommit className="w-4 h-4" strokeWidth={1.5} />,
+  claudeSession: <Cpu className="w-4 h-4" strokeWidth={1.5} />,
+  github: <Github className="w-4 h-4" strokeWidth={1.5} />,
 };
-
-// Cool→warm cycle for content-type bars, drawn from the life-dimension tokens.
-const themeColors = [
-  "var(--freedom)", "var(--health)", "var(--relationships)", "var(--money)", "var(--creative)", "var(--rhythms)",
-];
 
 function ago(ts: string | null | undefined): string {
   if (!ts) return "—";
@@ -126,7 +115,6 @@ export default function ConduitPage() {
   return (
     <PageShell className="max-w-[1100px]">
       <PageHeader
-        icon={Radar}
         title="Conduit"
         subtitle={
           <>
@@ -136,14 +124,18 @@ export default function ConduitPage() {
         }
       />
 
-      {error && <div className="text-warn text-sm">Couldn&apos;t reach Conduit API: {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 text-ink-2 text-sm">
+          <Marker dim="err" /> Couldn&apos;t reach Conduit API: {error}
+        </div>
+      )}
       {!today && !error && <div className="text-ink-3 text-sm">Loading…</div>}
 
       {today && (
         <>
           {/* Headline stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatTile label="Creation ratio" value={`${ratioPct(today)}%`} dim="ok" />
+            <StatTile label="Creation ratio" value={`${ratioPct(today)}%`} />
             <StatTile label="Tracked today" value={hm(today.totalMinutes)} />
             <StatTile label="LifeOS sessions" value={String(today.sessions)} />
             <StatTile label="Commits" value={String(today.commits)} />
@@ -152,11 +144,10 @@ export default function ConduitPage() {
           {/* What's flowing in — the hourly content-type read */}
           <Panel>
             <PanelHeader
-              icon={Sparkles}
               title="What's flowing in"
               actions={
-                <span className="flex items-center gap-3">
-                  <span className="text-[12px] text-ink-3 mono">
+                <span className="flex flex-wrap items-center gap-3">
+                  <span className="text-[11px] text-ink-3 mono">
                     {insight?.available
                       ? `hourly read · ${insight.level ?? "low"} · updated ${ago(insight.generatedAt)}`
                       : "hourly read"}
@@ -165,7 +156,7 @@ export default function ConduitPage() {
                     type="button"
                     onClick={runInsight}
                     disabled={building}
-                    className="text-[12px] mono px-2 py-1 rounded border border-ink-3/30 text-ink-2 hover:text-ink-1 hover:border-ink-3/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-[11px] mono px-2.5 py-1 rounded-[10px] border border-line-2 text-ink-2 transition-colors hover:text-ink-1 hover:border-[color:var(--accent-blue)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {building ? "reading…" : "run now"}
                   </button>
@@ -178,8 +169,8 @@ export default function ConduitPage() {
                 <p className="text-ink-1 text-sm leading-relaxed mb-4">{insight.narrative}</p>
                 {insight.contentTypes.length > 0 ? (
                   <div className="space-y-2.5">
-                    {insight.contentTypes.map((t, i) => (
-                      <ThemeBar key={t.label} t={t} color={themeColors[i % themeColors.length]} />
+                    {insight.contentTypes.map((t) => (
+                      <ThemeBar key={t.label} t={t} />
                     ))}
                   </div>
                 ) : (
@@ -199,24 +190,24 @@ export default function ConduitPage() {
           <Section title="Sources & cadence">
             {!sources && <Row left="—" right="loading…" />}
             {sources?.sources.map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3 text-sm">
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 text-sm">
                 <span className="flex items-center gap-2.5 min-w-0">
-                  <span style={{ color: s.enabled ? "var(--accent-blue)" : "var(--ink-3)" }}>{sourceIcon[s.id]}</span>
+                  <span className="text-ink-3">{sourceIcon[s.id]}</span>
                   <span className="min-w-0">
                     <span className="text-ink-1 flex items-center gap-2">
                       {s.label}
-                      <span className={`inline-flex items-center gap-1 text-[10px] ${s.enabled ? "text-ok" : "text-ink-3"}`}>
-                        <Circle className="w-1.5 h-1.5" style={{ fill: s.enabled ? "var(--ok)" : "var(--ink-3)" }} />
+                      <span className="inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                        <Marker dim={s.enabled ? "ok" : "neutral"} />
                         {s.enabled ? "on" : "off"}
                       </span>
                     </span>
-                    <span className="block text-xs text-ink-3 truncate">{s.captures}</span>
+                    <span className="block text-xs text-ink-3 break-words">{s.captures}</span>
                   </span>
                 </span>
                 <span className="flex items-center gap-4 shrink-0 text-right">
                   <span className="text-ink-3 text-xs">every {s.pollIntervalSec}s</span>
-                  <span className="text-ink-2 tabular-nums w-20">{s.eventsToday} today</span>
-                  <span className="text-ink-3 text-xs w-16">{ago(s.lastEventTs)}</span>
+                  <span className="text-ink-2 mono w-20">{s.eventsToday} today</span>
+                  <span className="text-ink-3 mono text-xs w-16">{ago(s.lastEventTs)}</span>
                 </span>
               </div>
             ))}
@@ -224,13 +215,16 @@ export default function ConduitPage() {
 
           {/* Creation vs consumption bar */}
           <div>
-            <div className="flex justify-between text-xs mb-1 gap-2">
-              <span className="text-ok whitespace-nowrap">Creation {hm(today.creationMinutes)}</span>
-              <span className="text-warn whitespace-nowrap">Consumption {hm(today.consumptionMinutes)}</span>
+            <div className="flex flex-wrap justify-between text-xs mb-2 gap-2">
+              <span className="flex items-center gap-2 whitespace-nowrap text-ink-2">
+                <Marker dim="blue" colored /> Creation <span className="mono text-ink-1">{hm(today.creationMinutes)}</span>
+              </span>
+              <span className="flex items-center gap-2 whitespace-nowrap text-ink-2">
+                <Marker /> Consumption <span className="mono text-ink-1">{hm(today.consumptionMinutes)}</span>
+              </span>
             </div>
-            <div className="h-2 rounded-full overflow-hidden flex" style={{ background: "var(--surface-3)" }}>
-              <div style={{ width: `${ratioPct(today)}%`, background: "var(--ok)" }} />
-              <div className="flex-1" style={{ background: "var(--warn)" }} />
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: `${ratioPct(today)}%` }} />
             </div>
           </div>
 
@@ -238,7 +232,7 @@ export default function ConduitPage() {
           <Section title="Where the time went (today)">
             {today.blocks.length === 0 && <Row left="—" right="no app-focus events yet" />}
             {today.blocks.map((b) => (
-              <Row key={b.label} left={b.label} right={hm(b.minutes)} note={b.kind} noteClass={kindColor[b.kind]} />
+              <Row key={b.label} left={b.label} right={hm(b.minutes)} note={b.kind} />
             ))}
           </Section>
 
@@ -260,18 +254,18 @@ export default function ConduitPage() {
   );
 }
 
-function ThemeBar({ t, color }: { t: ContentType; color: string }) {
+function ThemeBar({ t }: { t: ContentType }) {
   const pct = Math.round(t.share * 100);
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-xs mb-1.5">
-        <span className="text-ink-1 whitespace-nowrap">{t.label}</span>
-        <span className="text-ink-2 tabular-nums shrink-0">{pct}%</span>
+        <span className="text-ink-1">{t.label}</span>
+        <span className="text-ink-2 mono shrink-0">{pct}%</span>
       </div>
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--surface-3)" }}>
-        <div style={{ width: `${Math.max(2, pct)}%`, height: "100%", background: color }} />
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${Math.max(2, pct)}%` }} />
       </div>
-      {t.evidence && <div className="text-[11px] text-ink-3 mt-1.5 truncate">{t.evidence}</div>}
+      {t.evidence && <div className="text-[11px] text-ink-3 mt-1.5 break-words">{t.evidence}</div>}
     </div>
   );
 }
@@ -287,13 +281,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Row({ left, right, note, noteClass }: { left: string; right: string; note?: string; noteClass?: string }) {
+function Row({ left, right, note }: { left: string; right: string; note?: string }) {
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-      <span className="text-ink-2 truncate mr-3">{left}</span>
+    <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+      <span className="text-ink-2 min-w-0 break-words">{left}</span>
       <span className="flex items-center gap-3 shrink-0">
-        {note && <span className={`text-xs ${noteClass ?? "text-ink-3"}`}>{note}</span>}
-        <span className="text-ink-2 tabular-nums whitespace-nowrap">{right}</span>
+        {note && <span className="mono text-[10px] uppercase tracking-[0.1em] text-ink-3">{note}</span>}
+        <span className="text-ink-2 mono whitespace-nowrap">{right}</span>
       </span>
     </div>
   );

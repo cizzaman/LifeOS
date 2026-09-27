@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wind, Thermometer, Droplets, Cloud, Sparkles, MapPin, Home, Trees } from "lucide-react";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
-import { PageShell, PageHeader, Panel, PanelHeader, Pill } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, PanelHeader, Pill, Marker, type Dim } from "@/components/ui/chrome";
 
 interface AirMonitor {
   id: number;
@@ -29,31 +28,20 @@ interface AirData {
   error?: string;
 }
 
-// AQI color scale — retained because this is the official US EPA semantic palette
-// for air quality. It is data, not decorative UI, so blue-only would mislead. The
-// three bands that match design tokens use them; the mid/high EPA bands (USG orange,
-// Very-Unhealthy purple, Hazardous maroon) have no token equivalent and stay as the
-// EPA-canonical hexes.
-function aqiTextColor(aqi: number | null): string {
-  if (aqi === null) return "var(--ink-3)";
-  if (aqi <= 50) return "var(--ok)";
-  if (aqi <= 100) return "var(--warn)";
-  if (aqi <= 150) return "#f5c451";
-  if (aqi <= 200) return "var(--err)";
-  if (aqi <= 300) return "#a78bfa";
-  return "#B91C1C";
+// Air quality is status: each US EPA band maps to a 7px ok / warn / err key beside
+// neutral text. The band name carries the finer grade.
+function aqiDim(aqi: number | null): Dim {
+  if (aqi === null) return "neutral";
+  if (aqi <= 50) return "ok";
+  if (aqi <= 150) return "warn";
+  return "err";
 }
 
-function aqiBorderColor(aqi: number | null): string {
-  return aqiTextColor(aqi);
-}
-
-function co2Color(co2: number | null): string {
-  if (co2 === null) return "var(--ink-3)";
-  if (co2 < 800) return "var(--ok)";
-  if (co2 < 1200) return "var(--warn)";
-  if (co2 < 2000) return "#f5c451";
-  return "var(--err)";
+function co2Dim(co2: number | null): Dim {
+  if (co2 === null) return "neutral";
+  if (co2 < 800) return "ok";
+  if (co2 < 2000) return "warn";
+  return "err";
 }
 
 function co2Label(co2: number | null): string {
@@ -74,71 +62,60 @@ function freshness(iso: string | null): string {
   return `${h}h ${m % 60}m ago`;
 }
 
-function monitorIcon(m: AirMonitor) {
-  const name = m.name.toLowerCase();
-  if (name.includes("backyard") || name.includes("outside") || m.type === "outdoor") return Trees;
-  if (name.includes("bedroom") || name.includes("living") || name.includes("studio")) return Home;
-  return MapPin;
-}
-
 function Banner({ air }: { air: AirData | null }) {
   const worstAqi = air?.worst_aqi ?? null;
   const worstLabel = air?.worst_label ?? null;
   const count = air?.count ?? 0;
   const fetched = freshness(air?.fetched_at ?? null);
   return (
-    <Panel
-      className="relative p-8"
-      style={{ background: "linear-gradient(90deg, rgba(34,197,94,0.08), var(--surface-1))" }}
-    >
-      <div className="absolute top-5 right-5 text-[12px] text-ink-3 mono">cached {fetched}</div>
-      <div className="flex items-start gap-6 flex-wrap">
-        <Wind className="w-10 h-10 shrink-0" style={{ color: "var(--health)" }} />
-        <div className="flex-1 min-w-0">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Air Quality</div>
-          <p className="leading-snug text-ink-1 mt-1.5" style={{ fontSize: "clamp(22px, 2.5vw, 30px)", fontWeight: 500 }}>
-            Worst AQI across {count} monitor{count === 1 ? "" : "s"}:{" "}
-            <span className="tabular-nums" style={{ color: aqiTextColor(worstAqi), fontWeight: 700 }}>
-              {worstAqi ?? "—"}
-            </span>
-            {worstLabel && (
-              <span className="ml-2" style={{ color: aqiTextColor(worstAqi), fontSize: "0.7em" }}>
-                ({worstLabel})
-              </span>
-            )}
-          </p>
-          <p className="mt-2 text-sm text-ink-2">
-            Live from AirGradient · updated every 5 min by Pulse poller
-          </p>
-        </div>
+    <Panel>
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <div className="label-caps">Air Quality</div>
+        <div className="mono text-[11px] text-ink-3">cached {fetched}</div>
       </div>
+      <p
+        className="text-ink-1 mt-2"
+        style={{ font: "500 clamp(22px, 2.5vw, 30px)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
+      >
+        Worst AQI across {count} monitor{count === 1 ? "" : "s"}:{" "}
+        <span className="inline-flex items-baseline gap-2 whitespace-nowrap">
+          <span className="self-center inline-flex"><Marker dim={aqiDim(worstAqi)} /></span>
+          <span className="mono" style={{ fontWeight: 400 }}>{worstAqi ?? "—"}</span>
+        </span>
+        {worstLabel && (
+          <span className="ml-2 text-ink-2" style={{ fontSize: "0.7em" }}>
+            ({worstLabel})
+          </span>
+        )}
+      </p>
+      <p className="mt-2 text-sm text-ink-2">
+        Live from AirGradient · updated every 5 min by Pulse poller
+      </p>
     </Panel>
   );
 }
 
 function Metric({
-  icon: Icon,
   label,
   value,
   unit,
-  color,
+  status,
 }: {
-  icon: typeof Wind;
   label: string;
   value: string | null;
   unit?: string;
-  color: string;
+  status?: Dim;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1.5 text-[12px] uppercase tracking-wider text-ink-3">
-        <Icon className="w-3 h-3" />
-        {label}
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2">
+        <Marker dim={status} />
+        <span className="label-caps">{label}</span>
       </div>
-      <div className="text-xl font-bold tabular-nums" style={{ color }}>
+      <div className="mono text-[20px] text-ink-1">
         {value ?? "—"}
         {value !== null && unit && (
-          <span className="text-xs ml-1 text-ink-3" style={{ fontWeight: 400 }}>{unit}</span>
+          <span className="text-xs ml-1 text-ink-3">{unit}</span>
         )}
       </div>
     </div>
@@ -146,81 +123,56 @@ function Metric({
 }
 
 function MonitorCard({ m }: { m: AirMonitor }) {
-  const Icon = monitorIcon(m);
   const aqi = m.aqi;
   const co2 = m.co2;
   const co2Lbl = co2Label(co2);
-  const accent = aqiBorderColor(aqi);
   return (
-    <Panel className="p-5" style={{ borderLeft: `2px solid ${accent}` }}>
+    <Panel className="p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5" style={{ color: "var(--health)" }} />
-          <h3 className="text-base font-semibold text-ink-1">{m.name}</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          {m.type && <Pill dim="health">{m.type}</Pill>}
-          <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[12px] font-medium"
-            style={{
-              background: `${aqiTextColor(aqi)}1A`,
-              color: aqiTextColor(aqi),
-              border: `1px solid ${aqiTextColor(aqi)}55`,
-            }}
-          >
+        <h3 className="text-ink-1">{m.name}</h3>
+        <div className="flex items-center gap-4 flex-wrap">
+          {m.type && <Pill>{m.type}</Pill>}
+          <Pill dim={aqiDim(aqi)}>
             AQI {aqi ?? "—"}
             {m.aqiLabel && ` · ${m.aqiLabel}`}
-          </span>
+          </Pill>
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <Metric
-          icon={Cloud}
           label="PM 2.5"
           value={m.pm25 !== null ? m.pm25.toFixed(1) : null}
           unit="µg/m³"
-          color={aqiTextColor(aqi)}
+          status={aqiDim(aqi)}
         />
         <Metric
-          icon={Wind}
           label="CO₂"
           value={co2 !== null ? String(co2) : null}
           unit={co2Lbl ? `ppm · ${co2Lbl}` : "ppm"}
-          color={co2Color(co2)}
+          status={co2Dim(co2)}
         />
         <Metric
-          icon={Thermometer}
           label="Temp"
           value={m.temp !== null ? m.temp.toFixed(1) : null}
           unit="°C"
-          color="var(--rhythms)"
         />
         <Metric
-          icon={Droplets}
           label="Humidity"
           value={m.rh !== null ? String(m.rh) : null}
           unit="%"
-          color="var(--health)"
         />
         <Metric
-          icon={Sparkles}
           label="TVOC"
           value={m.tvoc !== null ? String(m.tvoc) : null}
           unit="idx"
-          color="var(--relationships)"
         />
         <Metric
-          icon={Sparkles}
           label="NOx"
           value={m.nox !== null ? String(m.nox) : null}
           unit="idx"
-          color="var(--freedom)"
         />
       </div>
-      <div
-        className="mt-4 pt-3 flex items-center justify-between text-[12px] text-ink-3"
-        style={{ borderTop: "1px solid var(--line-1)" }}
-      >
+      <div className="mt-4 pt-3 flex items-center justify-between gap-2 flex-wrap mono text-[11px] text-ink-3 border-t border-line-1">
         <span>
           id {m.id}
           {m.type ? ` · ${m.type}` : ""}
@@ -236,25 +188,25 @@ function Legend() {
     <Panel className="p-4">
       <PanelHeader title="US AQI (PM2.5) scale" />
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
-        {[
-          { color: "var(--ok)", label: "0–50 Good" },
-          { color: "var(--warn)", label: "51–100 Moderate" },
-          { color: "#f5c451", label: "101–150 USG" },
-          { color: "var(--err)", label: "151–200 Unhealthy" },
-          { color: "#a78bfa", label: "201–300 Very Unhealthy" },
-          { color: "#B91C1C", label: "300+ Hazardous" },
-        ].map((band) => (
+        {([
+          { dim: "ok", label: "0–50 Good" },
+          { dim: "warn", label: "51–100 Moderate" },
+          { dim: "warn", label: "101–150 USG" },
+          { dim: "err", label: "151–200 Unhealthy" },
+          { dim: "err", label: "201–300 Very Unhealthy" },
+          { dim: "err", label: "300+ Hazardous" },
+        ] as { dim: Dim; label: string }[]).map((band) => (
           <div key={band.label} className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ background: band.color }} />
+            <Marker dim={band.dim} />
             <span className="text-ink-2">{band.label}</span>
           </div>
         ))}
       </div>
-      <div className="mt-3 pt-3 text-[12px] text-ink-3" style={{ borderTop: "1px solid var(--line-1)" }}>
-        <span style={{ color: "var(--ok)" }}>CO₂ &lt; 800</span> fresh ·{" "}
-        <span style={{ color: "var(--warn)" }}>800–1200</span> elevated ·{" "}
-        <span style={{ color: "#f5c451" }}>1200–2000</span> stuffy ·{" "}
-        <span style={{ color: "var(--err)" }}>&gt; 2000</span> poor
+      <div className="mt-3 pt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-ink-3 border-t border-line-1">
+        <span className="inline-flex items-center gap-2"><Marker dim="ok" />CO₂ &lt; 800 fresh</span>
+        <span className="inline-flex items-center gap-2"><Marker dim="warn" />800–1200 elevated</span>
+        <span className="inline-flex items-center gap-2"><Marker dim="warn" />1200–2000 stuffy</span>
+        <span className="inline-flex items-center gap-2"><Marker dim="err" />&gt; 2000 poor</span>
       </div>
     </Panel>
   );
@@ -281,8 +233,10 @@ export default function AirPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
-          <div className="text-err text-sm">Air Quality unavailable: {error}</div>
+        <Panel>
+          <div className="text-ink-1 text-sm flex items-center gap-2">
+            <Marker dim="err" /> Air Quality unavailable: {error}
+          </div>
         </Panel>
       </PageShell>
     );
@@ -297,7 +251,7 @@ export default function AirPage() {
 
   return (
     <PageShell>
-      <PageHeader icon={Wind} title="Air" subtitle="Indoor and outdoor air quality across your AirGradient monitors." />
+      <PageHeader title="Air" subtitle="Indoor and outdoor air quality across your AirGradient monitors." />
       <Banner air={air} />
       <Legend />
       {sorted.length === 0 ? (
@@ -311,7 +265,7 @@ export default function AirPage() {
           <Panel>
             <div className="p-4 text-center text-sm text-ink-2">
               No monitors in cache yet. Run{" "}
-              <code className="px-2 py-0.5 rounded mono bg-surface-1 text-ink-1">
+              <code className="mono text-ink-1 break-all">
                 bun ~/.claude/LIFEOS/PULSE/checks/airgradient-poll.ts
               </code>{" "}
               to prime, or wait for the next 5-minute poll.

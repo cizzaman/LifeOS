@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { Webhook, ArrowLeft, FileCode, Globe } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import { PageShell, PageHeader, Panel, StatTile, Pill } from "@/components/ui/chrome";
@@ -23,38 +23,6 @@ interface HookDetail {
   filePath: string;
   lastModified: string;
   size: number;
-}
-
-type Dimension = "health" | "money" | "freedom" | "creative" | "relationships" | "rhythms";
-
-const EVENT_DIMENSIONS: Record<string, Dimension> = {
-  PreToolUse: "creative",
-  PostToolUse: "rhythms",
-  PostToolUseFailure: "creative",
-  UserPromptSubmit: "creative",
-  Notification: "freedom",
-  PreCompact: "relationships",
-  PostCompact: "rhythms",
-  SessionStart: "freedom",
-  SessionEnd: "relationships",
-  SubagentStart: "health",
-  SubagentStop: "relationships",
-  Stop: "relationships",
-  StopFailure: "creative",
-  TaskCreated: "money",
-  TaskCompleted: "health",
-  TeammateIdle: "rhythms",
-  ConfigChange: "money",
-  PermissionRequest: "creative",
-  FileChanged: "freedom",
-  CwdChanged: "rhythms",
-  InstructionsLoaded: "relationships",
-  Elicitation: "freedom",
-  ElicitationResult: "relationships",
-};
-
-function eventDimension(event: string): Dimension {
-  return EVENT_DIMENSIONS[event] || "money";
 }
 
 function HooksLanding({ hooks, events }: { hooks: HookEntry[]; events: string[] }) {
@@ -85,13 +53,12 @@ function HooksLanding({ hooks, events }: { hooks: HookEntry[]; events: string[] 
       )}
       <PageHeader
         title="Hooks"
-        icon={Webhook}
         subtitle="Lifecycle event handlers that run shell commands or HTTP requests in response to Claude Code events. Configured in settings.json; they intercept tool calls, session events, and system changes."
       />
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))" }}>
-        <StatTile label="Hooks" value={hooks.length} icon={Webhook} dim="money" />
-        <StatTile label="Events" value={events.length} icon={FileCode} dim="freedom" />
+        <StatTile label="Hooks" value={hooks.length} />
+        <StatTile label="Events" value={events.length} />
       </div>
 
       <SystemHealthPanel />
@@ -99,16 +66,15 @@ function HooksLanding({ hooks, events }: { hooks: HookEntry[]; events: string[] 
       <div className="flex flex-col gap-6">
         {sortedEvents.map((event) => {
           const eventHooks = grouped.get(event) || [];
-          const dimension = eventDimension(event);
 
           return (
             <div key={event} className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <Pill dim={dimension}>{event}</Pill>
-                <span className="text-[12px] text-ink-3 mono">({eventHooks.length})</span>
+                <span className="label-caps text-ink-1">{event}</span>
+                <span className="mono text-[11px] text-ink-3">({eventHooks.length})</span>
               </div>
               {eventHooks.length === 0 ? (
-                <p className="pl-1 text-[13px] italic text-ink-3">No hooks registered</p>
+                <p className="pl-1 text-[13px] text-ink-3">No hooks registered</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {eventHooks.map((hook, i) => (
@@ -119,18 +85,13 @@ function HooksLanding({ hooks, events }: { hooks: HookEntry[]; events: string[] 
                     >
                       <Panel hover className="py-3 px-4">
                         <div className="flex items-center gap-3 flex-wrap">
-                          {hook.type === "http" ? (
-                            <Globe className="w-4 h-4 shrink-0 text-dim-freedom" />
-                          ) : (
-                            <FileCode className="w-4 h-4 shrink-0 text-dim-money" />
-                          )}
-                          <span className="mono text-[13px] text-ink-1">{hook.fileName}</span>
+                          <span className="mono text-[13px] text-ink-1 break-all">{hook.fileName}</span>
                           <span className="text-[12px] text-ink-3">
                             matcher:{" "}
-                            <span className="mono text-ink-2">{hook.matcher}</span>
+                            <span className="mono text-ink-2 break-all">{hook.matcher}</span>
                           </span>
                           <span className="ml-auto shrink-0">
-                            <Pill dim={hook.type === "http" ? "freedom" : "money"}>{hook.type}</Pill>
+                            <Pill>{hook.type}</Pill>
                           </span>
                         </div>
                       </Panel>
@@ -150,12 +111,12 @@ function HookDetailView({ hook }: { hook: HookDetail }) {
   return (
     <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <Link href="/hooks" className="text-ink-2 hover:text-ink-1">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/hooks" aria-label="Back to hooks" className="text-ink-3 hover:text-ink-1 transition-colors">
+          <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
         </Link>
-        <div>
-          <h1 className="text-ink-1">{hook.name}</h1>
-          <p className="mt-0.5 text-[13px] text-ink-2">
+        <div className="min-w-0">
+          <h1 className="text-ink-1 break-words">{hook.name}</h1>
+          <p className="mt-0.5 mono text-[11px] text-ink-3">
             {(hook.size / 1024).toFixed(1)} KB ·{" "}
             {new Date(hook.lastModified).toLocaleDateString("en-US", {
               month: "short",
@@ -211,7 +172,7 @@ function HooksPageInner() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-sm text-ink-3">Loading...</div>
+      <div className="text-[13px] text-ink-3">Loading...</div>
     </div>
   );
 }
@@ -221,7 +182,7 @@ export default function HooksPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <div className="text-sm text-ink-3">Loading...</div>
+          <div className="text-[13px] text-ink-3">Loading...</div>
         </div>
       }
     >

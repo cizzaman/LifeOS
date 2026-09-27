@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { localOnlyApiCall } from "@/lib/local-api";
-import { Volume2, Terminal, FileText, Zap } from "lucide-react";
+import { Marker, type Dim } from "@/components/ui/chrome";
 
 // ─── System Health Vitals (Widget 18) ───
 // Persistent bar at top of Activity page, visible across all tabs.
@@ -24,16 +24,12 @@ interface HealthData {
   };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  healthy: "text-emerald-400",
-  degraded: "text-amber-400",
-  failing: "text-rose-400",
-};
+type Status = "healthy" | "degraded" | "failing";
 
-const STATUS_DOTS: Record<string, string> = {
-  healthy: "bg-emerald-400",
-  degraded: "bg-amber-400",
-  failing: "bg-rose-400",
+const STATUS_DIM: Record<Status, Dim> = {
+  healthy: "ok",
+  degraded: "warn",
+  failing: "err",
 };
 
 export default function SystemHealthVitals() {
@@ -103,58 +99,38 @@ export default function SystemHealthVitals() {
   if (!health) return null;
 
   return (
-    <div className="flex items-center gap-6 px-4 py-1.5 bg-[rgba(17,17,17,0.5)] border-b border-white/[0.04] shrink-0">
+    <div className="flex items-center flex-wrap gap-x-6 gap-y-1.5 px-4 py-2 border-b border-line-2 shrink-0">
       <VitalMetric
-        icon={Volume2}
         label="Voice"
         value={`${Math.round(health.voiceHealth.rate)}%`}
         status={health.voiceHealth.status}
       />
       <VitalMetric
-        icon={Terminal}
         label="Hooks"
         value={`${health.hookReliability.failsPerHour}/hr`}
         status={health.hookReliability.status}
       />
-      <VitalMetric
-        icon={FileText}
-        label="Documentation"
-        value={health.docFreshness.label}
-        status={health.docFreshness.status}
-      />
-      <VitalMetric
-        icon={Zap}
-        label="Active"
-        value={`${health.activeSessions.count}`}
-        status={health.activeSessions.status}
-      />
+      <VitalMetric label="Documentation" value={health.docFreshness.label} />
+      <VitalMetric label="Active" value={`${health.activeSessions.count}`} />
     </div>
   );
 }
 
+/** Measured health (voice success, hook failures) carries a status key; the rest stay neutral. */
 function VitalMetric({
-  icon: Icon,
   label,
   value,
   status,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  status: "healthy" | "degraded" | "failing";
+  status?: Status;
 }) {
   return (
     <div className="flex items-center gap-2">
-      <div
-        className={`w-2 h-2 rounded-full ${STATUS_DOTS[status]}`}
-      />
-      <Icon className="w-4 h-4 text-ink-3" />
-      <span className="text-xs text-ink-3 uppercase">{label}</span>
-      <span
-        className={`text-sm font-mono font-medium ${STATUS_COLORS[status]}`}
-      >
-        {value}
-      </span>
+      <Marker dim={status ? STATUS_DIM[status] : "neutral"} />
+      <span className="label-caps">{label}</span>
+      <span className="mono text-[12px] text-ink-1">{value}</span>
     </div>
   );
 }

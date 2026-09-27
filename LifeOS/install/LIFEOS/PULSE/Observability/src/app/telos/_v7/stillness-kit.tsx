@@ -14,6 +14,7 @@
 // hides the affected line.
 
 import type { Telos, SnapshotMetric } from "./data";
+import { Marker } from "@/components/ui/chrome";
 
 interface StillnessKitProps {
   telos: Telos;
@@ -41,20 +42,6 @@ function formatLabel(s: SnapshotMetric): string {
   return s.v.toString();
 }
 
-function colorFor(metricId: string): string {
-  // Maps metric IDs to dimension CSS vars. Each metric color is purely a
-  // visual dot — no semantic mapping to specific user dimensions.
-  // Falls back to --text-2 for unknown IDs.
-  const map: Record<string, string> = {
-    mood: "--freedom",
-    energy: "--money",
-    focus: "--creative",
-    presence: "--health",
-    calm: "--rhythms",
-  };
-  return map[metricId] ?? "--text-2";
-}
-
 export function StillnessKit({ telos }: StillnessKitProps) {
   const { owner, snapshot } = telos;
   const hasStreak = owner.streak > 0;
@@ -66,10 +53,7 @@ export function StillnessKit({ telos }: StillnessKitProps) {
 
   return (
     <aside className="stillness-kit" aria-label="stillness kit">
-      <div className="stillness-kit-pulse" aria-hidden="true">
-        <span className="stillness-kit-dot" />
-        <span className="stillness-kit-ring" />
-      </div>
+      <span className="fig-hub stillness-kit-pulse" aria-hidden="true"><i /></span>
 
       <div className="stillness-kit-body">
         {hasStreak && (
@@ -83,7 +67,7 @@ export function StillnessKit({ telos }: StillnessKitProps) {
           <div className="stillness-kit-snap">
             {snapshot.map((s) => (
               <span key={s.id} className="stillness-kit-snap-item" title={`${s.label}`}>
-                <span className="stillness-kit-snap-dot" style={{ background: `var(${colorFor(s.id)})` }} />
+                <Marker />
                 <span className="stillness-kit-snap-label">{s.label.toLowerCase()}</span>
                 <span className="stillness-kit-snap-value mono">{formatLabel(s)}</span>
               </span>

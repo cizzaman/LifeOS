@@ -13,10 +13,35 @@ export interface ChartConfig {
   animationDuration: number;
   barWidth: number;
   barGap: number;
-  colors: { primary: string; glow: string; axis: string; text: string };
+  colors: ChartColors;
 }
 
-// ─── Agent Color Map ───
+/** Canvas cannot read CSS variables, so the palette tokens are resolved once per renderer. */
+export interface ChartColors {
+  primary: string;
+  axis: string;
+  grid: string;
+  text: string;
+  label: string;
+  ink: string;
+  surface: string;
+}
+
+export function chartColorsFromTokens(): ChartColors {
+  const css = typeof window !== "undefined" ? getComputedStyle(document.documentElement) : null;
+  const read = (name: string, fallback: string) => css?.getPropertyValue(name).trim() || fallback;
+  return {
+    primary: read("--accent-blue", "#3fb2c9"),
+    axis: read("--line-3", "#3a3a3a"),
+    grid: read("--line-1", "#1f1f1f"),
+    text: read("--ink-3", "#6b7d89"),
+    label: read("--ink-2", "#98a8b3"),
+    ink: read("--ink-1", "#f0e8d8"),
+    surface: read("--surface-1", "#111111"),
+  };
+}
+
+// ─── Agent Color Map — the one data colour per agent (canvas key + legend pill) ───
 
 const AGENT_COLORS: Record<string, string> = {
   pentester: "#f87171",
@@ -34,41 +59,9 @@ const AGENT_COLORS: Record<string, string> = {
   "claude-code": "#3fb2c9",
 };
 
-// ─── Tool Color Map ───
-
-const TOOL_COLORS: Record<string, string> = {
-  Read: "#5cc4d8",
-  Write: "#22c55e",
-  Edit: "#f5c451",
-  Bash: "#a78bfa",
-  Grep: "#f87171",
-  Glob: "#f97316",
-  Task: "#5cc4d8",
-  WebFetch: "#7cd5e6",
-  WebSearch: "#7cd5e6",
-  Skill: "#d9d2c4",
-  SlashCommand: "#d9d2c4",
-  TodoWrite: "#f5c451",
-  AskUserQuestion: "#a78bfa",
-  NotebookEdit: "#22c55e",
-  NotebookRead: "#5cc4d8",
-  BashOutput: "#a78bfa",
-  KillShell: "#f87171",
-  ExitPlanMode: "#22c55e",
-};
-
-const EVENT_TYPE_COLORS: Record<string, string> = {
-  PreToolUse: "#f5c451",
-  PostToolUse: "#f97316",
-  Completed: "#22c55e",
-  Notification: "#f97316",
-  Stop: "#f87171",
-  SubagentStop: "#a78bfa",
-  PreCompact: "#1abc9c",
-  UserPromptSubmit: "#7cd5e6",
-  SessionStart: "#5cc4d8",
-  SessionEnd: "#5cc4d8",
-};
+export function agentColor(name: string): string {
+  return AGENT_COLORS[name.split(":")[0].toLowerCase()] || "#3fb2c9";
+}
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   PreToolUse: "Pre-Tool",
@@ -82,6 +75,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   Notification: "Notification",
   Completed: "Completed",
 };
+
+const LABEL_FONT = '400 10px "Fira Code", ui-monospace, monospace';
 
 // ─── Renderer Class ───
 
@@ -186,24 +181,18 @@ export class ChartRenderer {
     this.currentFrameLabels = [];
   }
 
-  drawBackground() {
-    const area = this.getChartArea();
-    const grad = this.ctx.createLinearGradient(area.x, area.y, area.x, area.y + area.height);
-    grad.addColorStop(0, "rgba(0,0,0,0.02)");
-    grad.addColorStop(1, "rgba(0,0,0,0.05)");
-    this.ctx.fillStyle = grad;
-    this.ctx.fillRect(area.x, area.y, area.width, area.height);
-  }
+  /** The chart sits on the ground; there is no plot fill to paint. */
+  drawBackground() {}
 
   drawAxes() {
     const area = this.getChartArea();
+    const y = Math.round(area.y + area.height) + 0.5;
     this.ctx.save();
-    this.ctx.strokeStyle = "#3a3a3a";
-    this.ctx.lineWidth = 0.5;
-    this.ctx.globalAlpha = 0.5;
+    this.ctx.strokeStyle = this.config.colors.axis;
+    this.ctx.lineWidth = 1;
     this.ctx.beginPath();
-    this.ctx.moveTo(area.x, area.y + area.height);
-    this.ctx.lineTo(area.x + area.width, area.y + area.height);
+    this.ctx.moveTo(area.x, y);
+    this.ctx.lineTo(area.x + area.width, y);
     this.ctx.stroke();
     this.ctx.restore();
   }
@@ -215,11 +204,11 @@ export class ChartRenderer {
 
     // Grid lines
     this.ctx.save();
-    this.ctx.strokeStyle = "#3a3a3a";
-    this.ctx.lineWidth = 0.5;
-    this.ctx.globalAlpha = 0.5;
+    this.ctx.strokeStyle = this.config.colors.grid;
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([2, 4]);
     labels.forEach((_, i) => {
-      const x = area.x + i * spacing;
+      const x = Math.round(area.x + i * spacing) + 0.5;
       this.ctx.beginPath();
       this.ctx.moveTo(x, area.y);
       this.ctx.lineTo(x, area.y + area.height);
@@ -228,8 +217,8 @@ export class ChartRenderer {
     this.ctx.restore();
 
     // Text labels
-    this.ctx.fillStyle = "#55636d";
-    this.ctx.font = '400 11px "Albert Sans", system-ui, sans-serif';
+    this.ctx.fillStyle = this.config.colors.text;
+    this.ctx.font = LABEL_FONT;
     this.ctx.textBaseline = "top";
     labels.forEach((label, i) => {
       const x = area.x + i * spacing;
@@ -262,14 +251,20 @@ export class ChartRenderer {
       const x = area.x + index * totalBarWidth + (totalBarWidth - barWidth) / 2;
       const barHeight = (point.count / maxValue) * area.height * progress;
 
-      // Vertical guide line
+      // Vertical guide + the count as a hairline in the series colour
+      const cx = Math.round(x + barWidth / 2) + 0.5;
+      const baseY = area.y + area.height;
       this.ctx.save();
-      this.ctx.strokeStyle = "#3a3a3a";
-      this.ctx.lineWidth = 0.5;
-      this.ctx.globalAlpha = 0.5;
+      this.ctx.lineWidth = 1;
+      this.ctx.strokeStyle = this.config.colors.grid;
       this.ctx.beginPath();
-      this.ctx.moveTo(x + barWidth / 2, area.y);
-      this.ctx.lineTo(x + barWidth / 2, area.y + area.height);
+      this.ctx.moveTo(cx, area.y);
+      this.ctx.lineTo(cx, baseY - barHeight);
+      this.ctx.stroke();
+      this.ctx.strokeStyle = this.config.colors.primary;
+      this.ctx.beginPath();
+      this.ctx.moveTo(cx, baseY - barHeight);
+      this.ctx.lineTo(cx, baseY);
       this.ctx.stroke();
       this.ctx.restore();
 
@@ -287,12 +282,11 @@ export class ChartRenderer {
 
       // Get dominant app name
       let appName = "";
-      let agentColor = "#5cc4d8";
+      let keyColor = this.config.colors.primary;
       if (point.apps && Object.keys(point.apps).length > 0) {
         const dominant = Object.entries(point.apps).sort((a, b) => b[1] - a[1])[0];
         appName = dominant[0];
-        const agentNameOnly = appName.split(":")[0].toLowerCase();
-        agentColor = AGENT_COLORS[agentNameOnly] || "#5cc4d8";
+        keyColor = agentColor(appName);
       }
 
       const rawDisplayName = appName ? appName.split(":")[0] : "";
@@ -311,36 +305,25 @@ export class ChartRenderer {
         }
       }
 
-      // Calculate total label width
-      const pillGap = 7;
-      const pillPadding = 7;
-      const pillHeight = 21;
-      const padding = 8;
+      const eventTypeLabel = EVENT_TYPE_LABELS[entries[0][0]] || entries[0][0];
 
-      // Agent pill
-      this.ctx.font = '600 11px "Fira Code", ui-monospace, monospace';
-      const agentTextW = displayName ? this.ctx.measureText(displayName).width : 0;
-      const agentPillW = displayName ? agentTextW + pillPadding * 2 : 0;
+      // One figure label: 7px agent key, then agent · event · tool in mono
+      const segments = [
+        { text: displayName, color: this.config.colors.ink },
+        { text: eventTypeLabel, color: this.config.colors.label },
+        { text: toolName, color: this.config.colors.label },
+      ].filter((seg) => seg.text);
 
-      // Event type pill
-      const eventTypeLabel = entries.length > 0 ? (EVENT_TYPE_LABELS[entries[0][0]] || entries[0][0]) : "";
-      this.ctx.font = '600 11px "Albert Sans", system-ui, sans-serif';
-      const eventTextW = eventTypeLabel ? this.ctx.measureText(eventTypeLabel).width : 0;
-      const eventPillW = eventTypeLabel ? 10 + 4 + eventTextW + pillPadding * 2 : 0;
-
-      // Tool pill
-      this.ctx.font = '500 11px "Fira Code", ui-monospace, monospace';
-      const toolTextW = toolName ? this.ctx.measureText(toolName).width : 0;
-      const toolPillW = toolName ? 10 + 4 + toolTextW + pillPadding * 2 : 0;
-
-      const totalWidth =
-        agentPillW +
-        (agentPillW && eventPillW ? pillGap : 0) +
-        eventPillW +
-        (eventPillW && toolPillW ? pillGap : 0) +
-        toolPillW;
-      const bgWidth = totalWidth + padding * 2;
-      const bgHeight = 32;
+      this.ctx.font = LABEL_FONT;
+      const KEY = 7;
+      const KEY_GAP = 7;
+      const SEP = " · ";
+      const sepW = this.ctx.measureText(SEP).width;
+      const widths = segments.map((seg) => this.ctx.measureText(seg.text).width);
+      const textW = widths.reduce((sum, w) => sum + w, 0) + sepW * Math.max(0, segments.length - 1);
+      const padding = 9;
+      const bgWidth = padding * 2 + KEY + KEY_GAP + textW;
+      const bgHeight = 24;
 
       const centerX = x + barWidth / 2;
       const preferredBgX = centerX - bgWidth / 2;
@@ -348,27 +331,17 @@ export class ChartRenderer {
       const position = this.calculateNonOverlappingPosition(area, preferredBgX, bgWidth);
 
       if (position === null) {
-        // Fallback: small colored dot
-        const dotR = 4;
-        const dotX = centerX;
-        const dotY = area.y + area.height - barHeight / 2;
-        const glow = this.ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, dotR * 3);
-        glow.addColorStop(0, agentColor + "40");
-        glow.addColorStop(1, "transparent");
-        this.ctx.fillStyle = glow;
+        // Fallback: small flat dot in the agent colour
+        this.ctx.fillStyle = keyColor;
         this.ctx.beginPath();
-        this.ctx.arc(dotX, dotY, dotR * 3, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.fillStyle = agentColor;
-        this.ctx.beginPath();
-        this.ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+        this.ctx.arc(centerX, baseY - barHeight / 2, 3, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.restore();
         return;
       }
 
-      const bgX = position.x;
-      const bgY = position.y;
+      const bgX = Math.round(position.x) + 0.5;
+      const bgY = Math.round(position.y) + 0.5;
       const labelY = bgY + bgHeight / 2;
 
       this.currentFrameLabels.push({ x: bgX, y: bgY, width: bgWidth, height: bgHeight });
@@ -376,87 +349,51 @@ export class ChartRenderer {
       // Leader line if offset
       if (Math.abs(bgX - preferredBgX) > 5) {
         this.ctx.save();
-        this.ctx.strokeStyle = agentColor + "60";
-        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeStyle = this.config.colors.axis;
+        this.ctx.lineWidth = 1;
         this.ctx.setLineDash([3, 3]);
         this.ctx.beginPath();
-        this.ctx.moveTo(centerX, area.y + area.height - barHeight / 2);
+        this.ctx.moveTo(centerX, baseY - barHeight / 2);
         this.ctx.lineTo(bgX + bgWidth / 2, labelY);
         this.ctx.stroke();
-        this.ctx.setLineDash([]);
         this.ctx.restore();
       }
 
-      let currentX = bgX + padding;
-      const pillRadius = 4;
+      // Label box — the tooltip surface with a figure-line border
+      this.drawRoundedRect(bgX, bgY, bgWidth, bgHeight, 10);
+      this.ctx.fillStyle = this.config.colors.surface;
+      this.ctx.fill();
+      this.ctx.strokeStyle = this.config.colors.axis;
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
 
-      // PILL 1: Agent Name
-      if (displayName) {
-        this.ctx.font = '600 11px "Fira Code", ui-monospace, monospace';
-        const w = this.ctx.measureText(displayName).width + pillPadding * 2;
-        const py = labelY - pillHeight / 2;
+      // 7px key: outlined square with a faint tint of its own colour
+      const keyX = Math.round(bgX + padding) + 0.5;
+      const keyY = Math.round(labelY - KEY / 2) + 0.5;
+      this.ctx.save();
+      this.ctx.globalAlpha = 0.14;
+      this.ctx.fillStyle = keyColor;
+      this.ctx.fillRect(keyX, keyY, KEY - 1, KEY - 1);
+      this.ctx.restore();
+      this.ctx.strokeStyle = keyColor;
+      this.ctx.strokeRect(keyX, keyY, KEY - 1, KEY - 1);
 
-        this.ctx.fillStyle = this.hexToRgba(agentColor, 0.15);
-        this.drawRoundedRect(currentX, py, w, pillHeight, pillRadius);
-        this.ctx.fill();
-
-        this.ctx.fillStyle = agentColor;
-        this.ctx.textAlign = "left";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(displayName, currentX + pillPadding, labelY);
-        currentX += w + pillGap;
-      }
-
-      // PILL 2: Event Type
-      if (eventTypeLabel) {
-        const eventColor = EVENT_TYPE_COLORS[entries[0][0]] || "#5cc4d8";
-        this.ctx.font = '600 11px "Albert Sans", system-ui, sans-serif';
-        const tw = this.ctx.measureText(eventTypeLabel).width;
-        const w = 10 + 4 + tw + pillPadding * 2;
-        const py = labelY - pillHeight / 2;
-
-        this.ctx.fillStyle = this.hexToRgba(eventColor, 0.15);
-        this.drawRoundedRect(currentX, py, w, pillHeight, pillRadius);
-        this.ctx.fill();
-
-        this.ctx.fillStyle = eventColor;
-        this.ctx.textAlign = "left";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(eventTypeLabel, currentX + pillPadding + 14, labelY);
-        currentX += w + pillGap;
-      }
-
-      // PILL 3: Tool
-      if (toolName) {
-        const toolColor = TOOL_COLORS[toolName] || "#5cc4d8";
-        this.ctx.font = '500 11px "Fira Code", ui-monospace, monospace';
-        const tw = this.ctx.measureText(toolName).width;
-        const w = 10 + 4 + tw + pillPadding * 2;
-        const py = labelY - pillHeight / 2;
-
-        this.ctx.fillStyle = this.hexToRgba(toolColor, 0.15);
-        this.drawRoundedRect(currentX, py, w, pillHeight, pillRadius);
-        this.ctx.fill();
-
-        this.ctx.fillStyle = toolColor;
-        this.ctx.textAlign = "left";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(toolName, currentX + pillPadding + 14, labelY);
-      }
+      let currentX = bgX + padding + KEY + KEY_GAP;
+      this.ctx.textAlign = "left";
+      this.ctx.textBaseline = "middle";
+      segments.forEach((seg, i) => {
+        if (i > 0) {
+          this.ctx.fillStyle = this.config.colors.text;
+          this.ctx.fillText(SEP, currentX, labelY);
+          currentX += sepW;
+        }
+        this.ctx.fillStyle = seg.color;
+        this.ctx.fillText(seg.text, currentX, labelY);
+        currentX += widths[i];
+      });
 
       this.ctx.restore();
     });
-  }
-
-  drawPulseEffect(x: number, y: number, radius: number, opacity: number) {
-    const grad = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-    grad.addColorStop(0, this.hexToRgba(this.config.colors.primary, opacity));
-    grad.addColorStop(0.5, this.hexToRgba(this.config.colors.primary, opacity * 0.5));
-    grad.addColorStop(1, "transparent");
-    this.ctx.fillStyle = grad;
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-    this.ctx.fill();
   }
 
   stopAnimation() {
@@ -472,13 +409,6 @@ export class ChartRenderer {
   }
 
   // ─── Helpers ───
-
-  private hexToRgba(hex: string, opacity: number): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${opacity})`;
-  }
 
   private drawRoundedRect(x: number, y: number, w: number, h: number, r: number) {
     this.ctx.beginPath();

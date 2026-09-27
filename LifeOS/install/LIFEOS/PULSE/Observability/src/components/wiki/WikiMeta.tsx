@@ -1,19 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { wikiPageUrl } from "@/lib/wiki-links";
-import {
-  ArrowLeft,
-  Clock,
-  FileText,
-  Star,
-  Tag,
-  BookOpen,
-  Copy,
-  User,
-  Link as LinkIcon,
-  Calendar,
-} from "lucide-react";
+import { Copy, Link as LinkIcon } from "lucide-react";
+import { Marker, type Dim } from "@/components/ui/chrome";
+import { cn } from "@/lib/utils";
 
 interface Backlink {
   slug: string;
@@ -35,20 +27,13 @@ interface WikiMetaProps {
   sourceUrl?: string;
   postDate?: string;
   related?: Backlink[];
+  className?: string;
 }
 
-const CATEGORY_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-  "system-doc": { text: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
-  person: { text: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/20" },
-  company: { text: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-  idea: { text: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
-  blog: { text: "text-pink-400", bg: "bg-pink-500/10", border: "border-pink-500/20" },
-};
-
-function qualityColor(q: number): string {
-  if (q >= 7) return "text-ok";
-  if (q >= 4) return "text-warn";
-  return "text-err";
+function qualityDim(q: number): Dim {
+  if (q >= 7) return "ok";
+  if (q >= 4) return "warn";
+  return "err";
 }
 
 function readingTime(words: number): string {
@@ -57,6 +42,31 @@ function readingTime(words: number): string {
 }
 
 const categoryLink = wikiPageUrl;
+
+function MetaBlock({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return (
+    <div>
+      <div className="label-caps mb-1.5">{label}</div>
+      {children}
+    </div>
+  );
+}
+
+function LinkList({ items }: { items: Backlink[] }) {
+  return (
+    <div className="space-y-0.5">
+      {items.map((item) => (
+        <Link
+          key={item.slug}
+          href={categoryLink(item.category, item.slug)}
+          className="block py-1 text-[13px] leading-snug text-ink-2 hover:text-ink-1 transition-colors break-words"
+        >
+          {item.title}
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export default function WikiMeta({
   title: _title,
@@ -72,205 +82,111 @@ export default function WikiMeta({
   sourceUrl,
   postDate,
   related,
+  className,
 }: WikiMetaProps) {
   void _title;
-  const colors = CATEGORY_COLORS[category] || CATEGORY_COLORS["system-doc"];
 
   return (
-    <aside className="w-56 shrink-0 border-l border-line-1 bg-surface-1 overflow-y-auto h-[calc(100vh-3.5rem)] p-4 space-y-5">
-      {/* Category badge */}
-      <div>
-        <span
-          className={`inline-flex items-center gap-1.5 px-2 py-1 text-[13px] rounded-full ${colors.text} ${colors.bg} border ${colors.border}`}
-          style={{ fontFamily: "'Albert Sans', sans-serif" }}
-        >
-          <BookOpen className="w-3 h-3" />
-          {category.replace("-", " ").toUpperCase()}
-        </span>
-      </div>
+    <aside className={cn("w-56 shrink-0 border-l border-line-2 bg-transparent overflow-y-auto h-[calc(100vh-3.5rem)] p-4 space-y-5", className)}>
+      {/* Category */}
+      <div className="label-caps text-ink-1">{category.replace("-", " ")}</div>
 
-      {/* Author */}
       {author && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Author
-          </div>
-          <div className="flex items-center gap-2 text-sm text-ink-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-            <User className="w-3.5 h-3.5 shrink-0 text-ink-3" />
-            <span>{author}</span>
-          </div>
-        </div>
+        <MetaBlock label="Author">
+          <div className="text-[13px] text-ink-1">{author}</div>
+        </MetaBlock>
       )}
 
-      {/* Source */}
       {(source || sourceUrl) && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Source
-          </div>
-          {source && (
-            <div className="flex items-center gap-2 text-sm text-ink-1 mb-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-              <BookOpen className="w-3.5 h-3.5 shrink-0 text-ink-3" />
-              <span>{source}</span>
-            </div>
-          )}
+        <MetaBlock label="Source">
+          {source && <div className="text-[13px] text-ink-1 mb-1">{source}</div>}
           {sourceUrl && (
             <a
               href={sourceUrl}
               target="_blank"
               rel="noopener"
-              className="flex items-center gap-2 text-xs text-sky-400 hover:text-sky-300 hover:underline break-all"
-              style={{ fontFamily: "'Albert Sans', sans-serif" }}
+              className="flex items-start gap-1.5 text-xs text-ink-2 hover:text-ink-1 transition-colors break-all"
             >
-              <LinkIcon className="w-3 h-3 shrink-0" />
-              <span className="truncate">{sourceUrl.replace(/^https?:\/\//, "")}</span>
+              <LinkIcon className="w-3 h-3 shrink-0 mt-0.5 text-ink-3" strokeWidth={1.5} />
+              <span>{sourceUrl.replace(/^https?:\/\//, "")}</span>
             </a>
           )}
-        </div>
+        </MetaBlock>
       )}
 
       {/* Post date (original publication) */}
       {postDate && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Published
+        <MetaBlock label="Published">
+          <div className="mono text-xs text-ink-2">
+            {(() => {
+              // Parse YYYY-MM-DD as local date, not UTC, to avoid timezone shift.
+              const m = postDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+              const d = m
+                ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+                : new Date(postDate);
+              return d.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+            })()}
           </div>
-          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-            <Calendar className="w-3 h-3" />
-            <span>
-              {(() => {
-                // Parse YYYY-MM-DD as local date, not UTC, to avoid timezone shift.
-                const m = postDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                const d = m
-                  ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
-                  : new Date(postDate);
-                return d.toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                });
-              })()}
-            </span>
-          </div>
-        </div>
+        </MetaBlock>
       )}
 
       {/* Quality (knowledge notes only) */}
       {quality !== undefined && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Quality
-          </div>
+        <MetaBlock label="Quality">
           <div className="flex items-center gap-2">
-            <Star className={`w-3.5 h-3.5 ${qualityColor(quality)}`} />
-            <span className={`text-sm font-semibold ${qualityColor(quality)}`} style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-              {quality}/10
-            </span>
+            <Marker dim={qualityDim(quality)} />
+            <span className="mono text-[13px] text-ink-1">{quality}/10</span>
           </div>
-        </div>
+        </MetaBlock>
       )}
 
       {/* Word count & reading time */}
       {wordCount !== undefined && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Length
-          </div>
-          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-            <FileText className="w-3 h-3" />
-            <span>{wordCount.toLocaleString()} words</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-ink-3 mt-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-            <Clock className="w-3 h-3" />
-            <span>{readingTime(wordCount)}</span>
-          </div>
-        </div>
+        <MetaBlock label="Length">
+          <div className="mono text-xs text-ink-2">{wordCount.toLocaleString()} words</div>
+          <div className="mono text-xs text-ink-3 mt-1">{readingTime(wordCount)}</div>
+        </MetaBlock>
       )}
 
-      {/* Last modified */}
       {lastModified && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Updated
-          </div>
-          <div className="text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+        <MetaBlock label="Updated">
+          <div className="mono text-xs text-ink-2">
             {new Date(lastModified).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",
               day: "numeric",
             })}
           </div>
-        </div>
+        </MetaBlock>
       )}
 
-      {/* Tags */}
       {tags && tags.length > 0 && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Tags
-          </div>
-          <div className="flex flex-wrap gap-1">
+        <MetaBlock label="Tags">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
             {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[13px] rounded bg-surface-3 text-ink-2 border border-line-2"
-                style={{ fontFamily: "'Albert Sans', sans-serif" }}
-              >
-                <Tag className="w-2.5 h-2.5" />
+              <span key={tag} className="mono text-[10px] uppercase tracking-[0.1em] text-ink-2">
                 {tag}
               </span>
             ))}
           </div>
-        </div>
+        </MetaBlock>
       )}
 
       {/* Related (frontmatter cross-links) */}
       {related && related.length > 0 && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Related ({related.length})
-          </div>
-          <div className="space-y-1">
-            {related.map((rel) => {
-              const relColors = CATEGORY_COLORS[rel.category] || CATEGORY_COLORS["system-doc"];
-              return (
-                <Link
-                  key={rel.slug}
-                  href={categoryLink(rel.category, rel.slug)}
-                  className={`block px-2 py-1.5 text-[14px] rounded transition-colors ${relColors.text} hover:${relColors.bg}`}
-                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
-                >
-                  {rel.title}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <MetaBlock label={`Related (${related.length})`}>
+          <LinkList items={related} />
+        </MetaBlock>
       )}
 
-      {/* Backlinks */}
       {backlinks && backlinks.length > 0 && (
-        <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            <ArrowLeft className="w-3 h-3 inline mr-1" />
-            Linked from ({backlinks.length})
-          </div>
-          <div className="space-y-1">
-            {backlinks.map((bl) => {
-              const blColors = CATEGORY_COLORS[bl.category] || CATEGORY_COLORS["system-doc"];
-              return (
-                <Link
-                  key={bl.slug}
-                  href={categoryLink(bl.category, bl.slug)}
-                  className={`block px-2 py-1.5 text-[14px] rounded transition-colors ${blColors.text} hover:${blColors.bg}`}
-                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
-                >
-                  {bl.title}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <MetaBlock label={`Linked from (${backlinks.length})`}>
+          <LinkList items={backlinks} />
+        </MetaBlock>
       )}
 
       {/* File path (copy to clipboard) */}
@@ -278,12 +194,11 @@ export default function WikiMeta({
         <div>
           <button
             onClick={() => navigator.clipboard.writeText(filePath)}
-            className="flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-ink-2 transition-colors"
-            style={{ fontFamily: "'Albert Sans', sans-serif" }}
+            className="flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-1 transition-colors"
             title="Copy file path"
           >
-            <Copy className="w-3 h-3" />
-            <span className="truncate max-w-[180px]">Copy path</span>
+            <Copy className="w-3 h-3" strokeWidth={1.5} />
+            <span>Copy path</span>
           </button>
         </div>
       )}

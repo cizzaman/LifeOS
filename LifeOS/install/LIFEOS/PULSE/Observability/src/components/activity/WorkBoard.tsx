@@ -9,21 +9,8 @@ import ClimbChart from "./ClimbChart";
 import QuickPulseStrip from "./QuickPulseStrip";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  CheckCircle2,
-  ChevronRight,
-  Circle,
-  Clock,
-  Columns3,
-  List,
-  Loader2,
-  Mountain,
-  RotateCcw,
-  Shield,
-  Terminal,
-  Target,
-  XCircle,
-} from "lucide-react";
+import { Marker, TabBar, type Dim } from "@/components/ui/chrome";
+import { ChevronRight, Loader2, RotateCcw, Shield } from "lucide-react";
 
 // ─── WorkBoard — tracked climbs + untracked sessions ───
 //
@@ -35,11 +22,27 @@ import {
 
 type BoardFilter = "all" | "tracked" | "untracked";
 
-const FILTERS: { value: BoardFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "tracked", label: "Climbs" },
-  { value: "untracked", label: "Sessions" },
+const FILTERS: { id: BoardFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "tracked", label: "Climbs" },
+  { id: "untracked", label: "Sessions" },
 ];
+
+const VIEWS: { id: "list" | "kanban"; label: React.ReactNode }[] = [
+  { id: "list", label: <span title="List view">List</span> },
+  { id: "kanban", label: <span title="Kanban view — lifecycle lanes">Kanban</span> },
+];
+
+/** Liveness mark: teal while the run is live, faint once it is not. */
+function LiveDot({ active, size = 6 }: { active: boolean; size?: number }) {
+  return (
+    <span
+      aria-hidden
+      className="rounded-full shrink-0"
+      style={{ width: size, height: size, background: active ? "var(--accent-blue)" : "var(--ink-3)" }}
+    />
+  );
+}
 
 // ─── ISA badge — marks a tracked run, carries the ISC count ───
 
@@ -52,12 +55,10 @@ export function claimCounts(s: AlgorithmState): { done: number; total: number } 
 }
 
 /** Explicit absence marker — "no badge" was invisible convention (2026-07-15). */
-function NoISAChip({ size = "sm" }: { size?: "sm" | "xs" }) {
+function NoISAChip() {
   return (
     <span
-      className={`inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.02] text-ink-3 shrink-0 ${
-        size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-1.5 py-px text-[10px]"
-      } font-medium tracking-wide`}
+      className="inline-flex items-center mono text-[10px] uppercase tracking-[0.1em] text-ink-3 shrink-0"
       title="Untracked session — no ISA, no claims; liveness only"
     >
       NO ISA
@@ -71,12 +72,12 @@ function NoISAChip({ size = "sm" }: { size?: "sm" | "xs" }) {
 // state from ISA data; this chip is the live state derived server-side from
 // tool-activity.jsonl. Shown only while fresh (< 5 min since last tool call).
 
-const ACTIVITY_META: Record<ActivityClass, { label: string; color: string }> = {
-  exploring: { label: "Exploring", color: "#7cd5e6" },
-  building: { label: "Building", color: "#f5c451" },
-  verifying: { label: "Verifying", color: "#22c55e" },
-  delegating: { label: "Delegating", color: "#a78bfa" },
-  other: { label: "Working", color: "#d9d2c4" },
+const ACTIVITY_META: Record<ActivityClass, { label: string }> = {
+  exploring: { label: "Exploring" },
+  building: { label: "Building" },
+  verifying: { label: "Verifying" },
+  delegating: { label: "Delegating" },
+  other: { label: "Working" },
 };
 
 const ACTIVITY_FRESH_MS = 5 * 60 * 1000;
@@ -93,15 +94,11 @@ function ActivityChip({ s, size = "sm" }: { s: AlgorithmState; size?: "sm" | "xs
   const meta = ACTIVITY_META[a.state];
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border shrink-0 font-medium tracking-wide ${
-        size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-1.5 py-px text-[10px]"
-      }`}
-      style={{ color: meta.color, borderColor: `${meta.color}30`, backgroundColor: `${meta.color}0d` }}
+      className="inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-2 shrink-0"
       title={a.lastTool ? `${meta.label} — last tool ${a.lastTool} ${formatAgo(a.lastTs)}` : meta.label}
     >
-      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: meta.color }} />
       {meta.label}
-      {size === "sm" && a.lastTool && <span className="opacity-60 font-mono">{a.lastTool}</span>}
+      {size === "sm" && a.lastTool && <span className="normal-case tracking-normal text-ink-3">{a.lastTool}</span>}
     </span>
   );
 }
@@ -116,17 +113,14 @@ function deltaText(s: AlgorithmState): string | null {
   return `${parts.join(" · ")} (1h)`;
 }
 
-function ISABadge({ s, size = "sm" }: { s: AlgorithmState; size?: "sm" | "xs" }) {
-  if (!s.tracked) return <NoISAChip size={size} />;
+function ISABadge({ s }: { s: AlgorithmState }) {
+  if (!s.tracked) return <NoISAChip />;
   const { done, total } = claimCounts(s);
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border border-sky-500/25 bg-sky-500/[0.08] text-sky-300 shrink-0 ${
-        size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-1.5 py-px text-[10px]"
-      } font-semibold tracking-wide`}
+      className="inline-flex items-center mono text-[10px] uppercase tracking-[0.1em] text-ink-1 shrink-0"
       title={`ISA-tracked — ${done}/${total} claims verified`}
     >
-      <Mountain className={size === "sm" ? "w-3 h-3" : "w-2.5 h-2.5"} />
       ISA{total > 0 ? ` ${done}/${total}` : ""}
     </span>
   );
@@ -141,13 +135,13 @@ function ISABadge({ s, size = "sm" }: { s: AlgorithmState; size?: "sm" | "xs" })
 const CLAIM_COLUMNS: {
   key: string;
   label: string;
-  color: string;
+  dim: Dim;
   match: (c: AlgorithmCriterion) => boolean;
 }[] = [
   // "In progress" column removed 2026-07-22: no writer has ever emitted
   // in_progress (parser is pending|completed) — the column was permanently empty.
-  { key: "open", label: "Open", color: "#7cd5e6", match: (c) => c.status !== "completed" && c.status !== "failed" },
-  { key: "verified", label: "Verified", color: "#22c55e", match: (c) => c.status === "completed" },
+  { key: "open", label: "Open", dim: "neutral", match: (c) => c.status !== "completed" && c.status !== "failed" },
+  { key: "verified", label: "Verified", dim: "ok", match: (c) => c.status === "completed" },
 ];
 
 function splitEvidence(c: AlgorithmCriterion): [string, string] {
@@ -163,23 +157,20 @@ function ClaimsKanban({ s }: { s: AlgorithmState }) {
   const cols = [
     ...CLAIM_COLUMNS,
     ...(failed.length > 0
-      ? [{ key: "failed", label: "Failed", color: "#f87171", match: (c: AlgorithmCriterion) => c.status === "failed" }]
+      ? [{ key: "failed", label: "Failed", dim: "err" as Dim, match: (c: AlgorithmCriterion) => c.status === "failed" }]
       : []),
   ];
 
   return (
-    <div className={`grid gap-2`} style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}>
+    <div className="grid gap-2 grid-cols-2 sm:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]" style={{ "--cols": cols.length } as React.CSSProperties}>
       {cols.map((col) => {
         const cards = claims.filter(col.match);
         return (
-          <div key={col.key} className="rounded-lg border border-white/[0.05] bg-white/[0.01] min-h-[80px]">
-            <div
-              className="px-2.5 py-1.5 flex items-center gap-1.5 border-b border-white/[0.04]"
-              style={{ color: col.color }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: col.color }} />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">{col.label}</span>
-              <span className="text-[11px] font-mono ml-auto opacity-60">{cards.length}</span>
+          <div key={col.key} className="rounded-[10px] border border-line-2 min-h-[80px] min-w-0">
+            <div className="px-2.5 py-2 flex items-center gap-2 border-b border-line-2">
+              <Marker dim={col.dim} />
+              <span className="label-caps">{col.label}</span>
+              <span className="mono text-[11px] text-ink-3 ml-auto">{cards.length}</span>
             </div>
             <div className="p-1.5 space-y-1.5">
               {cards.map((c) => {
@@ -187,24 +178,24 @@ function ClaimsKanban({ s }: { s: AlgorithmState }) {
                 return (
                   <div
                     key={c.id}
-                    className="rounded px-2 py-1.5 bg-white/[0.02] border border-white/[0.04]"
+                    className="rounded-[10px] px-2 py-1.5 border border-line-1"
                     title={evidenceText ? `${claimText}\n\nEvidence: ${evidenceText}` : claimText}
                     data-sensitive
                   >
-                    <div className="text-[11px] font-mono mb-0.5" style={{ color: `${col.color}99` }}>
+                    <div className="mono text-[10px] text-ink-3 mb-0.5">
                       {c.id}
                     </div>
                     <p className="text-[12px] leading-snug text-ink-2 line-clamp-3">{claimText}</p>
                     {col.key === "verified" && evidenceText && (
                       <p className="text-[11px] leading-snug text-ink-3 line-clamp-2 mt-1">
-                        <span className="text-emerald-400/60">✓ </span>
+                        <span className="text-ink-2">✓ </span>
                         {evidenceText}
                       </p>
                     )}
                   </div>
                 );
               })}
-              {cards.length === 0 && <div className="text-[11px] text-ink-3 italic px-1 py-2">—</div>}
+              {cards.length === 0 && <div className="text-[11px] text-ink-3 px-1 py-2">—</div>}
             </div>
           </div>
         );
@@ -217,14 +208,7 @@ function ClaimsKanban({ s }: { s: AlgorithmState }) {
 
 function ClaimRow({ c }: { c: AlgorithmCriterion }) {
   const isAnti = c.type === "anti-criterion";
-  const icon =
-    c.status === "completed" ? (
-      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-    ) : c.status === "failed" ? (
-      <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
-    ) : (
-      <Circle className="w-3.5 h-3.5 text-ink-3 shrink-0 mt-0.5" />
-    );
+  const statusDim: Dim = c.status === "completed" ? "ok" : c.status === "failed" ? "err" : "neutral";
 
   // Evidence is embedded in descriptions as "Evidence: …" — split it out so
   // the claim reads clean and the proof reads quiet.
@@ -235,17 +219,21 @@ function ClaimRow({ c }: { c: AlgorithmCriterion }) {
   }, [c.description, c.evidence]);
 
   return (
-    <div className={`flex items-start gap-2 px-3 py-1.5 rounded ${isAnti ? "bg-rose-500/[0.03]" : "bg-white/[0.015]"}`} data-sensitive>
-      {isAnti ? <Shield className="w-3.5 h-3.5 text-rose-300/70 shrink-0 mt-0.5" /> : icon}
+    <div className="flex items-start gap-2.5 px-3 py-1.5 rounded-[10px] border border-line-1" data-sensitive>
+      {isAnti ? (
+        <Shield className="w-3.5 h-3.5 text-ink-3 shrink-0 mt-0.5" strokeWidth={1.5} />
+      ) : (
+        <span className="mt-1.5 flex shrink-0"><Marker dim={statusDim} /></span>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-[13px] font-mono text-ink-3 shrink-0">{c.id}</span>
-          {isAnti && <span className="text-[11px] uppercase tracking-wider text-rose-300/60 shrink-0">guardrail</span>}
+          <span className="mono text-[11px] text-ink-3 shrink-0">{c.id}</span>
+          {isAnti && <span className="label-caps text-ink-3 shrink-0">guardrail</span>}
         </div>
         <p className={`text-sm leading-snug ${c.status === "completed" ? "text-ink-2" : "text-ink-1"}`}>{claimText}</p>
         {evidenceText && c.status === "completed" && (
           <p className="text-[13px] text-ink-3 leading-snug mt-0.5 line-clamp-2">
-            <span className="text-emerald-400/60">evidence</span> {evidenceText}
+            <span className="text-ink-2">evidence</span> {evidenceText}
           </p>
         )}
       </div>
@@ -273,12 +261,12 @@ function SessionExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolea
   return (
     <Wrapper
       {...(motionProps as object)}
-      className="overflow-hidden border-b border-white/[0.06]"
+      className="overflow-hidden border-b border-line-2"
     >
       <div className="px-5 py-4 space-y-3">
         {s.rawTask && (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-3 mb-1">Opening ask</div>
+            <div className="label-caps mb-1.5">Opening ask</div>
             <p className="text-sm text-ink-1 leading-relaxed" data-sensitive>“{s.rawTask}”</p>
           </div>
         )}
@@ -294,7 +282,7 @@ function SessionExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolea
             {formatAgo(s.phaseStartedAt || s.algorithmStartedAt)}
           </span>
           {s.sessionUUID && (
-            <span className="font-mono text-[11px] text-ink-3 self-center">{s.sessionUUID.slice(0, 8)}</span>
+            <span className="mono text-[11px] text-ink-3 self-center">{s.sessionUUID.slice(0, 8)}</span>
           )}
         </div>
         <p className="text-[12px] text-ink-3 leading-snug">
@@ -326,11 +314,11 @@ function ClimbExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolean 
   return (
     <Wrapper
       {...(motionProps as object)}
-      className="overflow-hidden border-b border-white/[0.06]"
+      className="overflow-hidden border-b border-line-2"
     >
       <div className="px-5 py-4 space-y-4">
         {((s.climb?.length ?? 0) > 0 || (s.activity?.ribbon?.length ?? 0) > 0) && (
-          <div className="rounded-lg border border-white/[0.05] bg-white/[0.01] p-3">
+          <div className="rounded-[10px] border border-line-2 p-3">
             <ClimbChart state={s} variant="full" />
           </div>
         )}
@@ -341,15 +329,14 @@ function ClimbExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolean 
 
         {claims.length > 0 && (
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-2">
-                Claims {claimCounts(s).done}/{claimCounts(s).total}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+              <span className="label-caps">
+                Claims <span className="mono text-ink-1">{claimCounts(s).done}/{claimCounts(s).total}</span>
               </span>
               {s.iscDeltas && (s.iscDeltas.addedTotal > 0 || s.iscDeltas.closedTotal > 0) && (
-                <span className="text-[11px] font-mono text-ink-3">
+                <span className="mono text-[11px] text-ink-3">
                   {s.iscDeltas.addedTotal} added · {s.iscDeltas.closedTotal} closed
-                  {deltaText(s) && <span className="text-amber-400/80"> · {deltaText(s)}</span>}
+                  {deltaText(s) && <span className="text-ink-2"> · {deltaText(s)}</span>}
                 </span>
               )}
             </div>
@@ -359,10 +346,7 @@ function ClimbExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolean 
 
         {guards.length > 0 && (
           <div className="space-y-1">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Shield className="w-3.5 h-3.5 text-rose-300/70" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-2">Guardrails</span>
-            </div>
+            <div className="label-caps mb-2">Guardrails</div>
             {guards.map((c) => (
               <ClaimRow key={c.id} c={c} />
             ))}
@@ -370,24 +354,24 @@ function ClimbExpanded({ s, bare = false }: { s: AlgorithmState; bare?: boolean 
         )}
 
         {s.criteriaParseWarning && (
-          <p className="text-[13px] text-amber-400/70">
+          <p className="flex items-start gap-2 text-[13px] text-ink-2">
+            <span className="mt-1.5 flex shrink-0"><Marker dim="warn" /></span>
             ISA criteria could not be parsed ({s.criteriaParseWarning}) — showing frontmatter progress only.
           </p>
         )}
 
         {(s.agents?.length ?? 0) > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
             {s.agents.map((a, i) => (
               <span
                 key={i}
-                className={`text-[12px] px-2 py-0.5 rounded-full border ${
-                  a.status === "active"
-                    ? "text-sky-300 border-sky-500/30 bg-sky-500/10"
-                    : "text-ink-3 border-white/[0.06] bg-white/[0.02]"
+                className={`inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] ${
+                  a.status === "active" ? "text-ink-1" : "text-ink-3"
                 }`}
                 title={a.task || a.name}
                 data-sensitive
               >
+                {a.status === "active" && <LiveDot active />}
                 ⬡ {a.name.split("::").pop()} · {a.agentType}
               </span>
             ))}
@@ -424,25 +408,14 @@ function BoardRow({
       <button
         type="button"
         onClick={expandable ? onToggle : undefined}
-        className={`w-full flex items-center gap-3 px-4 py-2.5 border-b border-white/[0.04] text-left transition-colors ${
-          expandable ? "hover:bg-white/[0.02] cursor-pointer" : "cursor-default"
+        className={`w-full flex items-center gap-3 px-4 py-2.5 border-b border-line-1 text-left transition-colors ${
+          expandable ? "hover:bg-surface-3 cursor-pointer" : "cursor-default"
         }`}
       >
-        {/* liveness dot */}
-        <span
-          className={`w-2 h-2 rounded-full shrink-0 ${s.active ? "animate-pulse" : ""}`}
-          style={{ backgroundColor: meta.color, opacity: meta.dim ? 0.5 : 1 }}
-        />
+        <LiveDot active={s.active} />
 
-        {/* lifecycle pill */}
         <span
-          className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 border"
-          style={{
-            color: meta.color,
-            borderColor: `${meta.color}30`,
-            backgroundColor: `${meta.color}0d`,
-            opacity: meta.dim ? 0.7 : 1,
-          }}
+          className={`mono text-[10px] uppercase tracking-[0.1em] shrink-0 ${meta.dim ? "text-ink-3" : "text-ink-2"}`}
         >
           {meta.label}
         </span>
@@ -460,9 +433,9 @@ function BoardRow({
 
         {/* rework badge */}
         {rework && (
-          <span className="flex items-center gap-1 text-amber-400/80 shrink-0" title={`Iteration ${s.iteration}`}>
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="text-[12px] font-mono">×{s.iteration}</span>
+          <span className="flex items-center gap-1 text-ink-2 shrink-0" title={`Iteration ${s.iteration}`}>
+            <RotateCcw className="w-3.5 h-3.5 text-ink-3" strokeWidth={1.5} />
+            <span className="mono text-[11px]">×{s.iteration}</span>
           </span>
         )}
 
@@ -477,11 +450,12 @@ function BoardRow({
             <span className="text-[13px] text-ink-3 truncate max-w-[280px] shrink-0" data-sensitive>{s.rawTask}</span>
           )}
 
-        <span className="text-[13px] font-mono text-ink-3 shrink-0 w-16 text-right">{elapsed}</span>
+        <span className="mono text-[11px] text-ink-3 shrink-0 w-16 text-right">{elapsed}</span>
 
         {expandable && (
           <ChevronRight
             className={`w-4 h-4 text-ink-3 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
+            strokeWidth={1.5}
           />
         )}
       </button>
@@ -506,11 +480,9 @@ function BoardRow({
 // Verifying) derives from the live tool stream, so cards migrate as the work's
 // character changes — the old Scoping/Climbing/Learning trio was static by
 // construction (see lib/lifecycle.ts). Left→right is the arc of a run.
-// Lane glyphs are the ascent-table emoji (LIFECYCLE_META.icon) — the EXACT
-// glyph the Kitty tab, status line, cmux pill, and ISA mirror show. The old
-// local lucide "twin" map drifted from the table by construction and was
-// deleted 2026-07-28 ({{PRINCIPAL_NAME}}: "a fully synched system") — an icon change in
-// ascent.ts now propagates here with no board edit.
+// Lane names are the ascent-table labels (LIFECYCLE_META.label) — the same
+// names the Kitty tab, status line, cmux pill, and ISA mirror show — so a
+// change in ascent.ts propagates here with no board edit.
 
 // Lane membership is TABLE POLICY (ascent.ts `board` field), never a list
 // spelled here — the local list drifted twice on 2026-07-28 alone. Columns are
@@ -532,8 +504,6 @@ function SessionCard2({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const lc = deriveLifecycle(s);
-  const meta = LIFECYCLE_META[lc];
   const rework = (s.iteration ?? 1) > 1;
   // Metadata footer (2026-07-28): everything here already rides AlgorithmState —
   // last tool from the live stream, rope team size, ISC movement. The card says
@@ -548,23 +518,20 @@ function SessionCard2({
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-lg border p-2.5 transition-colors ${
+      className={`w-full text-left rounded-[10px] border p-2.5 transition-colors ${
         selected
-          ? "border-sky-500/40 bg-sky-500/[0.06]"
-          : "border-white/[0.05] bg-white/[0.015] hover:bg-white/[0.03]"
+          ? "border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)]"
+          : "border-line-2 hover:border-[color:var(--accent-blue)]"
       }`}
     >
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <span
-          className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.active ? "animate-pulse" : ""}`}
-          style={{ backgroundColor: meta.color }}
-        />
-        <ISABadge s={s} size="xs" />
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1.5">
+        <LiveDot active={s.active} />
+        <ISABadge s={s} />
         <ActivityChip s={s} size="xs" />
         {rework && (
-          <span className="text-[10px] font-mono text-amber-400/80 shrink-0">×{s.iteration}</span>
+          <span className="mono text-[10px] text-ink-2 shrink-0">×{s.iteration}</span>
         )}
-        <span className="text-[11px] font-mono text-ink-3 ml-auto shrink-0">
+        <span className="mono text-[10px] text-ink-3 ml-auto shrink-0">
           {s.active
             ? formatElapsed(Date.now() - (s.algorithmStartedAt || Date.now()))
             : formatAgo(s.completedAt || s.phaseStartedAt || s.algorithmStartedAt)}
@@ -581,7 +548,7 @@ function SessionCard2({
         <p className="text-[12px] leading-snug text-ink-3 line-clamp-2 mb-1" data-sensitive>“{s.rawTask}”</p>
       )}
       {(lastToolFresh || activeAgents > 0 || delta) && (
-        <div className="flex items-center gap-2 text-[11px] font-mono text-ink-3 truncate">
+        <div className="flex items-center gap-2 mono text-[10px] text-ink-3 truncate">
           {lastToolFresh && (
             <span title={`Last tool call ${formatAgo(lastToolFresh.lastTs!)}`} className="truncate">
               ⌘ {lastToolFresh.lastTool}
@@ -589,12 +556,12 @@ function SessionCard2({
             </span>
           )}
           {activeAgents > 0 && (
-            <span className="text-cyan-300/80 shrink-0" title={`${activeAgents} delegate agent${activeAgents > 1 ? "s" : ""} active`}>
+            <span className="text-ink-2 shrink-0" title={`${activeAgents} delegate agent${activeAgents > 1 ? "s" : ""} active`}>
               ⬡ {activeAgents}
             </span>
           )}
           {delta && (
-            <span className="text-amber-400/80 shrink-0" title="ISC movement, last hour">
+            <span className="text-ink-2 shrink-0" title="ISC movement, last hour">
               {delta}
             </span>
           )}
@@ -620,7 +587,6 @@ function BoardKanban({
   const byLane = LANE_STATES.map((lc) => ({
     lc,
     label: LIFECYCLE_META[lc].label,
-    icon: LIFECYCLE_META[lc].icon,
     items: sessions
       .filter((s) => deriveLifecycle(s) === lc)
       .sort((a, b) =>
@@ -649,35 +615,18 @@ function BoardKanban({
     // LOWEST block on the page, past the spotlight — scroll to reach it, and
     // it never steals height from the columns.
     <div className="flex-1 min-h-0 overflow-y-auto">
-      {/* All lanes fit the viewport width — minmax(0,1fr) with no min floor, no
-          horizontal scroll (2026-07-20). Cards clamp text so narrow lanes hold. */}
+      {/* All lanes fit the viewport width with no horizontal scroll (2026-07-20);
+          below lg they wrap into two or three columns instead of squeezing. */}
       <div
-        className="grid gap-2 p-3"
-        style={{ gridTemplateColumns: `repeat(${byLane.length}, minmax(0, 1fr))` }}
+        className="grid gap-2 p-3 grid-cols-2 sm:grid-cols-3 lg:[grid-template-columns:repeat(var(--lanes),minmax(0,1fr))]"
+        style={{ "--lanes": byLane.length } as React.CSSProperties}
       >
         {byLane.map((lane) => {
-          const meta = LIFECYCLE_META[lane.lc];
           return (
-            <div
-              key={lane.lc}
-              className="rounded-lg border min-h-[120px] min-w-0"
-              style={{ borderColor: `${meta.color}40`, backgroundColor: `${meta.color}14` }}
-            >
-              <div
-                className="px-2.5 py-1.5 flex items-center gap-1.5 border-b"
-                style={{ borderColor: `${meta.color}33`, backgroundColor: `${meta.color}26` }}
-              >
-                {/* lane icon carries the liveness pulse (replaced the bare dot, 2026-07-20) */}
-                <span
-                  className={`text-[13px] leading-none shrink-0 ${lane.items.some((s) => s.active) ? "animate-pulse" : ""}`}
-                  aria-hidden
-                >
-                  {lane.icon}
-                </span>
-                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: meta.color }}>
-                  {lane.label}
-                </span>
-                <span className="text-[11px] font-mono text-ink-3 ml-auto">{lane.items.length}</span>
+            <div key={lane.lc} className="rounded-[10px] border border-line-2 min-h-[120px] min-w-0">
+              <div className="px-2.5 py-2 flex items-center gap-2 border-b border-line-2">
+                <span className="label-caps min-w-0 break-words">{lane.label}</span>
+                <span className="mono text-[11px] text-ink-3 ml-auto">{lane.items.length}</span>
               </div>
               {/* Columns flex between ≈4 rows (floor) and ≈8 rows (ceiling),
                   scrolling internally only past 8 (principal, 2026-07-28). Grid
@@ -692,7 +641,7 @@ function BoardKanban({
                   />
                 ))}
                 {lane.items.length === 0 && (
-                  <div className="text-[11px] text-ink-3 italic px-1 py-2">—</div>
+                  <div className="text-[11px] text-ink-3 px-1 py-2">—</div>
                 )}
               </div>
             </div>
@@ -708,15 +657,13 @@ function BoardKanban({
         // sticky bottom: the live area rides the viewport — never below the
         // fold no matter the screen height or scroll position. Opaque ground
         // so lanes don't bleed through while scrolling behind it.
-        <div className="mx-3 mb-3 shrink-0 sticky bottom-3 z-20 rounded-lg border border-sky-500/30 bg-[rgba(15,15,15,0.96)] backdrop-blur-md shadow-2xl max-h-[42vh] overflow-y-auto">
-          <div className="px-4 py-2 flex items-center gap-2 bg-white/[0.015] sticky top-0 backdrop-blur-sm">
-            <span
-              className={`w-2 h-2 rounded-full shrink-0 ${displayed.active ? "bg-sky-400 animate-pulse" : "bg-ink-3"}`}
-            />
+        <div className="mx-3 mb-3 shrink-0 sticky bottom-3 z-20 rounded-[10px] border border-line-3 bg-surface-1 max-h-[42vh] overflow-y-auto">
+          <div className="px-4 py-2 flex items-center gap-2.5 bg-surface-1 border-b border-line-2 sticky top-0">
+            <LiveDot active={displayed.active} />
             <ISABadge s={displayed} />
             <span className="text-sm text-ink-1 truncate">{displayed.taskDescription}</span>
             {!selected && (
-              <span className="text-[11px] uppercase tracking-wider text-sky-400/60 ml-auto shrink-0">
+              <span className="label-caps text-ink-3 ml-auto shrink-0">
                 live spotlight
               </span>
             )}
@@ -733,24 +680,11 @@ function BoardKanban({
 
 // ─── Section header ───
 
-function SectionHeader({
-  icon,
-  label,
-  count,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  count: number;
-  tone: string;
-}) {
+function SectionHeader({ label, count }: { label: string; count: number }) {
   return (
-    <div className="px-4 py-1.5 flex items-center gap-2 border-b border-white/[0.05] bg-white/[0.015]">
-      {icon}
-      <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: tone }}>
-        {label}
-      </span>
-      <span className="text-xs text-ink-3 ml-auto font-mono">{count}</span>
+    <div className="px-4 py-2 flex items-center gap-2 border-b border-line-2">
+      <span className="label-caps">{label}</span>
+      <span className="mono text-[11px] text-ink-3 ml-auto">{count}</span>
     </div>
   );
 }
@@ -814,8 +748,8 @@ export default function WorkBoard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full text-ink-3">
-        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-        <span className="text-sm">Loading work...</span>
+        <Loader2 className="w-4 h-4 animate-spin mr-2" strokeWidth={1.5} />
+        <span className="text-[13px]">Loading work...</span>
       </div>
     );
   }
@@ -847,33 +781,18 @@ export default function WorkBoard() {
       <QuickPulseStrip pulses={pulses} />
 
       {/* Summary + filter bar */}
-      <div className="px-4 py-2 flex items-center gap-4 border-b border-white/[0.04]">
-        <div className="flex items-center gap-1.5">
-          {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`px-3 py-1 rounded-full text-[13px] font-medium transition-colors border ${
-                filter === f.value
-                  ? "bg-[rgba(124,213,230,0.12)] text-ink-1 border-[rgba(124,213,230,0.3)]"
-                  : "bg-[rgba(152,168,179,0.05)] text-ink-3 hover:text-ink-2 border-transparent"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+      <div className="px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line-2">
+        <TabBar tabs={FILTERS} active={filter} onChange={setFilter} />
 
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 ml-auto">
           {totalClaims > 0 && (
-            <div className="flex items-center gap-2 text-xs">
-              <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-ink-3">Claims</span>
-              <span className="font-mono text-ink-1">
+            <div className="flex items-center gap-2">
+              <span className="label-caps">Claims</span>
+              <span className="mono text-[12px] text-ink-1">
                 {totalDone}/{totalClaims}
               </span>
               {(added1h > 0 || closed1h > 0) && (
-                <span className="font-mono text-amber-400/80" title="ISC movement across active climbs, last hour">
+                <span className="mono text-[11px] text-ink-2" title="ISC movement across active climbs, last hour">
                   {added1h > 0 && `+${added1h}`}
                   {added1h > 0 && closed1h > 0 && " · "}
                   {closed1h > 0 && `✓${closed1h}`}
@@ -881,26 +800,7 @@ export default function WorkBoard() {
               )}
             </div>
           )}
-          <div className="flex items-center rounded-full border border-white/[0.08] overflow-hidden">
-            <button
-              onClick={() => switchView("list")}
-              className={`px-2.5 py-1 flex items-center gap-1 text-[12px] transition-colors ${
-                view === "list" ? "bg-white/[0.08] text-ink-1" : "text-ink-3 hover:text-ink-2"
-              }`}
-              title="List view"
-            >
-              <List className="w-3.5 h-3.5" /> List
-            </button>
-            <button
-              onClick={() => switchView("kanban")}
-              className={`px-2.5 py-1 flex items-center gap-1 text-[12px] transition-colors ${
-                view === "kanban" ? "bg-white/[0.08] text-ink-1" : "text-ink-3 hover:text-ink-2"
-              }`}
-              title="Kanban view — lifecycle lanes"
-            >
-              <Columns3 className="w-3.5 h-3.5" /> Kanban
-            </button>
-          </div>
+          <TabBar tabs={VIEWS} active={view} onChange={switchView} />
         </div>
       </div>
 
@@ -920,12 +820,7 @@ export default function WorkBoard() {
       <ScrollArea className="flex-1">
         {activeClimbs.length > 0 && (
           <div>
-            <SectionHeader
-              icon={<Mountain className="w-3.5 h-3.5" style={{ color: "#7cd5e6" }} />}
-              label="Active climbs"
-              count={activeClimbs.length}
-              tone="#7cd5e6"
-            />
+            <SectionHeader label="Active climbs" count={activeClimbs.length} />
             {activeClimbs.map((s) => (
               <BoardRow
                 key={s.sessionId}
@@ -939,12 +834,7 @@ export default function WorkBoard() {
 
         {liveSessions.length > 0 && (
           <div>
-            <SectionHeader
-              icon={<Terminal className="w-3.5 h-3.5" style={{ color: "#d9d2c4" }} />}
-              label="Live sessions"
-              count={liveSessions.length}
-              tone="#d9d2c4"
-            />
+            <SectionHeader label="Live sessions" count={liveSessions.length} />
             {/* Live rows drew a chevron that did nothing — same toggle as every
                 other section. ported from public PR #1735, @elhoim */}
             {liveSessions.map((s) => (
@@ -960,12 +850,7 @@ export default function WorkBoard() {
 
         {resumable.length > 0 && (
           <div>
-            <SectionHeader
-              icon={<Clock className="w-3.5 h-3.5" style={{ color: "#f5c451" }} />}
-              label="Resumable"
-              count={resumable.length}
-              tone="#f5c451"
-            />
+            <SectionHeader label="Resumable" count={resumable.length} />
             {resumable.map((s) => (
               <BoardRow
                 key={s.sessionId}
@@ -979,12 +864,7 @@ export default function WorkBoard() {
 
         {doneList.length > 0 && (
           <div>
-            <SectionHeader
-              icon={<span className="text-[13px] leading-none" aria-hidden>{LIFECYCLE_META.cairn.icon}</span>}
-              label={LIFECYCLE_META.cairn.label}
-              count={doneList.length}
-              tone={LIFECYCLE_META.cairn.color}
-            />
+            <SectionHeader label={LIFECYCLE_META.cairn.label} count={doneList.length} />
             {doneList.map((s) => (
               <BoardRow
                 key={s.sessionId}

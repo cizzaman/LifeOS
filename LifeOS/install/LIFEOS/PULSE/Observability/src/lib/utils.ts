@@ -39,17 +39,9 @@ export function getSourceIcon(source: string): string {
   return icons[source.toLowerCase()] || "🌐";
 }
 
-export function getCategoryColor(category: string): string {
-  const colors: Record<string, string> = {
-    search: "bg-blue-500",
-    social: "bg-pink-500",
-    newsletter: "bg-amber-500",
-    ai: "bg-purple-500",
-    direct: "bg-green-500",
-    onsite: "bg-slate-500",
-    external: "bg-cyan-500",
-  };
-  return colors[category.toLowerCase()] || "bg-gray-500";
+/** Category chips are never coloured: a neutral 7px key tone for every category. */
+export function getCategoryColor(_category: string): string {
+  return "bg-ink-3";
 }
 
 export function getCountryFlag(countryCode: string): string {

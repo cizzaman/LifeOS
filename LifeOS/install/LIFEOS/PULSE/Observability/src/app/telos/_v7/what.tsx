@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { CSSProperties } from "react";
 import type { Project, Telos, Work } from "./data";
+import { Marker } from "@/components/ui/chrome";
 
 // What — In motion. Dense Projects × Work table with status dots, strategy badges, ETAs.
 
@@ -28,8 +28,8 @@ interface WhatProps {
 }
 
 function StatusDot({ s, title }: StatusDotProps) {
-  const cls = s==='green'?'dot-ok':s==='amber'?'dot-warn':'dot-bad';
-  return <span className={'dot '+cls} title={title}/>;
+  const dim = s==='green'?'ok':s==='amber'?'warn':'err';
+  return <span className="status-key" title={title}><Marker dim={dim} shape="circle"/></span>;
 }
 
 function statusLabel(s: Status) { return s==='green'?'moving':s==='amber'?'needs a look':'stuck'; }
@@ -123,8 +123,8 @@ export function What({ telos, showIds, onOpenItem }: WhatProps) {
               <span className="strat-badge big">{p.strategy}</span>
             </div>
             <div className="p-dims">
-              {p.dims.map((d,i)=>(
-                <span key={d} className="dim-tag" style={{'--c':`var(--${d})`} as CSSProperties}>{d}</span>
+              {p.dims.map((d)=>(
+                <span key={d} className="dim-tag">{d}</span>
               ))}
             </div>
             <div className="p-work">

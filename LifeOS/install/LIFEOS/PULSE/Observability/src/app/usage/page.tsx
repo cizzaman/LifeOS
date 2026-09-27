@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Gauge, Coins, MessagesSquare } from "lucide-react";
 import {
   PageShell,
   PageHeader,
@@ -10,6 +9,7 @@ import {
   StatTile,
   TabBar,
   EmptyState,
+  Marker,
   type Dim,
 } from "@/components/ui/chrome";
 
@@ -36,10 +36,6 @@ type Range = "daily" | "weekly" | "monthly";
 const fmtTokens = (n: number) =>
   n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : String(n);
 const fmtUsd = (n: number | null | undefined) => (n == null ? "—" : `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
-
-// Model → dimension token for the mix bars.
-const MODEL_COLOR = (m: string) =>
-  /fable/i.test(m) ? "var(--relationships)" : /opus/i.test(m) ? "var(--accent-blue)" : /sonnet/i.test(m) ? "var(--ok)" : /haiku/i.test(m) ? "var(--warn)" : "var(--ink-3)";
 
 const RANGE_TABS: { id: Range; label: string }[] = [
   { id: "daily", label: "Daily" },
@@ -68,7 +64,6 @@ export default function UsagePage() {
   return (
     <PageShell className="max-w-[1400px]">
       <PageHeader
-        icon={Gauge}
         title="Usage"
         subtitle={
           <>
@@ -81,8 +76,13 @@ export default function UsagePage() {
         }
       />
 
-      {error && <div className="text-warn text-sm">Couldn&apos;t reach Usage API: {error}</div>}
-      {!summary && !error && <div className="text-ink-3 text-sm">Loading…</div>}
+      {error && (
+        <div className="flex items-center gap-2 text-[13px] text-ink-2">
+          <Marker dim="warn" />
+          Couldn&apos;t reach Usage API: {error}
+        </div>
+      )}
+      {!summary && !error && <div className="text-ink-3 text-[13px]">Loading…</div>}
 
       {summary && (
         <>
@@ -90,8 +90,8 @@ export default function UsagePage() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <GaugeCard label="5-hour window" pct={summary.subscription.fiveHourPct} />
             <GaugeCard label="7-day window" pct={summary.subscription.sevenDayPct} />
-            <StatTile icon={Coins} dim="money" label="API spend (month)" value={fmtUsd(summary.monthUsedUsd)} sub={summary.monthUsedSource ?? ""} />
-            <StatTile icon={MessagesSquare} dim="ok" label="Messages (30d)" value={summary.month.messages.toLocaleString()} sub={`${fmtTokens(summary.month.totalTokens)} tokens`} />
+            <StatTile label="API spend (month)" value={fmtUsd(summary.monthUsedUsd)} sub={summary.monthUsedSource ?? ""} />
+            <StatTile label="Messages (30d)" value={summary.month.messages.toLocaleString()} sub={`${fmtTokens(summary.month.totalTokens)} tokens`} />
           </div>
 
           {/* Today / week / month token+cost */}
@@ -102,11 +102,11 @@ export default function UsagePage() {
           </div>
 
           {!summary.hasDaily && (
-            <div
-              className="text-[13px] rounded-lg px-3 py-2"
-              style={{ color: "var(--warn)", border: "1px solid rgba(245,196,81,0.2)", background: "rgba(245,196,81,0.05)" }}
-            >
-              No per-day rollup yet. Run <code className="mono text-warn">bun ~/.claude/LIFEOS/TOOLS/UsageAggregator.ts</code> (or wait for the nightly job) to populate token/cost history.
+            <div className="flex items-start gap-2 text-[13px] leading-relaxed text-ink-2 rounded-[10px] border border-line-2 px-3 py-2">
+              <span className="pt-[7px]"><Marker dim="warn" /></span>
+              <span>
+                No per-day rollup yet. Run <code className="mono text-[12px] text-ink-1 break-all">bun ~/.claude/LIFEOS/TOOLS/UsageAggregator.ts</code> (or wait for the nightly job) to populate token/cost history.
+              </span>
             </div>
           )}
 
@@ -121,12 +121,16 @@ export default function UsagePage() {
             ) : (
               <div className="flex items-end gap-1 h-48">
                 {trend.map((p) => (
-                  <div key={p.label} className="flex-1 flex flex-col items-center justify-end group min-w-0" title={`${p.label}: ${fmtUsd(p.costUsd)} · ${fmtTokens(p.totalTokens)} tok · ${p.messages} msgs`}>
+                  <div key={p.label} className="flex-1 h-full flex flex-col items-center justify-end min-w-0" title={`${p.label}: ${fmtUsd(p.costUsd)} · ${fmtTokens(p.totalTokens)} tok · ${p.messages} msgs`}>
                     <div
-                      className="w-full rounded-t transition-colors"
-                      style={{ height: `${Math.max(2, (p.costUsd / maxCost) * 100)}%`, background: "var(--accent-blue)" }}
+                      className="w-full transition-colors"
+                      style={{
+                        height: `${Math.max(2, (p.costUsd / maxCost) * 100)}%`,
+                        border: "1px solid var(--accent-blue)",
+                        background: "var(--primary-soft)",
+                      }}
                     />
-                    <div className="text-[9px] text-ink-3 mt-1 truncate w-full text-center">{p.label.slice(5)}</div>
+                    <div className="mono text-[10px] leading-tight text-ink-3 mt-1 w-full text-center">{p.label.slice(5)}</div>
                   </div>
                 ))}
               </div>
@@ -142,14 +146,14 @@ export default function UsagePage() {
               <div className="flex flex-col gap-3">
                 {models.map((m) => (
                   <div key={m.model} className="flex flex-col gap-1">
-                    <div className="flex items-baseline justify-between text-[13px]">
-                      <span className="text-ink-1 font-medium">{m.model}</span>
-                      <span className="text-ink-3">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[13px]">
+                      <span className="text-ink-1 break-words">{m.model}</span>
+                      <span className="mono text-[11px] text-ink-3">
                         {m.pct}% · {m.messages.toLocaleString()} msgs · {fmtTokens(m.totalTokens)} tok · {fmtUsd(m.costUsd)}
                       </span>
                     </div>
-                    <div className="h-2 rounded bg-surface-3 overflow-hidden">
-                      <div className="h-full" style={{ width: `${Math.max(1, m.pct)}%`, background: MODEL_COLOR(m.model) }} />
+                    <div className="progress-bar">
+                      <div className="progress-bar-fill" style={{ width: `${Math.max(1, m.pct)}%` }} />
                     </div>
                   </div>
                 ))}
@@ -164,26 +168,28 @@ export default function UsagePage() {
 
 function GaugeCard({ label, pct }: { label: string; pct: number | null }) {
   const v = pct ?? 0;
-  const dim: Dim = v >= 85 ? "err" : v >= 60 ? "warn" : "ok";
-  const color = dim === "err" ? "var(--err)" : dim === "warn" ? "var(--warn)" : "var(--ok)";
+  const dim: Dim = pct == null ? "neutral" : v >= 85 ? "err" : v >= 60 ? "warn" : "ok";
   return (
-    <Panel className="p-4 flex flex-col gap-1.5">
-      <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">{label}</span>
-      <div className="text-[28px] leading-none font-semibold mono text-ink-1">{pct == null ? "—" : `${pct}%`}</div>
-      <div className="h-2 rounded bg-surface-3 overflow-hidden mt-1">
-        <div className="h-full transition-all" style={{ width: `${Math.min(100, v)}%`, background: color }} />
-      </div>
-    </Panel>
+    <StatTile
+      label={label}
+      value={pct == null ? "—" : `${pct}%`}
+      dim={dim}
+      sub={
+        <div className="progress-bar mt-1">
+          <div className="progress-bar-fill" style={{ width: `${Math.min(100, v)}%` }} />
+        </div>
+      }
+    />
   );
 }
 
 function PeriodCard({ label, t }: { label: string; t: Totals }) {
   return (
-    <Panel className="p-4 flex flex-col gap-1.5">
-      <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">{label}</span>
-      <div className="flex items-baseline gap-2">
-        <span className="text-xl font-semibold mono text-ink-1">{fmtUsd(t.costUsd)}</span>
-        <span className="text-[12px] text-ink-3">{fmtTokens(t.totalTokens)} tok · {t.messages} msgs</span>
+    <Panel className="p-4 flex flex-col gap-2">
+      <span className="label-caps">{label}</span>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="mono text-[20px] leading-tight text-ink-1">{fmtUsd(t.costUsd)}</span>
+        <span className="mono text-[11px] text-ink-3">{fmtTokens(t.totalTokens)} tok · {t.messages} msgs</span>
       </div>
     </Panel>
   );

@@ -81,14 +81,13 @@ export default function ObservabilityDashboard() {
 
   const [timeRange, setTimeRange] = useState<TimeRange>("1M");
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  const heatLevelRef = useRef<{ intensity: number; color: string; label: string }>({
+  const heatLevelRef = useRef<{ intensity: number; label: string }>({
     intensity: 0,
-    color: "#55636d",
     label: "Idle",
   });
   const eventsPerMinuteRef = useRef(0);
   // Stable callbacks that write to refs instead of state (prevents re-render cascade)
-  const handleHeatUpdate = useCallback((h: { intensity: number; color: string; label: string }) => {
+  const handleHeatUpdate = useCallback((h: { intensity: number; label: string }) => {
     heatLevelRef.current = h;
   }, []);
   const handleEventsPerMinuteUpdate = useCallback((epm: number) => {
@@ -121,7 +120,7 @@ export default function ObservabilityDashboard() {
 
       {/* Agent Swim Lanes — toggled by clicking agent pills */}
       {selectedAgents.length > 0 && (
-        <div className="px-5 py-3 border-t border-white/[0.04]">
+        <div className="px-5 py-3 border-t border-line-2">
           {selectedAgents.map((agentId) => (
             <AgentSwimLane
               key={agentId}
@@ -137,7 +136,7 @@ export default function ObservabilityDashboard() {
       )}
 
       {/* Event Timeline — intensity bar + event list */}
-      <div className="flex-1 overflow-hidden flex flex-col border-t border-white/[0.04]">
+      <div className="flex-1 overflow-hidden flex flex-col border-t border-line-2">
         <EventTimeline
           events={events}
           heatLevel={heatLevelRef.current}

@@ -30,44 +30,30 @@ function stripFrontmatter(content: string): string {
   return match ? content.slice(match[0].length) : content;
 }
 
+const LINK =
+  "text-ink-1 underline decoration-1 decoration-line-3 underline-offset-[3px] transition-colors hover:decoration-[color:var(--accent-blue)]";
+
 const components: Components = {
   h1: ({ children }) => (
-    <h1
-      className="text-2xl font-bold tracking-wide text-ink-1 mb-6 pb-3 border-b border-line-2"
-      style={{ fontFamily: "'Outfit', sans-serif" }}
-    >
+    <h1 className="font-display font-medium text-[28px] leading-tight text-ink-1 mb-6 pb-3 border-b border-line-2">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2
-      className="text-xl font-semibold tracking-wide text-ink-1 mt-8 mb-4"
-      style={{ fontFamily: "'Outfit', sans-serif" }}
-    >
+    <h2 className="font-display font-medium text-xl text-ink-1 mt-8 mb-4">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3
-      className="text-lg font-semibold text-ink-1 mt-6 mb-3"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
+    <h3 className="font-display font-medium text-base text-ink-1 mt-6 mb-3">
       {children}
     </h3>
   ),
-  h4: ({ children }) => (
-    <h4
-      className="text-base font-semibold text-ink-2 mt-5 mb-2"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
-      {children}
-    </h4>
-  ),
+  h4: ({ children }) => <h4 className="label-caps mt-6 mb-2">{children}</h4>,
+  h5: ({ children }) => <h5 className="label-caps mt-5 mb-2">{children}</h5>,
+  h6: ({ children }) => <h6 className="label-caps text-ink-3 mt-5 mb-2">{children}</h6>,
   p: ({ children }) => (
-    <p
-      className="text-sm text-ink-2 leading-relaxed mb-4"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
+    <p className="text-sm text-ink-2 leading-relaxed mb-4">
       {children}
     </p>
   ),
@@ -76,11 +62,7 @@ const components: Components = {
     if (className === "wikilink" || href?.startsWith("/system?doc=")) {
       const slug = (props as Record<string, string>)["data-slug"] || href?.replace("/system?doc=", "") || "";
       return (
-        <Link
-          href={`/system?doc=${slug}`}
-          className="inline-flex items-center px-1.5 py-0.5 text-xs rounded bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:bg-sky-500/20 hover:text-sky-300 transition-colors"
-          style={{ fontFamily: "'Albert Sans', sans-serif" }}
-        >
+        <Link href={`/system?doc=${slug}`} className={LINK}>
           {children}
         </Link>
       );
@@ -88,19 +70,14 @@ const components: Components = {
     // External link
     if (href?.startsWith("http")) {
       return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sky-400 hover:text-sky-300 underline underline-offset-2 transition-colors"
-        >
+        <a href={href} target="_blank" rel="noopener noreferrer" className={LINK}>
           {children}
         </a>
       );
     }
     // Internal link
     return (
-      <Link href={href || "#"} className="text-sky-400 hover:text-sky-300 underline underline-offset-2 transition-colors">
+      <Link href={href || "#"} className={LINK}>
         {children}
       </Link>
     );
@@ -109,57 +86,43 @@ const components: Components = {
     const isBlock = className?.startsWith("language-");
     if (isBlock) {
       return (
-        <code className={`${className} text-xs`} {...props}>
+        <code className={`${className} mono text-xs text-ink-1`} {...props}>
           {children}
         </code>
       );
     }
     return (
-      <code className="px-1.5 py-0.5 text-xs rounded bg-surface-3 text-sky-300 border border-line-2">
+      <code className="mono px-1.5 py-0.5 text-xs bg-surface-1 text-ink-1 border border-line-2">
         {children}
       </code>
     );
   },
   pre: ({ children }) => (
-    <pre className="rounded-lg bg-surface-1 border border-line-2 p-4 mb-4 overflow-x-auto text-xs leading-relaxed">
+    <pre className="mono rounded-[10px] bg-surface-1 border border-line-2 p-4 mb-4 overflow-x-auto text-xs leading-relaxed text-ink-1">
       {children}
     </pre>
   ),
   table: ({ children }) => (
     <div className="overflow-x-auto mb-4">
-      <table className="w-full text-xs border-collapse rounded-lg overflow-hidden bg-surface-2 border border-line-2">
+      <table className="w-full text-xs border-collapse border border-line-2">
         {children}
       </table>
     </div>
   ),
-  thead: ({ children }) => (
-    <thead className="bg-surface-1">
-      {children}
-    </thead>
-  ),
+  thead: ({ children }) => <thead>{children}</thead>,
   th: ({ children }) => (
-    <th
-      className="px-3 py-2 text-left text-sky-400 font-medium tracking-wide border-b border-line-2"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
+    <th className="label-caps px-3 py-2 text-left border-b border-line-2">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td
-      className="px-3 py-2 text-ink-2 border-b border-line-1"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
+    <td className="px-3 py-2 text-ink-2 border-b border-line-1">
       {children}
     </td>
   ),
-  tr: ({ children }) => (
-    <tr className="hover:bg-surface-3 transition-colors">
-      {children}
-    </tr>
-  ),
+  tr: ({ children }) => <tr>{children}</tr>,
   blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-purple-500/50 pl-4 py-1 my-4 bg-purple-500/5 rounded-r italic text-ink-2">
+    <blockquote className="border-l border-line-3 pl-4 py-1 my-4 text-ink-2">
       {children}
     </blockquote>
   ),
@@ -169,29 +132,21 @@ const components: Components = {
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="list-decimal space-y-1 mb-4 pl-6 text-sm text-ink-2 marker:text-sky-500">
+    <ol className="list-decimal space-y-1 mb-4 pl-6 text-sm text-ink-2 marker:text-ink-3 marker:font-mono">
       {children}
     </ol>
   ),
   li: ({ children }) => (
-    <li className="text-sm text-ink-2 leading-relaxed relative pl-3 before:content-['▸'] before:absolute before:left-0 before:text-sky-500/60 before:text-[13px] before:top-[3px]"
-      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-    >
+    <li className="text-sm text-ink-2 leading-relaxed relative pl-3 before:content-['–'] before:absolute before:left-0 before:text-ink-3">
       {children}
     </li>
   ),
-  hr: () => (
-    <hr className="border-line-2 my-6" />
-  ),
+  hr: () => <hr className="border-line-2 my-6" />,
   img: ({ src, alt }) => (
-    <img src={src} alt={alt || ""} className="rounded-lg border border-line-2 max-w-full my-4" />
+    <img src={src} alt={alt || ""} className="rounded-[10px] border border-line-2 max-w-full my-4" />
   ),
-  strong: ({ children }) => (
-    <strong className="text-ink-1 font-semibold">{children}</strong>
-  ),
-  em: ({ children }) => (
-    <em className="text-ink-2 italic">{children}</em>
-  ),
+  strong: ({ children }) => <strong className="text-ink-1 font-medium">{children}</strong>,
+  em: ({ children }) => <em className="text-ink-2 italic">{children}</em>,
 };
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {

@@ -1,14 +1,13 @@
 "use client";
 
 // Problems · Mission · Metrics · Challenges×Strategies · Team · Budget · Recommendations · Preferences
-// v6 theming lock — <div role="button"> + .telos-card + inline bg backups.
+// Cards are <div role="button"> + .telos-card; all colour lives in styles.css.
 
 import { useState } from "react";
 import type { CSSProperties, ReactNode, MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Goal, Telos } from "./data";
 import { Icons } from "./icons";
-
-const CARD_BG: CSSProperties = { background: "#111111", color: "#f0e8d8" };
+import { Marker } from "@/components/ui/chrome";
 
 interface RBtnProps {
   className?: string;
@@ -31,7 +30,7 @@ function RBtn({ className = "", style, onClick, children, onMouseEnter, onMouseL
       role="button"
       tabIndex={0}
       className={className}
-      style={{ ...CARD_BG, ...(style || {}) }}
+      style={style}
       onClick={onClick}
       onKeyDown={kd}
       onMouseEnter={onMouseEnter}
@@ -54,16 +53,15 @@ interface CommonSectionProps {
 // the relationship graph by following the chain. Empty array renders "none".
 function RefRow({ label, ids, onTrace }: { label: string; ids: readonly string[]; onTrace: (id: string | null) => void }) {
   return (
-    <div className="ref-row muted" style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginTop:6,fontSize:11}}>
-      <span style={{opacity:0.7}}>{label}:</span>
+    <div className="ref-row">
+      <span className="ref-label">{label}:</span>
       {ids.length > 0 ? ids.map(refId => (
         <span key={refId} role="button" tabIndex={0} className="ref-pill mono"
           onClick={(e)=>{e.stopPropagation();onTrace(refId);}}
-          onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}
-          style={{padding:'1px 6px',borderRadius:3,background:'rgba(168,226,238,0.10)',color:'#a8e2ee',border:'1px solid rgba(168,226,238,0.20)',fontSize:10,cursor:'pointer'}}>
+          onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}>
           {refId}
         </span>
-      )) : <span style={{opacity:0.4}}>none</span>}
+      )) : <span className="ref-none">none</span>}
     </div>
   );
 }
@@ -80,21 +78,20 @@ export function Problems({ telos, onTrace, showIds, openFile }: CommonSectionPro
       </header>
       <div className="prob-grid">
         {telos.problems.map((p) => (
-          <RBtn key={p.id} className={"telos-card prob-" + p.severity} onClick={() => openFile ? openFile("TELOS.md") : onTrace(p.id)}>
+          <RBtn key={p.id} className="telos-card prob" onClick={() => openFile ? openFile("TELOS.md") : onTrace(p.id)}>
             <div className="prob-head">
-              <span className={"sev-dot sev-" + p.severity} />
+              <Marker dim={p.severity === "high" ? "err" : p.severity === "med" ? "warn" : "neutral"} shape="circle" />
               <span className="prob-id mono telos-id-label">{p.id}</span>
               <span className="prob-title">{p.title}</span>
             </div>
             <p className="prob-note muted">{p.note}</p>
-            <div className="prob-foot muted" style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center'}}>
-              <span>affects:</span>
+            <div className="prob-foot">
+              <span className="ref-label">affects:</span>
               {p.affects.length > 0 ? p.affects.map(refId => (
                 <span key={refId} role="button" tabIndex={0} className="ref-pill mono"
                   onClick={(e)=>{e.stopPropagation();onTrace(refId);}}
-                  onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}
-                  style={{padding:'1px 6px',borderRadius:3,background:'rgba(168,226,238,0.10)',color:'#a8e2ee',border:'1px solid rgba(168,226,238,0.20)',fontSize:10,cursor:'pointer'}}>{refId}</span>
-              )) : <span style={{opacity:0.5}}>none</span>}
+                  onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}>{refId}</span>
+              )) : <span className="ref-none">none</span>}
             </div>
           </RBtn>
         ))}
@@ -139,14 +136,13 @@ export function MissionGoals({ telos, missionId, onMission, onTrace, onOpenGoal,
       <RBtn
         className="telos-card mission-card"
         onClick={() => openFile ? openFile("TELOS.md") : onTrace(active.id)}
-        style={{ background: "linear-gradient(90deg, rgba(168,226,238,0.08), #111111)" }}
       >
         <div className="mission-eyebrow">Mission · {active.horizon}</div>
         <h3 className="mission-title">
-          <span className="mono telos-id-label" style={{ marginRight: 10 }}>{active.id}</span>
+          <span className="mono telos-id-label">{active.id}</span>
           {active.title}
         </h3>
-        {active.summary && <p className="mission-summary muted" style={{margin:'6px 0 0',fontSize:13,lineHeight:1.5}}>{active.summary}</p>}
+        {active.summary && <p className="mission-summary muted">{active.summary}</p>}
         <RefRow label="addresses" ids={active.addresses ?? []} onTrace={onTrace} />
         <div className="mission-foot muted">
           {telos.goals.length} goals serve this
@@ -163,14 +159,10 @@ export function MissionGoals({ telos, missionId, onMission, onTrace, onOpenGoal,
           const hasDims = g.dims.length > 0;
           const hasMetric = !!primaryMetric;
           const hasFoot = hasDims || hasMetric;
-          const accentDim = hasDims ? g.dims[0] : null;
-          const cardClass =
-            "telos-card goal-card" +
-            (accentDim ? " has-dim dim-" + accentDim : " no-dim");
           return (
             <RBtn
               key={g.id}
-              className={cardClass}
+              className="telos-card goal-card"
               onClick={() => (openFile ? openFile("TELOS.md") : onOpenGoal(g))}
             >
               <div className="goal-head">
@@ -184,12 +176,7 @@ export function MissionGoals({ telos, missionId, onMission, onTrace, onOpenGoal,
                   <span className="kpi-arrow">→</span>
                   <span className="kpi-target mono">{g.target}</span>
                   {hasDelta && (
-                    <span
-                      className={
-                        "kpi-delta mono " +
-                        (g.delta > 0 ? "green-up" : g.delta < 0 ? "coral-down" : "flat-muted")
-                      }
-                    >
+                    <span className="kpi-delta mono">
                       {g.delta > 0 ? "+" : ""}
                       {g.delta}
                     </span>
@@ -216,7 +203,7 @@ export function MissionGoals({ telos, missionId, onMission, onTrace, onOpenGoal,
                     <span
                       role="button"
                       tabIndex={0}
-                      className="pill metric-chip"
+                      className="metric-chip"
                       onClick={(e) => {
                         e.stopPropagation();
                         onTrace(primaryMetric.id);
@@ -284,7 +271,7 @@ function MetricSpark({ pts, color }: MetricSparkProps) {
     .join(" ");
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="mspark" preserveAspectRatio="none">
-      <polyline fill="none" stroke={color} strokeWidth="1.6" points={d} />
+      <polyline fill="none" stroke={color} strokeWidth="1.5" points={d} />
     </svg>
   );
 }
@@ -316,7 +303,7 @@ export function Metrics({ telos, onTrace, showIds, openFile }: CommonSectionProp
                 {m.trend > 0 ? "↗" : m.trend < 0 ? "↘" : "·"} {Math.abs(m.trend)}
               </span>
             </div>
-            <MetricSpark pts={m.spark} color="#a8e2ee" />
+            <MetricSpark pts={m.spark} color="var(--accent-blue)" />
             <div className="metric-foot muted">
               feeds {m.feeds.join(", ")}
             </div>
@@ -375,7 +362,6 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     onMouseEnter={() => setHover(c.id)}
                     onMouseLeave={() => setHover(null)}
                     onClick={() => openFile ? openFile("TELOS.md") : onTrace(c.id)}
-                    style={{ borderLeft: "2px solid #a8e2ee" }}
                   >
                     <div className="card-row">
                       <span className="card-id mono telos-id-label">{c.id}</span>
@@ -403,12 +389,11 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     onMouseEnter={() => setHover(s.id)}
                     onMouseLeave={() => setHover(null)}
                     onClick={() => openFile ? openFile("TELOS.md") : onTrace(s.id)}
-                    style={{ borderLeft: "2px solid #3fb2c9" }}
                   >
                     <div className="card-row">
                       <span className="card-id mono telos-id-label">{s.id}</span>
                       <div className="card-title">{head}</div>
-                      {s.active && <span className="badge-now pill">doing this</span>}
+                      {s.active && <span className="badge-now">doing this</span>}
                     </div>
                     {(s.summary || rule) && <div className="card-rule muted">{s.summary || rule}</div>}
                     <RefRow label="overcomes" ids={s.overcomes} onTrace={onTrace} />
@@ -420,7 +405,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
           </div>
         </div>
       ) : (
-        <div className="cs-graph" style={{ background: "#111111", border: "1px solid #1f1f1f", borderRadius: 12, padding: 16 }}>
+        <div className="cs-graph">
           <svg viewBox="0 0 1000 520" className="force-svg" preserveAspectRatio="xMidYMid meet">
             {telos.challenges.map((c, i) => {
               const y = 60 + i * (420 / Math.max(1, telos.challenges.length - 1));
@@ -433,8 +418,8 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                   onMouseLeave={() => setHover(null)}
                   style={{ cursor: "pointer" }}
                 >
-                  <rect x="40" y={y - 16} width="300" height="32" rx="4" fill="#141414" stroke="#a8e2ee" strokeOpacity="0.4" />
-                  <text x="55" y={y + 4} fill="#f0e8d8" fontSize="12">{c.title}</text>
+                  <rect x="40" y={y - 16} width="300" height="32" rx="2" fill="var(--ground)" stroke="var(--line-3)" />
+                  <text x="55" y={y + 4} fill="var(--ink-1)" fontSize="12" fontFamily="var(--font-sans)">{c.title}</text>
                 </g>
               );
             })}
@@ -449,8 +434,8 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                   onMouseLeave={() => setHover(null)}
                   style={{ cursor: "pointer" }}
                 >
-                  <rect x="660" y={y - 16} width="300" height="32" rx="4" fill="#141414" stroke="#3fb2c9" strokeOpacity="0.45" />
-                  <text x="675" y={y + 4} fill="#f0e8d8" fontSize="12">{s.title.split("—")[0].trim()}</text>
+                  <rect x="660" y={y - 16} width="300" height="32" rx="2" fill="var(--ground)" stroke="var(--line-3)" />
+                  <text x="675" y={y + 4} fill="var(--ink-1)" fontSize="12" fontFamily="var(--font-sans)">{s.title.split("—")[0].trim()}</text>
                 </g>
               );
             })}
@@ -465,7 +450,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     key={s.id + cid}
                     d={`M 340 ${cy} C 500 ${cy}, 500 ${sy}, 660 ${sy}`}
                     fill="none"
-                    stroke="#3fb2c9"
+                    stroke="var(--accent-blue)"
                     strokeOpacity={active ? 0.55 : 0.12}
                     strokeWidth={active ? 1.4 : 0.7}
                   />
@@ -499,8 +484,8 @@ export function Team({ telos, onTrace, showIds, openFile }: CommonSectionProps) 
               <div className="avatar team-avatar">{t.avatar}</div>
               <div className="team-head">
                 <div className="team-name">
-                  <span className="mono telos-id-label" style={{ marginRight: 8 }}>{t.id}</span>
-                  {t.name} <span className={"pill team-kind " + t.kind}>{t.kind}</span>
+                  <span className="mono telos-id-label">{t.id}</span>
+                  {t.name} <span className="team-kind">{t.kind}</span>
                 </div>
                 <div className="team-role muted">{t.role}</div>
               </div>
@@ -515,7 +500,7 @@ export function Team({ telos, onTrace, showIds, openFile }: CommonSectionProps) 
                     key={pid}
                     role="button"
                     tabIndex={0}
-                    className="pill owns-chip"
+                    className="owns-chip"
                     onClick={(e) => { e.stopPropagation(); onTrace(pid); }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -563,25 +548,19 @@ export function Budget({ telos, onTrace, showIds, openFile }: CommonSectionProps
             {rows.map((b) => (
               <RBtn
                 key={b.id}
-                className={"telos-card budget-row" + (b.warn ? " warn" : "")}
+                className="telos-card budget-row"
                 onClick={() => openFile ? openFile("TELOS.md") : onTrace(b.id)}
-                style={b.warn ? { borderLeft: "2px solid #F87171" } : {}}
               >
                 <div className="budget-head-row">
                   <span className="mono card-id telos-id-label">{b.id}</span>
+                  {b.warn && <Marker dim="err" />}
                   <span className="budget-label">{b.label}</span>
-                  <span className="budget-val mono" style={{ marginLeft: "auto" }}>
+                  <span className="budget-val mono">
                     {b.value}<span className="budget-of muted">/{b.of}</span>
                   </span>
                 </div>
                 <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: Math.min(100, b.pct) + "%",
-                      background: b.warn ? "linear-gradient(90deg,#F87171,#f5c451)" : undefined,
-                    }}
-                  />
+                  <div className="progress-fill" style={{ width: Math.min(100, b.pct) + "%" }} />
                 </div>
                 <div className="budget-note muted">
                   <span>{b.note}</span>
@@ -616,8 +595,7 @@ export function Recommendations({ telos, onTrace, openFile }: CommonSectionProps
             key={r.id}
             role={openFile ? "button" : undefined}
             tabIndex={openFile ? 0 : undefined}
-            className={"telos-card rec rec-" + r.impact}
-            style={{ ...CARD_BG, cursor: openFile ? "pointer" : "default" }}
+            className="telos-card rec"
             onClick={openFile ? () => openFile("TELOS.md") : undefined}
             onKeyDown={openFile ? (e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -637,7 +615,7 @@ export function Recommendations({ telos, onTrace, openFile }: CommonSectionProps
                     key={id}
                     role="button"
                     tabIndex={0}
-                    className="pill rec-chip mono"
+                    className="rec-chip mono"
                     onClick={() => onTrace(id)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -653,7 +631,7 @@ export function Recommendations({ telos, onTrace, openFile }: CommonSectionProps
             </div>
             <div className="rec-meta muted">
               <div><span className="rec-label">effort</span> {r.effort}</div>
-              <div><span className="rec-label">impact</span> <span className={"rec-impact " + r.impact}>{r.impact}</span></div>
+              <div><span className="rec-label">impact</span> <span className="rec-impact">{r.impact}</span></div>
             </div>
           </div>
         ))}
@@ -706,7 +684,7 @@ export function Preferences({ telos, openFile }: PreferencesProps) {
     );
   };
   return (
-    <section className={"telos-card prefs" + (open ? " open" : "")} style={{ ...CARD_BG, padding: 0, cursor: "default" }}>
+    <section className={"telos-card prefs" + (open ? " open" : "")}>
       <div
         role="button"
         tabIndex={0}
@@ -723,7 +701,7 @@ export function Preferences({ telos, openFile }: PreferencesProps) {
         <span className="prefs-sub muted">The signals that aren&rsquo;t primitives but color every decision.</span>
         <Icons.Chev
           size={14}
-          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 200ms", marginLeft: "auto", color: "#6b7d89" }}
+          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 200ms", marginLeft: "auto", color: "var(--ink-3)" }}
         />
       </div>
       {open && (

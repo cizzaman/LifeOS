@@ -30,26 +30,21 @@ export default function EmptyStateGuide({
   const defaultDaPrompt = daPromptExample ?? `help me set up my ${section.toLowerCase()}`;
 
   return (
-    <div className="rounded-xl border border-blue-900/40 bg-gradient-to-br from-blue-950/30 to-[rgba(10,10,10,0.5)] p-6">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="rounded-lg bg-blue-500/10 p-2 mt-0.5">
-          <Sparkles className="w-5 h-5 text-blue-400" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-blue-50">
-            {section} is empty — let's fill it in
-          </h3>
-          <p className="text-sm text-ink-2 mt-1">{description}</p>
-        </div>
+    <div className="rounded-[10px] border border-line-3 p-6">
+      <div className="mb-4">
+        <h3 className="text-base font-medium text-ink-1">
+          {section} is empty — let's fill it in
+        </h3>
+        <p className="text-sm text-ink-2 mt-1">{description}</p>
       </div>
 
-      <div className="space-y-2.5 ml-1">
+      <div className="space-y-2.5">
         {!hideInterview && (
           <div className="flex items-start gap-2.5 text-sm">
-            <MessageSquare className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+            <MessageSquare className="w-4 h-4 text-ink-3 mt-0.5 shrink-0" strokeWidth={1.5} />
             <div>
               <span className="text-ink-1">Run </span>
-              <code className="px-1.5 py-0.5 rounded bg-surface-3 text-blue-300 text-xs font-mono">
+              <code className="mono text-xs text-ink-1">
                 {interviewCommand}
               </code>
               <span className="text-ink-2">
@@ -60,16 +55,16 @@ export default function EmptyStateGuide({
         )}
 
         <div className="flex items-start gap-2.5 text-sm">
-          <FolderOpen className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-          <div>
+          <FolderOpen className="w-4 h-4 text-ink-3 mt-0.5 shrink-0" strokeWidth={1.5} />
+          <div className="min-w-0 break-words">
             <span className="text-ink-1">Edit files at </span>
-            <code className="px-1.5 py-0.5 rounded bg-surface-3 text-blue-300 text-xs font-mono">
+            <code className="mono text-xs text-ink-1 break-all">
               {userPath}
             </code>
             <span className="text-ink-2">
               {" "}— or import existing data (Obsidian, Notion, journals) with the{" "}
             </span>
-            <code className="px-1.5 py-0.5 rounded bg-surface-3 text-blue-300 text-xs font-mono">
+            <code className="mono text-xs text-ink-1">
               Migrate
             </code>
             <span className="text-ink-2"> skill.</span>
@@ -77,10 +72,10 @@ export default function EmptyStateGuide({
         </div>
 
         <div className="flex items-start gap-2.5 text-sm">
-          <BookOpen className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-          <div>
+          <BookOpen className="w-4 h-4 text-ink-3 mt-0.5 shrink-0" strokeWidth={1.5} />
+          <div className="min-w-0 break-words">
             <span className="text-ink-1">Read </span>
-            <code className="px-1.5 py-0.5 rounded bg-surface-3 text-blue-300 text-xs font-mono">
+            <code className="mono text-xs text-ink-1 break-all">
               {readmePath}
             </code>
             <span className="text-ink-2"> for the full layout and customization guide.</span>
@@ -88,10 +83,10 @@ export default function EmptyStateGuide({
         </div>
 
         <div className="flex items-start gap-2.5 text-sm pt-1">
-          <Sparkles className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+          <Sparkles className="w-4 h-4 text-ink-3 mt-0.5 shrink-0" strokeWidth={1.5} />
           <div>
             <span className="text-ink-1">Or just ask your DA: </span>
-            <span className="text-blue-300 italic">"{defaultDaPrompt}"</span>
+            <span className="text-ink-2">"{defaultDaPrompt}"</span>
           </div>
         </div>
       </div>

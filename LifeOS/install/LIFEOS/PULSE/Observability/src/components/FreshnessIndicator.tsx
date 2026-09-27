@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { Clock, AlertTriangle, CheckCircle2, HelpCircle } from "lucide-react";
 
 export interface FreshnessFile {
   name: string;
@@ -26,11 +25,11 @@ function formatAge(daysOld: number | null): string {
   return `${years} yr old`;
 }
 
-const TIER_STYLE: Record<FreshnessData["tier"], { dot: string; text: string; border: string; bg: string; Icon: any; label: string }> = {
-  fresh:   { dot: "bg-ok",    text: "text-ok",    border: "border-[rgba(34,197,94,0.25)]",  bg: "bg-[rgba(34,197,94,0.1)]",  Icon: CheckCircle2,   label: "Fresh" },
-  aging:   { dot: "bg-warn",  text: "text-warn",  border: "border-[rgba(245,196,81,0.25)]",  bg: "bg-[rgba(245,196,81,0.1)]",  Icon: Clock,          label: "Aging" },
-  stale:   { dot: "bg-err",   text: "text-err",   border: "border-[rgba(248,113,113,0.25)]", bg: "bg-[rgba(248,113,113,0.1)]", Icon: AlertTriangle,  label: "Stale" },
-  unknown: { dot: "bg-ink-3", text: "text-ink-2", border: "border-line-2",                   bg: "bg-surface-3",               Icon: HelpCircle,     label: "Unknown" },
+const TIER_STYLE: Record<FreshnessData["tier"], { key: string | null; label: string }> = {
+  fresh:   { key: "var(--ok)",    label: "Fresh" },
+  aging:   { key: "var(--warn)",  label: "Aging" },
+  stale:   { key: "var(--err)",   label: "Stale" },
+  unknown: { key: null,           label: "Unknown" },
 };
 
 export function FreshnessIndicator({
@@ -47,13 +46,12 @@ export function FreshnessIndicator({
   const [hover, setHover] = useState(false);
   if (!freshness) {
     return (
-      <div className={`inline-flex items-center gap-1.5 text-xs text-ink-3 ${className}`}>
-        <HelpCircle className="w-3 h-3" /> No date info
+      <div className={`inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-3 ${className}`}>
+        No date info
       </div>
     );
   }
   const style = TIER_STYLE[freshness.tier];
-  const Icon = style.Icon;
   const dated = freshness.perFile.filter(f => f.date);
   const undated = freshness.perFile.filter(f => !f.date);
   const sorted = [...dated].sort((a, b) => (a.date! < b.date! ? -1 : 1));
@@ -66,35 +64,32 @@ export function FreshnessIndicator({
       onMouseLeave={() => setHover(false)}
     >
       <div
-        className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full border ${style.border} ${style.bg} cursor-default whitespace-nowrap`}
+        className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 mono text-[10px] uppercase tracking-[0.1em] leading-[1.5] text-ink-2 cursor-default"
         aria-label={`Data freshness: ${style.label} — ${formatAge(freshness.daysOld)}`}
       >
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        <Icon className={`w-3.5 h-3.5 ${style.text}`} />
-        <span className={`text-[11px] font-bold uppercase tracking-wider ${style.text}`}>
-          {style.label}
-        </span>
-        <span className={`text-[11px] ${style.text} opacity-80`}>· {formatAge(freshness.daysOld)}</span>
+        {style.key && <span className="fig-key" style={{ color: style.key }} aria-hidden />}
+        <span>{style.label}</span>
+        <span className="text-ink-3">· {formatAge(freshness.daysOld)}</span>
         {!compact && freshness.label && freshness.label !== "No date info" && (
-          <span className="text-[11px] text-ink-2">· {freshness.label}</span>
+          <span className="text-ink-3">· {freshness.label}</span>
         )}
       </div>
 
       {hover && dated.length > 0 && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-lg border border-line-2 bg-surface-1 backdrop-blur-sm shadow-xl p-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-2 mb-2">
+        <div className="absolute right-0 top-full mt-2 z-50 w-72 max-w-[calc(100vw-32px)] rounded-[10px] border border-line-3 bg-surface-1 p-3">
+          <div className="label-caps mb-2">
             Data sources
           </div>
           <div className="flex flex-col gap-1">
             {top.map((f) => (
-              <div key={f.name} className="flex items-center justify-between gap-2 text-xs">
-                <span className="text-ink-2 truncate">{f.name}</span>
-                <span className="text-ink-3 tabular-nums shrink-0">{f.date}</span>
+              <div key={f.name} className="flex items-start justify-between gap-2 text-xs">
+                <span className="text-ink-2 break-words min-w-0">{f.name}</span>
+                <span className="mono text-ink-3 shrink-0">{f.date}</span>
               </div>
             ))}
           </div>
           {undated.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-line-1 text-[11px] text-ink-3">
+            <div className="mt-2 pt-2 border-t border-line-2 text-[11px] text-ink-3">
               {undated.length} file{undated.length === 1 ? "" : "s"} without a date
             </div>
           )}

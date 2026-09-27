@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ExternalLink, Terminal, FolderClosed, RotateCw, FolderGit2 } from "lucide-react";
+import { ExternalLink, Terminal, FolderClosed, FolderGit2 } from "lucide-react";
 import { Panel, Pill, EmptyState } from "@/components/ui/chrome";
 import type { Dim } from "@/components/ui/chrome";
 
@@ -68,7 +68,7 @@ export default function ProjectsBoard({ group }: { group: ProjectGroup }) {
           <>
             {group.error ? `${group.error}. ` : ""}
             This board is generated from{" "}
-            <code className="text-ink-2">{sourcePath}</code> — add a row there, or ask your DA to
+            <code className="mono text-ink-2 break-all">{sourcePath}</code> — add a row there, or ask your DA to
             &ldquo;add this project to my projects file&rdquo;.
           </>
         }
@@ -79,15 +79,15 @@ export default function ProjectsBoard({ group }: { group: ProjectGroup }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-ink-3 text-sm">
-          <code className="text-ink-2">{group.source}</code> · {group.count}
+        <div className="text-ink-3 text-sm break-all">
+          <code className="mono text-ink-2">{group.source}</code> · <span className="mono">{group.count}</span>
         </div>
         <input
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Filter by name, stack, path…"
-          className="w-full sm:w-64 px-3 py-1.5 rounded-lg bg-surface-1 border border-line-2 text-sm text-ink-1 placeholder:text-ink-3 focus:outline-none focus:border-line-3"
+          className="w-full sm:w-64 px-3 py-1.5 rounded-[10px] bg-transparent border border-line-2 text-sm text-ink-1 placeholder:text-ink-3 focus:outline-none focus:border-[color:var(--accent-blue)]"
         />
       </div>
 
@@ -103,18 +103,17 @@ export default function ProjectsBoard({ group }: { group: ProjectGroup }) {
                     href={p.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[var(--accent-blue)] hover:text-ink-1 text-sm mt-0.5 truncate max-w-full"
+                    className="inline-flex items-start gap-1 text-ink-2 hover:text-ink-1 text-sm mt-0.5 max-w-full"
                   >
-                    <ExternalLink className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{p.url}</span>
+                    <ExternalLink className="w-3 h-3 shrink-0 mt-1 text-ink-3" strokeWidth={1.5} />
+                    <span className="break-all">{p.url}</span>
                   </a>
                 ) : (
-                  p.url && p.url !== "—" && <div className="text-ink-3 text-sm mt-0.5 truncate">{p.url}</div>
+                  p.url && p.url !== "—" && <div className="text-ink-3 text-sm mt-0.5 break-all">{p.url}</div>
                 )}
               </div>
               {p.openSession && (
                 <Pill dim="ok" className="shrink-0">
-                  <RotateCw className="w-3 h-3" />
                   Resume
                 </Pill>
               )}
@@ -132,24 +131,24 @@ export default function ProjectsBoard({ group }: { group: ProjectGroup }) {
             )}
 
             {/* Stack / description */}
-            {p.stack && <div className="text-ink-2 text-sm leading-snug line-clamp-3">{p.stack}</div>}
+            {p.stack && <div className="text-ink-2 text-sm leading-snug">{p.stack}</div>}
 
             {/* Path + deploy — sensitive (local paths, deploy commands may carry
                 secrets); marked data-sensitive so Observer mode blurs them. */}
             {(p.path || (p.deploy && p.deploy !== "—")) && (
               <div className="flex flex-col gap-1 mt-auto pt-1 text-[12px]">
                 {p.path && (
-                  <div className="flex items-center gap-1.5 text-ink-3 min-w-0">
-                    <FolderClosed className="w-3 h-3 shrink-0" />
-                    <code className="truncate" data-sensitive title={p.path}>
+                  <div className="flex items-start gap-1.5 text-ink-3 min-w-0">
+                    <FolderClosed className="w-3 h-3 shrink-0 mt-0.5" strokeWidth={1.5} />
+                    <code className="mono break-all" data-sensitive title={p.path}>
                       {p.path}
                     </code>
                   </div>
                 )}
                 {p.deploy && p.deploy !== "—" && (
-                  <div className="flex items-center gap-1.5 text-ink-3 min-w-0">
-                    <Terminal className="w-3 h-3 shrink-0" />
-                    <code className="truncate" data-sensitive title={p.deploy}>
+                  <div className="flex items-start gap-1.5 text-ink-3 min-w-0">
+                    <Terminal className="w-3 h-3 shrink-0 mt-0.5" strokeWidth={1.5} />
+                    <code className="mono break-all" data-sensitive title={p.deploy}>
                       {p.deploy}
                     </code>
                   </div>

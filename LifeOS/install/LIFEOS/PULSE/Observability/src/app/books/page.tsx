@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { PageShell, PageHeader, Panel, PanelHeader, Pill, EmptyState } from "@/components/ui/chrome";
 
 /**
@@ -38,12 +38,17 @@ export default function BooksPage() {
 
   return (
     <PageShell className="max-w-[1100px]">
-      <PageHeader icon={BookOpen} title="Books" subtitle={subtitle} />
+      <PageHeader title="Books" subtitle={subtitle} />
 
-      {error && <div className="text-warn text-sm">Couldn&apos;t reach Books API: {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 text-ink-2 text-sm">
+          <span className="fig-key" style={{ color: "var(--warn)" }} aria-hidden />
+          Couldn&apos;t reach Books API: {error}
+        </div>
+      )}
       {!data && !error && <div className="text-ink-3 text-sm">Loading…</div>}
       {data && data.groups.length === 0 && !error && (
-        <EmptyState icon={BookOpen} title="No books yet" hint="Add books to USER/BOOKS.md to populate this page." />
+        <EmptyState title="No books yet" hint="Add books to USER/BOOKS.md to populate this page." />
       )}
 
       {data?.groups.map((g) => (
@@ -56,7 +61,7 @@ export default function BooksPage() {
                   <div className="min-w-0">
                     <div className="text-ink-1 font-medium flex items-start gap-1.5">
                       {b.canonical && (
-                        <Star className="w-3.5 h-3.5 shrink-0 mt-1" style={{ color: "var(--money)" }} fill="currentColor" />
+                        <Star className="w-3.5 h-3.5 shrink-0 mt-1 text-ink-2" strokeWidth={1.5} aria-label="Canonical" />
                       )}
                       <span>{b.title}</span>
                     </div>
@@ -66,7 +71,7 @@ export default function BooksPage() {
                     </div>
                   </div>
                   {typeof b.rating === "number" && (
-                    <span className="shrink-0 font-semibold tabular-nums text-sm" style={{ color: "var(--accent-blue)" }}>
+                    <span className="shrink-0 mono text-sm text-ink-1">
                       {b.rating}/10
                     </span>
                   )}
@@ -74,7 +79,7 @@ export default function BooksPage() {
                 {b.themes && b.themes.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {b.themes.map((t) => (
-                      <Pill key={t} dim="neutral">{t}</Pill>
+                      <Pill key={t}>{t}</Pill>
                     ))}
                   </div>
                 )}

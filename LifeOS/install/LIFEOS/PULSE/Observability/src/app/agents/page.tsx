@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import SystemHealthVitals from "@/components/activity/insights/SystemHealthVitals";
 import CapabilityStrip from "@/components/activity/CapabilityStrip";
 import { PageShell, TabBar, type TabSpec } from "@/components/ui/chrome";
-import { Mountain, Activity } from "lucide-react";
 
 // The tab bodies are the heavy code on this route — WorkBoard pulls framer-motion,
 // ObservabilityDashboard pulls the live chart. Loading them eagerly made /agents
@@ -13,7 +12,7 @@ import { Mountain, Activity } from "lucide-react";
 // chunk so the shell (vitals + strip + tabs) paints instantly and the active
 // tab's code streams in; the inactive tab never downloads until it's opened.
 const TabFallback = () => (
-  <div className="flex items-center justify-center h-64 text-ink-3 text-sm">Loading…</div>
+  <div className="flex items-center justify-center h-64 text-ink-3 text-[13px]">Loading…</div>
 );
 const WorkBoard = dynamic(() => import("@/components/activity/WorkBoard"), {
   ssr: false,
@@ -39,8 +38,8 @@ const ObservabilityDashboard = dynamic(() => import("@/components/activity/Obser
 type Tab = "work" | "activity";
 
 const tabs: TabSpec<Tab>[] = [
-  { id: "work", label: "Work", icon: Mountain, dim: "creative" },
-  { id: "activity", label: "Activity", icon: Activity, dim: "rhythms" },
+  { id: "work", label: "Work" },
+  { id: "activity", label: "Activity" },
 ];
 
 export default function AgentsPage() {
@@ -52,7 +51,7 @@ export default function AgentsPage() {
       <CapabilityStrip />
 
       <TabBar
-        className="px-4 py-2 shrink-0 border-b border-line-2 bg-surface-2"
+        className="px-4 py-2 shrink-0 border-b border-line-2"
         tabs={tabs}
         active={tab}
         onChange={setTab}

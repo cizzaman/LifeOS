@@ -1,18 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  Activity,
-  Heart,
-  Apple,
-  FlaskConical,
-  Pill as PillIcon,
-  Stethoscope,
-  ClipboardList,
-  FileText,
-  Lock,
-  LayoutGrid,
-  type LucideIcon,
-} from "lucide-react";
+import { Lock } from "lucide-react";
 import { FreshnessIndicator, type FreshnessData } from "@/components/FreshnessIndicator";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import {
@@ -24,7 +12,6 @@ import {
   Pill,
   TabBar,
   type TabSpec,
-  type Dim,
 } from "@/components/ui/chrome";
 
 interface HealthFile {
@@ -44,43 +31,39 @@ interface HealthData {
 }
 
 interface FileMeta {
-  icon: LucideIcon;
   label: string;
   priority: number;
 }
 
 const FILE_META: Record<string, FileMeta> = {
-  METRICS: { icon: Activity, label: "Metrics", priority: 1 },
-  FITNESS: { icon: Heart, label: "Fitness", priority: 2 },
-  NUTRITION: { icon: Apple, label: "Nutrition", priority: 3 },
-  CONDITIONS: { icon: ClipboardList, label: "Conditions", priority: 4 },
-  MEDICATIONS: { icon: PillIcon, label: "Medications", priority: 5 },
-  PROVIDERS: { icon: Stethoscope, label: "Providers", priority: 6 },
-  HISTORY: { icon: FileText, label: "History", priority: 7 },
-  SUPPLEMENTS: { icon: PillIcon, label: "Supplements", priority: 5 },
+  METRICS: { label: "Metrics", priority: 1 },
+  FITNESS: { label: "Fitness", priority: 2 },
+  NUTRITION: { label: "Nutrition", priority: 3 },
+  CONDITIONS: { label: "Conditions", priority: 4 },
+  MEDICATIONS: { label: "Medications", priority: 5 },
+  PROVIDERS: { label: "Providers", priority: 6 },
+  HISTORY: { label: "History", priority: 7 },
+  SUPPLEMENTS: { label: "Supplements", priority: 5 },
 };
 
 function fileMeta(name: string): FileMeta {
   if (name.startsWith("lab_results")) {
     return {
-      icon: FlaskConical,
       label: name.replace(/^lab_results_/, "Labs — "),
       priority: 0,
     };
   }
-  return FILE_META[name.toUpperCase()] || { icon: FileText, label: name, priority: 99 };
+  return FILE_META[name.toUpperCase()] || { label: name, priority: 99 };
 }
 
 function FileCard({ file }: { file: HealthFile }) {
   const meta = fileMeta(file.name);
-  const Icon = meta.icon;
   return (
-    <Panel hover style={{ borderLeft: "2px solid var(--health)" }}>
+    <Panel hover>
       <PanelHeader
         title={meta.label}
-        icon={Icon}
         actions={
-          <Pill dim="health" className="tabular-nums">
+          <Pill>
             {file.sections.length} section{file.sections.length === 1 ? "" : "s"}
           </Pill>
         }
@@ -89,14 +72,15 @@ function FileCard({ file }: { file: HealthFile }) {
         {file.sections.slice(0, 8).map((s, i) => (
           <div key={i} className="flex items-start gap-2 text-xs text-ink-2">
             <span
-              className="w-1 h-1 rounded-full mt-1.5 shrink-0"
-              style={{ backgroundColor: "var(--rhythms)", opacity: 0.6 }}
+              className="w-[3px] h-[3px] mt-[7px] shrink-0"
+              style={{ backgroundColor: "var(--ink-3)" }}
+              aria-hidden
             />
-            <span className="line-clamp-2">{s}</span>
+            <span>{s}</span>
           </div>
         ))}
         {file.sections.length > 8 && (
-          <div className="text-[12px] italic pt-1 text-ink-3">
+          <div className="text-[12px] pt-1 text-ink-3">
             + {file.sections.length - 8} more
           </div>
         )}
@@ -117,13 +101,6 @@ interface Supplement {
 }
 
 const CATEGORY_ORDER = ["Foundational", "Longevity", "Nootropic", "Allergy", "Rx"];
-const CATEGORY_DIM: Record<string, Dim> = {
-  Foundational: "health",
-  Longevity: "rhythms",
-  Nootropic: "blue",
-  Allergy: "creative",
-  Rx: "money",
-};
 
 function field(body: string, name: string): string | undefined {
   const m = body.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*(.+)`));
@@ -154,16 +131,14 @@ function parseSupplements(sections: Section[]): { items: Supplement[]; notes?: s
 }
 
 function SupplementCard({ s }: { s: Supplement }) {
-  const dim = (s.category && CATEGORY_DIM[s.category]) || "health";
   const inactive = s.status && !/^active/i.test(s.status);
   return (
-    <Panel hover style={{ borderLeft: `2px solid var(--${dim})` }}>
+    <Panel hover>
       <PanelHeader
         title={s.name}
-        icon={PillIcon}
         actions={
           s.category ? (
-            <Pill dim={dim}>{s.category}</Pill>
+            <Pill>{s.category}</Pill>
           ) : undefined
         }
       />
@@ -172,14 +147,12 @@ function SupplementCard({ s }: { s: Supplement }) {
           <div className="text-sm font-medium text-ink-1">{s.dose}</div>
         )}
         {s.cadence && (
-          <div className="text-[12px] uppercase tracking-wide text-ink-3">{s.cadence}</div>
+          <div className="label-caps text-ink-3">{s.cadence}</div>
         )}
         {s.purpose && <div className="text-xs text-ink-2">{s.purpose}</div>}
         {s.status && (
-          <div
-            className="text-[12px] pt-1"
-            style={{ color: inactive ? "var(--ink-3)" : "var(--health)" }}
-          >
+          <div className={`flex items-center gap-2 text-[12px] pt-1 ${inactive ? "text-ink-3" : "text-ink-2"}`}>
+            {!inactive && <span className="fig-key" style={{ color: "var(--ok)" }} aria-hidden />}
             {s.status}
           </div>
         )}
@@ -217,32 +190,26 @@ function SupplementsTab({ sections }: { sections: Section[] }) {
         <StatTile
           label="Tracked"
           value={<span data-sensitive>{items.length}</span>}
-          dim="health"
-          icon={PillIcon}
         />
         <StatTile
           label="Daily"
           value={<span data-sensitive>{daily}</span>}
-          dim="rhythms"
-          icon={Activity}
         />
         <StatTile
           label="Categories"
           value={<span data-sensitive>{categories.length}</span>}
-          dim="blue"
-          icon={LayoutGrid}
         />
       </div>
 
       <p className="text-sm flex items-center gap-2 text-ink-3">
-        <Lock className="w-3.5 h-3.5" /> Fully private. Observer mode blurs all data below.
+        <Lock className="w-3.5 h-3.5" strokeWidth={1.5} /> Fully private. Observer mode blurs all data below.
       </p>
 
       {categories.map((cat) => {
         const group = items.filter((s) => s.category === cat);
         return (
           <section key={cat}>
-            <h2 className="text-[13px] font-medium uppercase tracking-widest text-ink-3 mb-4">
+            <h2 className="label-caps mb-4">
               {cat}
             </h2>
             <div className="prob-grid">
@@ -255,8 +222,8 @@ function SupplementsTab({ sections }: { sections: Section[] }) {
       })}
 
       {notes && (
-        <Panel style={{ borderLeft: "2px solid var(--rhythms)" }}>
-          <PanelHeader title="Notes" icon={FileText} />
+        <Panel>
+          <PanelHeader title="Notes" />
           <div className="text-xs text-ink-2 whitespace-pre-line" data-sensitive>
             {notes.replace(/^- /gm, "• ")}
           </div>
@@ -270,8 +237,8 @@ function SupplementsTab({ sections }: { sections: Section[] }) {
 
 type TabKey = "overview" | "supplements";
 const TABS: TabSpec<TabKey>[] = [
-  { id: "overview", label: "Overview", icon: Activity, dim: "health", hint: "1" },
-  { id: "supplements", label: "Supplements", icon: PillIcon, dim: "rhythms", hint: "2" },
+  { id: "overview", label: "Overview", hint: "1" },
+  { id: "supplements", label: "Supplements", hint: "2" },
 ];
 
 function OverviewTab({ files }: { files: HealthFile[] }) {
@@ -284,25 +251,21 @@ function OverviewTab({ files }: { files: HealthFile[] }) {
         <StatTile
           label="Tracked Sources"
           value={<span data-sensitive>{files.length}</span>}
-          dim="health"
-          icon={Activity}
         />
         <StatTile
           label="Lab Panels"
           value={<span data-sensitive>{labs.length}</span>}
-          dim="rhythms"
-          icon={FlaskConical}
         />
       </div>
 
       <p className="text-sm flex items-center gap-2 text-ink-3">
-        <Lock className="w-3.5 h-3.5" /> Fully private. Observer mode blurs all data below.
+        <Lock className="w-3.5 h-3.5" strokeWidth={1.5} /> Fully private. Observer mode blurs all data below.
       </p>
 
       {labs.length > 0 && (
         <section>
-          <h2 className="text-[13px] font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
-            <FlaskConical className="w-4 h-4" /> Lab Panels
+          <h2 className="label-caps mb-4">
+            Lab Panels
           </h2>
           <div className="prob-grid">
             {labs.map((f) => (
@@ -313,7 +276,7 @@ function OverviewTab({ files }: { files: HealthFile[] }) {
       )}
       {nonLabs.length > 0 && (
         <section>
-          <h2 className="text-[13px] font-medium uppercase tracking-widest text-ink-3 mb-4">
+          <h2 className="label-caps mb-4">
             Core Files
           </h2>
           <div className="prob-grid">
@@ -368,8 +331,11 @@ export default function HealthPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
-          <h2 className="font-medium text-err">Failed to load health</h2>
+        <Panel>
+          <h2 className="flex items-center gap-2 label-caps text-ink-1 mb-2">
+            <span className="fig-key" style={{ color: "var(--err)" }} aria-hidden />
+            Failed to load health
+          </h2>
           <p className="text-sm text-ink-2">{error}</p>
         </Panel>
       </PageShell>
@@ -386,7 +352,6 @@ export default function HealthPage() {
     <PageShell>
       <PageHeader
         title="Health"
-        icon={Activity}
         subtitle="Labs, fitness, nutrition, and supplements — fully private. Press 1/2 to switch tabs."
         actions={<FreshnessIndicator freshness={data.freshness} />}
       />

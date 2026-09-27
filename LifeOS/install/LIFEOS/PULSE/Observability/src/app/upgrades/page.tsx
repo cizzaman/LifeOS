@@ -1,16 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Sparkles,
-  RefreshCw,
-  CheckCircle2,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  ScrollText,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import {
   PageShell,
@@ -18,7 +9,8 @@ import {
   Panel,
   Pill,
   EmptyState,
-  dimStyle,
+  Marker,
+  TabBar,
 } from "@/components/ui/chrome";
 
 interface QueueItem {
@@ -57,15 +49,6 @@ const SOURCE_LABEL: Record<string, string> = {
   "algo-run": "/algo",
   autonomous: "autonomous",
   manual: "manual",
-};
-
-const SOURCE_DIM: Record<string, "ok" | "warn" | "err" | "relationships"> = {
-  directive: "warn",
-  correction: "err",
-  "upgrade-skill": "ok",
-  "algo-run": "ok",
-  autonomous: "relationships",
-  manual: "ok",
 };
 
 function formatTimestamp(iso: string): string {
@@ -113,53 +96,31 @@ function UpgradeCard({
   }
 
   return (
-    <Panel
-      className="space-y-3"
-      style={expiresSoon ? { borderColor: "var(--warn)" } : undefined}
-    >
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg shrink-0" style={dimStyle("relationships", true)}>
-          <Sparkles size={16} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3
-            className="text-sm font-medium text-ink-1 leading-snug normal-case"
-            style={{ fontFamily: "'Albert Sans', sans-serif" }}
-          >
-            {item.claim || item.id}
-          </h3>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-            <Pill dim={SOURCE_DIM[item.source] ?? "ok"}>
-              {SOURCE_LABEL[item.source] ?? item.source}
-            </Pill>
-            <Pill dim="ok">{confidencePct}%</Pill>
-            {item.has_patch && <Pill dim="warn">PATCH → {item.target_surface}</Pill>}
-            {!item.has_patch && item.target_surface !== "unknown" && (
-              <span className="text-ink-3">
-                → <span className="text-ink-2">{item.target_surface}</span>
-              </span>
-            )}
-            {item.evidence_count > 0 && (
-              <span className="text-ink-3">{item.evidence_count} signals</span>
-            )}
-            {item.ledger_id && (
-              <span className="flex items-center gap-1 text-ink-3">
-                <ScrollText size={11} />
-                <span className="mono text-ink-2">{item.ledger_id}</span>
-              </span>
-            )}
-            {item.expires_in_days !== null && (
-              <span
-                className={`flex items-center gap-1 ${
-                  expiresSoon ? "text-warn font-semibold" : "text-ink-3"
-                }`}
-              >
-                <Clock size={11} />
-                expires in {item.expires_in_days}d
-              </span>
-            )}
-            <span className="text-ink-3">{formatTimestamp(item.created)}</span>
-          </div>
+    <Panel className="space-y-3">
+      <div className="min-w-0">
+        <h3 className="text-sm font-medium text-ink-1 leading-snug normal-case break-words">
+          {item.claim || item.id}
+        </h3>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          <Pill>{SOURCE_LABEL[item.source] ?? item.source}</Pill>
+          <Pill>{confidencePct}%</Pill>
+          {item.has_patch && <Pill>PATCH → {item.target_surface}</Pill>}
+          {!item.has_patch && item.target_surface !== "unknown" && (
+            <span className="text-ink-3">
+              → <span className="text-ink-2">{item.target_surface}</span>
+            </span>
+          )}
+          {item.evidence_count > 0 && (
+            <span className="text-ink-3">{item.evidence_count} signals</span>
+          )}
+          {item.ledger_id && <span className="mono text-ink-2">{item.ledger_id}</span>}
+          {item.expires_in_days !== null && (
+            <span className={`flex items-center gap-1.5 ${expiresSoon ? "text-ink-1" : "text-ink-3"}`}>
+              {expiresSoon && <Marker dim="warn" />}
+              expires in {item.expires_in_days}d
+            </span>
+          )}
+          <span className="mono text-[11px] text-ink-3">{formatTimestamp(item.created)}</span>
         </div>
       </div>
 
@@ -168,18 +129,14 @@ function UpgradeCard({
           <>
             <button
               onClick={() => onAccept(item)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
-              style={dimStyle("ok", true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-line-3 mono text-[11px] uppercase tracking-[0.12em] text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors"
             >
-              <CheckCircle2 size={12} />
               {item.source === "autonomous" ? "Graduate" : "Accept"}
             </button>
             <button
               onClick={() => onReject(item)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
-              style={dimStyle("err", true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-line-2 mono text-[11px] uppercase tracking-[0.12em] text-ink-2 hover:border-[color:var(--accent-blue)] hover:text-ink-1 transition-colors"
             >
-              <XCircle size={12} />
               Reject
             </button>
           </>
@@ -189,23 +146,21 @@ function UpgradeCard({
         )}
         <button
           onClick={toggleExpand}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-ink-2 hover:text-ink-1 hover:bg-surface-3 transition-colors ml-auto"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-transparent mono text-[11px] uppercase tracking-[0.12em] text-ink-2 hover:text-ink-1 transition-colors ml-auto"
         >
-          {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          {expanded ? <ChevronUp size={12} strokeWidth={1.5} /> : <ChevronDown size={12} strokeWidth={1.5} />}
           {expanded ? "Hide" : "Detail"}
         </button>
       </div>
 
       {expanded && (
-        <div className="pt-3 border-t border-line-1 space-y-3 text-xs">
-          {loadingDetail && <div className="text-ink-3 italic">Loading detail…</div>}
+        <div className="pt-3 border-t border-line-2 space-y-3 text-xs">
+          {loadingDetail && <div className="text-ink-3">Loading detail…</div>}
           {detail && (
             <>
               {(detail.recommendation || item.recommendation) && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    Recommendation
-                  </div>
+                  <div className="label-caps mb-1">Recommendation</div>
                   <p className="text-ink-2 whitespace-pre-wrap">
                     {detail.recommendation || item.recommendation}
                   </p>
@@ -213,30 +168,24 @@ function UpgradeCard({
               )}
               {detail.current_state && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    Current State
-                  </div>
+                  <div className="label-caps mb-1">Current State</div>
                   <p className="text-ink-2 whitespace-pre-wrap">{detail.current_state}</p>
                 </div>
               )}
               {detail.falsifier && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    Falsifier
-                  </div>
+                  <div className="label-caps mb-1">Falsifier</div>
                   <p className="text-ink-2">{detail.falsifier}</p>
                 </div>
               )}
               {(detail.evidence_signals || detail.evidence)?.length > 0 && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    Evidence
-                  </div>
+                  <div className="label-caps mb-1">Evidence</div>
                   <ul className="space-y-0.5 text-ink-2 mono">
                     {(detail.evidence_signals || detail.evidence)
                       .slice(0, 8)
                       .map((sig: string) => (
-                        <li key={sig} className="truncate">
+                        <li key={sig} className="break-words">
                           {sig}
                         </li>
                       ))}
@@ -245,19 +194,15 @@ function UpgradeCard({
               )}
               {detail.proposed_patch && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    Proposed Patch (accepting applies it)
-                  </div>
-                  <pre className="text-ink-2 mono text-[11px] leading-snug whitespace-pre-wrap max-h-80 overflow-y-auto p-2 rounded bg-surface-3 border border-line-1">
+                  <div className="label-caps mb-1">Proposed Patch (accepting applies it)</div>
+                  <pre className="text-ink-2 mono text-[11px] leading-snug whitespace-pre-wrap max-h-80 overflow-y-auto p-3 rounded-[10px] bg-transparent border border-line-2">
                     {detail.proposed_patch}
                   </pre>
                 </div>
               )}
               {detail.notes?.length > 0 && (
                 <div>
-                  <div className="text-ink-3 uppercase tracking-wide text-[13px] mb-1">
-                    History
-                  </div>
+                  <div className="label-caps mb-1">History</div>
                   <ul className="space-y-0.5 text-ink-3 mono text-[11px]">
                     {detail.notes.map((n: string) => (
                       <li key={n}>{n}</li>
@@ -345,7 +290,7 @@ export default function UpgradesPage() {
   if (data === null && !error) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="animate-pulse text-ink-3 text-sm">Loading upgrades…</div>
+        <div className="text-ink-3 text-[13px]">Loading upgrades…</div>
       </div>
     );
   }
@@ -354,7 +299,6 @@ export default function UpgradesPage() {
     return (
       <PageShell>
         <EmptyState
-          icon={RefreshCw}
           title="Upgrades API not reachable"
           hint={<span className="mono">{error}</span>}
         />
@@ -374,7 +318,6 @@ export default function UpgradesPage() {
   return (
     <PageShell>
       <PageHeader
-        icon={Sparkles}
         title="Upgrades"
         subtitle={
           <span className="max-w-2xl inline-block">
@@ -386,35 +329,26 @@ export default function UpgradesPage() {
           </span>
         }
         actions={
-          <span className="flex items-center gap-2 text-xs text-ink-3">
-            <RefreshCw size={12} />
+          <span className="mono text-[11px] text-ink-3">
             {lastFetch ? `synced ${formatTimestamp(lastFetch.toISOString())}` : "syncing…"}
           </span>
         }
       />
 
-      <div className="flex items-center gap-2 flex-wrap">
-        {VIEWS.map((v) => (
-          <button
-            key={v.id}
-            onClick={() => setView(v.id)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              view === v.id
-                ? "text-ink-1 bg-surface-3 border border-line-1"
-                : "text-ink-3 hover:text-ink-1"
-            }`}
-          >
-            {v.label} <span className="mono">{v.count}</span>
-          </button>
-        ))}
-        <span className="ml-auto flex items-center gap-3 text-xs text-ink-3">
-          {Object.entries(q.stats.by_source).map(([s, n]) => (
-            <span key={s}>
-              {SOURCE_LABEL[s] ?? s}: <span className="text-ink-2 mono">{n}</span>
-            </span>
-          ))}
-        </span>
-      </div>
+      <TabBar
+        tabs={VIEWS.map((v) => ({ id: v.id, label: v.label, hint: v.count }))}
+        active={view}
+        onChange={setView}
+        right={
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-3">
+            {Object.entries(q.stats.by_source).map(([s, n]) => (
+              <span key={s}>
+                {SOURCE_LABEL[s] ?? s}: <span className="text-ink-2 mono">{n}</span>
+              </span>
+            ))}
+          </span>
+        }
+      />
 
       {items.length === 0 ? (
         view === "recommended" ? (
@@ -425,7 +359,7 @@ export default function UpgradesPage() {
             daPromptExample="run an upgrade scan"
           />
         ) : (
-          <EmptyState icon={Sparkles} title={`Nothing ${view} yet`} />
+          <EmptyState title={`Nothing ${view} yet`} />
         )
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -441,7 +375,7 @@ export default function UpgradesPage() {
         </div>
       )}
 
-      <div className="text-[12px] text-ink-3 mono pt-2 border-t border-line-1">
+      <div className="text-[11px] text-ink-3 mono pt-2 border-t border-line-2">
         sources: MEMORY/UPGRADES/records/ + WISDOM/FRAMES/_hypotheses/ · api:
         /api/upgrades · capture: SatisfactionCapture.hook · applied half: /ledger
       </div>

@@ -5,15 +5,14 @@ import type { Dimension } from "./data";
 // Universal dimension visualization — replaces the ring grid.
 //
 // Each dimension renders as a horizontal row:
-//   [label] [filled bar = cur] [gap = ideal-cur, dotted] [ideal marker] [numbers] [velo arrow]
+//   [label] [2px track: teal fill = cur, tick = ideal] [numbers] [velo arrow]
 //
 // The GAP is the visual headline, not the fill. Most life dashboards
 // celebrate what's done; this one shows what's left, because the gap is
 // what the user actually has to act on.
 //
 // Universality: works for any N dimensions, any labels, any cur/ideal/velo
-// values. No hardcoded dim IDs or counts. Color comes from the dim's own
-// `color` field (CSS var name like '--health').
+// values. No hardcoded dim IDs or counts. One series per row, so one colour.
 
 interface DimensionBarsProps {
   dimensions: readonly Dimension[];
@@ -57,11 +56,8 @@ function DimensionBarRow({ d, onClick }: DimensionBarRowProps) {
 
       <div className="dim-bar-track" aria-label={`${d.label}: ${Math.round(cur)} of ${Math.round(ideal)}, velocity ${d.velo}`}>
         {/* The full track represents 100. Ideal marker is a vertical line. */}
-        <div className="dim-bar-fill" style={{ width: `${curPct}%`, background: `var(${d.color})` }}>
-          <div className="dim-bar-leading-edge" style={{ background: `var(${d.color})` }} />
-        </div>
-        <div className="dim-bar-gap" style={{ left: `${curPct}%`, width: `${Math.max(0, idealPct - curPct)}%` }} />
-        <div className="dim-bar-ideal-mark" style={{ left: `${idealPct}%`, borderColor: `var(${d.color})` }} />
+        <div className="dim-bar-fill" style={{ width: `${curPct}%` }} />
+        <div className="dim-bar-ideal-mark" style={{ left: `${idealPct}%` }} />
       </div>
 
       <div className="dim-bar-numbers">

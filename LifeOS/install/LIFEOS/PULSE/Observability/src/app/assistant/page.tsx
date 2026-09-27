@@ -6,14 +6,10 @@ import { localApiCall } from "@/lib/local-api";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import HermesFiles from "@/components/HermesFiles";
 import {
-  PageShell, PageHeader, Panel, PanelHeader, Pill, TabBar, StatTile, dimStyle,
-  type TabSpec,
+  PageShell, PageHeader, Panel, PanelHeader, Pill, TabBar, StatTile, Marker,
+  type Dim, type TabSpec,
 } from "@/components/ui/chrome";
-import {
-  Zap, Terminal, Clock, Plus, X, Trash2, Activity,
-  Heart, Brain, Shield, Pencil, Check, ChevronDown, ChevronRight, Repeat,
-  Cloud, MessageSquare,
-} from "lucide-react";
+import { Plus, X, Trash2, Pencil, Check, ChevronDown, ChevronRight } from "lucide-react";
 
 // ── Types ──
 
@@ -76,12 +72,12 @@ interface TasksResponse {
   hermes?: HermesHealth | null;
 }
 
-const HERMES_STATUS_COLOR: Record<HermesHealth["status"], string> = {
-  up: "var(--ok)",
-  degraded: "var(--warn)",
-  flapping: "var(--warn)",
-  down: "var(--err)",
-  absent: "var(--ink-3)",
+const HERMES_STATUS_DIM: Record<HermesHealth["status"], Dim> = {
+  up: "ok",
+  degraded: "warn",
+  flapping: "warn",
+  down: "err",
+  absent: "neutral",
 };
 
 function formatUptimeSeconds(seconds: number | null): string {
@@ -132,28 +128,17 @@ interface Health {
 
 // ── Helpers ──
 
-type Dimension = "health" | "money" | "freedom" | "creative" | "relationships" | "rhythms";
-
-const dimColors: Record<Dimension, string> = {
-  health: "var(--health)",
-  money: "var(--money)",
-  freedom: "var(--freedom)",
-  creative: "var(--creative)",
-  relationships: "var(--relationships)",
-  rhythms: "var(--rhythms)",
+const statusDim: Record<string, Dim> = {
+  active: "ok",
+  cancelled: "err",
 };
 
-const traitDimensions: Dimension[] = ["creative", "relationships", "freedom", "rhythms", "money", "health"];
-
-const statusClass: Record<string, "green-up" | "flat-muted" | "coral-down"> = {
-  active: "green-up",
-  disabled: "flat-muted",
-  completed: "flat-muted",
-  cancelled: "coral-down",
-};
-
-// Small uppercase-tag flavor of Pill used for source/type/kind badges.
-const TAG_CLS = "text-[10px] uppercase tracking-[0.06em]";
+const INPUT_CLS =
+  "text-sm rounded-[10px] px-3 py-1.5 mono w-full bg-ground border border-line-2 text-ink-1 focus:outline-none focus:border-[color:var(--accent-blue)]";
+const BTN_CLS =
+  "text-[13px] px-3 py-1.5 rounded-[10px] border border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-ink-3 disabled:hover:border-line-2";
+const BTN_PRIMARY_CLS =
+  "text-[13px] px-3 py-1.5 rounded-[10px] border border-line-3 text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors cursor-pointer";
 
 function formatUptime(ms: number): string {
   const h = Math.floor(ms / 3_600_000), m = Math.floor((ms % 3_600_000) / 60_000);
@@ -162,39 +147,32 @@ function formatUptime(ms: number): string {
 
 function Section({
   title,
-  icon: Icon,
   action,
   children,
-  dimension = "creative",
 }: {
   title: string;
-  icon?: typeof Brain;
   action?: React.ReactNode;
   children: React.ReactNode;
-  dimension?: Dimension;
 }) {
-  // dimension prop kept for call-site compatibility; the header renders in the
-  // standard kit style (PanelHeader) so this page reads like every other page.
-  void dimension;
   return (
     <Panel>
-      <PanelHeader title={title} icon={Icon} actions={action} />
+      <PanelHeader title={title} actions={action} />
       <div data-sensitive>{children}</div>
     </Panel>
   );
 }
 
-function TraitBar({ name, value, color, onEdit }: { name: string; value: number; color: string; onEdit?: (v: number) => void }) {
+function TraitBar({ name, value, onEdit }: { name: string; value: number; onEdit?: (v: number) => void }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
 
   return (
     <div className="flex items-center gap-4 group">
-      <span className="w-32 truncate capitalize text-sm text-ink-1" data-sensitive>
+      <span className="w-32 break-words capitalize text-sm text-ink-1" data-sensitive>
         {name.replace(/_/g, " ")}
       </span>
-      <div className="progress-bar flex-1" style={{ height: 6, margin: 0 }}>
-        <div className="progress-fill" style={{ width: `${value}%`, background: color }} />
+      <div className="progress-bar flex-1">
+        <div className="progress-bar-fill" style={{ width: `${value}%` }} />
       </div>
       {editing ? (
         <div className="flex items-center gap-1.5">
@@ -204,24 +182,25 @@ function TraitBar({ name, value, color, onEdit }: { name: string; value: number;
             max={100}
             value={editValue}
             onChange={(e) => setEditValue(Number(e.target.value))}
-            className="w-14 text-sm rounded px-2 py-1 bg-surface-1 border border-line-1 text-ink-1"
+            className="w-14 text-sm mono rounded-[10px] px-2 py-1 bg-ground border border-line-2 text-ink-1"
           />
-          <button onClick={() => { onEdit?.(editValue); setEditing(false); }} className="green-up">
-            <Check className="w-4 h-4" />
+          <button onClick={() => { onEdit?.(editValue); setEditing(false); }} className="text-ink-2 hover:text-ink-1" aria-label="Save">
+            <Check className="w-4 h-4" strokeWidth={1.5} />
           </button>
-          <button onClick={() => setEditing(false)} className="text-ink-3">
-            <X className="w-4 h-4" />
+          <button onClick={() => setEditing(false)} className="text-ink-3 hover:text-ink-1" aria-label="Cancel">
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
       ) : (
         <>
-          <span className="w-10 text-right text-sm mono flat-muted">{value}</span>
+          <span className="w-10 text-right text-sm mono text-ink-2">{value}</span>
           {onEdit && (
             <button
               onClick={() => { setEditValue(value); setEditing(true); }}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-ink-3"
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-ink-3 hover:text-ink-1"
+              aria-label="Edit"
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
           )}
         </>
@@ -348,18 +327,18 @@ export default function AssistantPage() {
   // used to stack into one page you had to scroll past to reach the cron table
   // you actually wanted; sub-tabs put each scheduler one click away instead.
   const scheduleTabs: TabSpec<typeof scheduleTab>[] = [
-    { id: "pulse", label: "Pulse Cron", dim: "rhythms", hint: cronData ? `${cronData.counts.enabled}/${cronData.counts.total}` : undefined },
-    { id: "launchd", label: "launchd", dim: "freedom", hint: tasksData?.by_source.launchd || undefined },
-    { id: "claude-code", label: "Claude Code", dim: "freedom", hint: tasksData?.by_source["claude-code"] || undefined },
-    { id: "arbol", label: "Arbol", dim: "creative", hint: tasksData?.by_source.arbol || undefined },
-    { id: "hermes", label: "Hermes", dim: "relationships", hint: tasksData?.by_source.hermes || undefined },
+    { id: "pulse", label: "Pulse Cron", hint: cronData ? `${cronData.counts.enabled}/${cronData.counts.total}` : undefined },
+    { id: "launchd", label: "launchd", hint: tasksData?.by_source.launchd || undefined },
+    { id: "claude-code", label: "Claude Code", hint: tasksData?.by_source["claude-code"] || undefined },
+    { id: "arbol", label: "Arbol", hint: tasksData?.by_source.arbol || undefined },
+    { id: "hermes", label: "Hermes", hint: tasksData?.by_source.hermes || undefined },
   ];
 
   const tabs: TabSpec<typeof activeTab>[] = [
-    { id: "tasks", label: "Scheduled Tasks", dim: "creative" },
-    { id: "personality", label: "Personality", dim: "relationships" },
-    { id: "hermes", label: "Hermes", dim: "freedom" },
-    { id: "diary", label: "Diary", dim: "rhythms" },
+    { id: "tasks", label: "Scheduled Tasks" },
+    { id: "personality", label: "Personality" },
+    { id: "hermes", label: "Hermes" },
+    { id: "diary", label: "Diary" },
   ];
 
   const isFreshInstall = health ? !health.identity_loaded : !identity;
@@ -384,18 +363,17 @@ export default function AssistantPage() {
 
         {/* Stats */}
         {health && (
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <StatTile
               label="Status"
-              icon={Activity}
               value={health.status === "ok" ? "Online" : health.status}
               dim={health.status === "ok" ? "ok" : "err"}
             />
-            <StatTile label="CC Scheduled" icon={Terminal} value={String(tasksData?.by_source["claude-code"] ?? 0)} />
-            <StatTile label="Cron Jobs" icon={Zap} value={String(tasksData?.by_source.pulse ?? 0)} />
-            <StatTile label="launchd" icon={Activity} value={String(tasksData?.by_source.launchd ?? 0)} />
-            <StatTile label="Arbol" icon={Cloud} value={String(tasksData?.by_source.arbol ?? 0)} />
-            <StatTile label="Hermes" icon={MessageSquare} value={String(tasksData?.by_source.hermes ?? 0)} />
+            <StatTile label="CC Scheduled" value={String(tasksData?.by_source["claude-code"] ?? 0)} />
+            <StatTile label="Cron Jobs" value={String(tasksData?.by_source.pulse ?? 0)} />
+            <StatTile label="launchd" value={String(tasksData?.by_source.launchd ?? 0)} />
+            <StatTile label="Arbol" value={String(tasksData?.by_source.arbol ?? 0)} />
+            <StatTile label="Hermes" value={String(tasksData?.by_source.hermes ?? 0)} />
           </div>
         )}
 
@@ -408,7 +386,7 @@ export default function AssistantPage() {
             <TabBar tabs={scheduleTabs} active={scheduleTab} onChange={setScheduleTab} />
 
             {scheduleTab === "launchd" && (
-            <Section title="Background Services · launchd" icon={Activity} dimension="freedom">
+            <Section title="Background Services · launchd">
               <div className="text-xs mono mb-1 text-ink-2">
                 ~/Library/LaunchAgents/com.lifeos.*.plist <span className="text-ink-3">(read-only — manage via LIFEOS/TOOLS/Services.ts)</span>
               </div>
@@ -423,16 +401,11 @@ export default function AssistantPage() {
                 return (
                   <div className="space-y-1">
                     {svcTasks.map((task, i) => (
-                      <div key={i} className="flex items-center gap-4 px-4 py-2.5 rounded-md">
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ background: task.status === "active" ? "var(--ok)" : "var(--ink-3)" }}
-                        />
-                        <span className="text-[13px] mono text-ink-1 flex-1 truncate">{task.name}</span>
+                      <div key={i} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5">
+                        <Marker dim={task.status === "active" ? "ok" : "neutral"} />
+                        <span className="text-[13px] mono text-ink-1 flex-1 min-w-0 break-all">{task.name}</span>
                         <span className="text-xs mono text-ink-2 shrink-0">{task.schedule}</span>
-                        <span className="text-xs mono shrink-0" style={{ color: task.status === "active" ? "var(--ok)" : "var(--ink-3)" }}>
-                          {task.status}
-                        </span>
+                        <span className="text-xs mono text-ink-2 shrink-0">{task.status}</span>
                       </div>
                     ))}
                   </div>
@@ -442,7 +415,7 @@ export default function AssistantPage() {
             )}
 
             {scheduleTab === "arbol" && (
-            <Section title="Scheduled Tasks · Arbol (Cloudflare)" icon={Cloud} dimension="freedom">
+            <Section title="Scheduled Tasks · Arbol (Cloudflare)">
               <div className="text-xs mono mb-1 text-ink-2">
                 ARBOL/Workers/*/wrangler.jsonc <span className="text-ink-3">(cron triggers, read from each worker&apos;s deploy config)</span>
               </div>
@@ -457,11 +430,11 @@ export default function AssistantPage() {
                 return (
                   <div className="space-y-1">
                     {arbolTasks.map((task, i) => (
-                      <div key={i} className="flex items-center gap-4 px-4 py-2.5 rounded-md">
-                        <Cloud className="w-4 h-4 shrink-0" style={{ color: "var(--freedom)" }} />
-                        <span className="text-[13px] mono text-ink-1 flex-1 truncate">{task.name}</span>
+                      <div key={i} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5">
+                        <Marker dim="ok" />
+                        <span className="text-[13px] mono text-ink-1 flex-1 min-w-0 break-all">{task.name}</span>
                         <span className="text-xs mono text-ink-2 shrink-0">{task.schedule}</span>
-                        <span className="text-xs mono shrink-0" style={{ color: "var(--ok)" }}>{task.status}</span>
+                        <span className="text-xs mono text-ink-2 shrink-0">{task.status}</span>
                       </div>
                     ))}
                   </div>
@@ -471,7 +444,7 @@ export default function AssistantPage() {
             )}
 
             {scheduleTab === "hermes" && (
-            <Section title="Hermes (sidecar)" icon={MessageSquare} dimension="rhythms">
+            <Section title="Hermes (sidecar)">
               {/* The gateway process, above its jobs. Job rows say nothing about
                   whether the sidecar serving them is alive, and a crash loop
                   reads as running at any instant you happen to look. */}
@@ -483,38 +456,33 @@ export default function AssistantPage() {
                 if (!h.installed) {
                   return <div className="text-[13px] text-ink-3 mb-4">Hermes sidecar not installed on this machine.</div>;
                 }
-                const color = HERMES_STATUS_COLOR[h.status];
                 return (
                   <div className="mb-5">
-                    <div className="flex items-center gap-4 px-4 py-2.5 rounded-md" style={{ background: "var(--surface-2)" }}>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                      <span className="text-[13px] mono shrink-0" style={{ color }}>{h.status}</span>
-                      <span className="text-[13px] text-ink-1 flex-1 truncate">{h.summary}</span>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 border border-line-2 rounded-[10px]">
+                      <Marker dim={HERMES_STATUS_DIM[h.status]} />
+                      <span className="text-[13px] mono text-ink-1 shrink-0">{h.status}</span>
+                      <span className="text-[13px] text-ink-1 flex-1 min-w-0 break-words">{h.summary}</span>
                       <span className="text-xs mono text-ink-2 shrink-0">up {formatUptimeSeconds(h.uptimeSeconds)}</span>
                       <span className="text-xs mono text-ink-3 shrink-0">{h.pid ? `pid ${h.pid}` : "no pid"}</span>
                     </div>
                     {h.platforms.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2 px-4">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 px-4">
                         {h.platforms.map((p) => (
-                          <span
+                          <Pill
                             key={p.name}
                             title={p.errorMessage ?? p.state}
-                            className="text-xs mono px-2 py-0.5 rounded"
-                            style={{
-                              color: p.state === "connected" ? "var(--ok)" : p.state === "fatal" ? "var(--err)" : "var(--ink-3)",
-                              border: "1px solid var(--line-2)",
-                            }}
+                            dim={p.state === "connected" ? "ok" : p.state === "fatal" ? "err" : "neutral"}
                           >
                             {p.name}
-                          </span>
+                          </Pill>
                         ))}
                       </div>
                     )}
                     {h.problems.length > 0 && (
                       <ul className="mt-2 px-4 space-y-1">
                         {h.problems.map((problem, i) => (
-                          <li key={i} className="text-xs text-ink-2">
-                            <span style={{ color: "var(--warn)" }}>!</span> {problem}
+                          <li key={i} className="text-xs text-ink-2 flex items-baseline gap-2">
+                            <Marker dim="warn" /> <span>{problem}</span>
                           </li>
                         ))}
                       </ul>
@@ -533,23 +501,18 @@ export default function AssistantPage() {
                 if (hermesTasks.length === 0) {
                   return (
                     <div className="text-[13px] text-ink-3">
-                      No Hermes cron jobs. <span className="muted">Create one with <code className="mono">hermes cron create</code>.</span>
+                      No Hermes cron jobs. <span>Create one with <code className="mono">hermes cron create</code>.</span>
                     </div>
                   );
                 }
                 return (
                   <div className="space-y-1">
                     {hermesTasks.map((task, i) => (
-                      <div key={i} className="flex items-center gap-4 px-4 py-2.5 rounded-md">
-                        <MessageSquare className="w-4 h-4 shrink-0" style={{ color: "var(--rhythms)" }} />
-                        <span className="text-[13px] text-ink-1 flex-1 truncate">{task.name}</span>
+                      <div key={i} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5">
+                        <Marker dim={task.status === "active" ? "ok" : "neutral"} />
+                        <span className="text-[13px] text-ink-1 flex-1 min-w-0 break-words">{task.name}</span>
                         <span className="text-xs mono text-ink-2 shrink-0">{task.schedule}</span>
-                        <span
-                          className="text-xs mono shrink-0"
-                          style={{ color: task.status === "active" ? "var(--ok)" : "var(--ink-3)" }}
-                        >
-                          {task.status}
-                        </span>
+                        <span className="text-xs mono text-ink-2 shrink-0">{task.status}</span>
                       </div>
                     ))}
                   </div>
@@ -559,19 +522,19 @@ export default function AssistantPage() {
             )}
 
             {scheduleTab === "claude-code" && (
-            <Section title="Scheduled Tasks · Claude Code" icon={Terminal} dimension="freedom">
+            <Section title="Scheduled Tasks · Claude Code">
               <div className="text-xs mono mb-1 text-ink-2">
                 Claude Code harness · <code className="mono">claude triggers list</code> (not under ~/.claude/LIFEOS/)
               </div>
               <div className="text-xs mb-3 text-ink-3">
-                Built into Claude Code — triggers and active <code className="mono bg-surface-1 px-1.5 py-px rounded">/loop</code> sessions managed by the harness, not by Pulse. Pulse polls every 60s.
+                Built into Claude Code — triggers and active <code className="mono text-ink-2">/loop</code> sessions managed by the harness, not by Pulse. Pulse polls every 60s.
               </div>
               {(() => {
                 const ccTasks = tasksData?.tasks.filter((t) => t.source === "claude-code") ?? [];
                 if (ccTasks.length === 0) {
                   return (
                     <div className="text-[13px] text-ink-3">
-                      No Claude Code triggers or loops detected. <span className="muted">(Pulse polls <code className="mono">claude triggers list</code> every 60s.)</span>
+                      No Claude Code triggers or loops detected. <span>(Pulse polls <code className="mono">claude triggers list</code> every 60s.)</span>
                     </div>
                   );
                 }
@@ -580,27 +543,16 @@ export default function AssistantPage() {
                     {ccTasks.map((task, i) => {
                       const isLoop = detectLoop(task);
                       return (
-                        <div key={i} className="flex items-center gap-4 px-4 py-3 rounded-md">
-                          {isLoop ? (
-                            <Repeat className="w-5 h-5 shrink-0" style={{ color: "var(--freedom)" }} />
-                          ) : (
-                            <Terminal className="w-5 h-5 shrink-0" style={{ color: "var(--freedom)" }} />
-                          )}
+                        <div key={i} className="flex items-center gap-4 px-4 py-3">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm truncate text-ink-1">{task.name}</span>
-                              <Pill dim="freedom" className={TAG_CLS} title="Source: Claude Code harness">Claude Code</Pill>
-                              {isLoop && (
-                                <Pill dim="creative" className={TAG_CLS} title="Active /loop session">Loop</Pill>
-                              )}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                              <span className="text-sm break-words text-ink-1">{task.name}</span>
+                              <Pill title="Source: Claude Code harness">Claude Code</Pill>
+                              {isLoop && <Pill title="Active /loop session">Loop</Pill>}
                             </div>
-                            <div className="text-xs mono muted">{task.schedule}</div>
+                            <div className="text-xs mono text-ink-3">{task.schedule}</div>
                           </div>
-                          <span
-                            className={`text-[13px] font-medium tracking-wider uppercase ${statusClass[task.status] ?? "flat-muted"}`}
-                          >
-                            {task.status}
-                          </span>
+                          <Pill dim={statusDim[task.status] ?? "neutral"} className="shrink-0">{task.status}</Pill>
                         </div>
                       );
                     })}
@@ -613,12 +565,10 @@ export default function AssistantPage() {
             {scheduleTab === "pulse" && (
             <Section
               title="Pulse Cron Jobs · LifeOS"
-              icon={Zap}
-              dimension="rhythms"
               action={
                 <div className="flex items-center gap-3">
                   {cronData && (
-                    <span className="text-xs mono muted">
+                    <span className="text-xs mono text-ink-3">
                       {cronData.counts.enabled}/{cronData.counts.total} enabled
                       {" · "}
                       {cronData.counts.system} sys / {cronData.counts.user} user
@@ -626,46 +576,42 @@ export default function AssistantPage() {
                   )}
                   <button
                     onClick={() => setShowAddCron(!showAddCron)}
-                    className="flex items-center gap-1.5 text-sm"
-                    style={{ color: "var(--rhythms)" }}
+                    className={`flex items-center gap-1.5 ${BTN_CLS}`}
                   >
-                    <Plus className="w-4 h-4" /> Add
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} /> Add
                   </button>
                 </div>
               }
             >
               <div className="text-xs mono mb-1 space-y-0.5 text-ink-2">
                 <div>~/.claude/LIFEOS/PULSE/PULSE.toml <span className="text-ink-3">(system · ships with LifeOS, never written by this UI)</span></div>
-                <div>~/.claude/LIFEOS/USER/CONFIG/PULSE.user.toml <span style={{ color: "var(--creative)" }}>(user · all edits/deletes from this UI write here)</span></div>
+                <div>~/.claude/LIFEOS/USER/CONFIG/PULSE.user.toml <span className="text-ink-3">(user · all edits/deletes from this UI write here)</span></div>
               </div>
               <div className="text-xs mb-3 text-ink-3">
                 LifeOS&apos;s scheduling system — runs inside Pulse on this machine. Click any row to see full detail and edit interval / command / output.
               </div>
               {showAddCron && (
-                <div className="mb-5 p-4 rounded-md space-y-3 bg-surface-1 border border-line-1">
+                <div className="mb-5 p-4 rounded-[10px] space-y-3 border border-line-2">
                   <input
                     placeholder='name (e.g. "my-monitor")'
                     value={newCronName}
                     onChange={(e) => setNewCronName(e.target.value)}
-                    className="w-full text-sm rounded px-4 py-2 mono bg-ground border border-line-1 text-ink-1"
+                    className={INPUT_CLS}
                   />
                   <input
                     placeholder="cron schedule (5 fields, e.g. */5 * * * *)"
                     value={newCronSchedule}
                     onChange={(e) => setNewCronSchedule(e.target.value)}
-                    className="w-full text-sm rounded px-4 py-2 mono bg-ground border border-line-1 text-ink-1"
+                    className={INPUT_CLS}
                   />
                   <input
                     placeholder='shell command (e.g. "bun run checks/foo.ts")'
                     value={newCronCommand}
                     onChange={(e) => setNewCronCommand(e.target.value)}
-                    className="w-full text-sm rounded px-4 py-2 mono bg-ground border border-line-1 text-ink-1"
+                    className={INPUT_CLS}
                   />
                   <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => setShowAddCron(false)}
-                      className="text-sm px-4 py-2 rounded bg-transparent text-ink-2"
-                    >
+                    <button onClick={() => setShowAddCron(false)} className={BTN_CLS}>
                       Cancel
                     </button>
                     <button
@@ -680,15 +626,14 @@ export default function AssistantPage() {
                           enabled: true,
                         });
                       }}
-                      className="text-sm px-3.5 py-1.5 rounded-full font-medium cursor-pointer"
-                      style={dimStyle("rhythms", true)}
+                      className={BTN_PRIMARY_CLS}
                     >
                       Create
                     </button>
                   </div>
                   {createCron.isError && (
-                    <div className="text-xs text-err">
-                      {(createCron.error as Error)?.message ?? "Create failed"}
+                    <div className="text-xs text-ink-1 flex items-center gap-2">
+                      <Marker dim="err" /> {(createCron.error as Error)?.message ?? "Create failed"}
                     </div>
                   )}
                 </div>
@@ -715,11 +660,10 @@ export default function AssistantPage() {
                       return (
                         <div
                           key={job.name}
-                          className={`rounded-md group border ${isOpen ? "bg-surface-1 border-line-1" : "border-transparent"}`}
-                          style={{ transition: "background 180ms" }}
+                          className={`rounded-[10px] group border ${isOpen ? "border-line-3" : "border-transparent"}`}
                         >
                           <div
-                            className="flex items-center gap-4 px-4 py-3 cursor-pointer rounded-md transition-colors hover:bg-surface-1"
+                            className="flex items-center gap-4 px-4 py-3 cursor-pointer rounded-[10px] transition-colors hover:bg-surface-3"
                             onClick={() => (isOpen ? closeExpand() : openExpand(job))}
                           >
                             <button
@@ -728,22 +672,21 @@ export default function AssistantPage() {
                               className="shrink-0"
                               style={{
                                 width: 36, height: 18, borderRadius: 9,
-                                background: job.enabled ? "var(--rhythms)" : "var(--line-1)",
+                                background: job.enabled ? "var(--primary-soft)" : "transparent",
                                 border: "1px solid",
-                                borderColor: job.enabled ? "var(--rhythms)" : "var(--line-3)",
+                                borderColor: job.enabled ? "var(--accent-blue)" : "var(--line-3)",
                                 position: "relative", cursor: "pointer", transition: "background 180ms",
                               }}
                             >
-                              <span style={{ position: "absolute", top: 1, left: job.enabled ? 19 : 1, width: 14, height: 14, borderRadius: "50%", background: "var(--ink-1)", transition: "left 180ms" }} />
+                              <span style={{ position: "absolute", top: 1, left: job.enabled ? 19 : 1, width: 14, height: 14, borderRadius: "50%", background: job.enabled ? "var(--ink-1)" : "var(--ink-3)", transition: "left 180ms" }} />
                             </button>
-                            <Zap className="w-4 h-4 shrink-0" style={{ color: job.enabled ? "var(--rhythms)" : "var(--ink-3)" }} />
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-sm truncate ${job.enabled ? "text-ink-1" : "text-ink-3"}`}>{job.name}</span>
-                                <Pill dim={job.source === "user" ? "creative" : "neutral"} className={TAG_CLS}>{job.source}</Pill>
-                                <Pill dim="rhythms" className={TAG_CLS} title={job.type === "claude" ? "Runs as claude subprocess" : "Shell command"}>{job.type}</Pill>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span className={`text-sm break-words ${job.enabled ? "text-ink-1" : "text-ink-3"}`}>{job.name}</span>
+                                <Pill>{job.source}</Pill>
+                                <Pill title={job.type === "claude" ? "Runs as claude subprocess" : "Shell command"}>{job.type}</Pill>
                               </div>
-                              <div className="text-xs mono muted truncate" style={{ marginTop: 2 }}>
+                              <div className="text-xs mono text-ink-3 break-all" style={{ marginTop: 2 }}>
                                 {job.schedule}
                                 {job.command && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {job.command}</span>}
                                 {!job.command && job.prompt && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {job.prompt.slice(0, 80)}{job.prompt.length > 80 ? "…" : ""}</span>}
@@ -760,51 +703,51 @@ export default function AssistantPage() {
                                   : `Delete user job "${job.name}"?`;
                                 if (confirm(msg)) deleteCron.mutate(job.name);
                               }}
-                              className="opacity-0 group-hover:opacity-100 transition-all shrink-0 text-ink-3 hover:text-err"
+                              className="opacity-0 group-hover:opacity-100 transition-all shrink-0 text-ink-3 hover:text-ink-1"
                               title={job.source === "system" ? "Disable via override" : "Delete from user file"}
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
                             </button>
                             <span className="shrink-0 text-ink-3">
-                              {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              {isOpen ? <ChevronDown className="w-4 h-4" strokeWidth={1.5} /> : <ChevronRight className="w-4 h-4" strokeWidth={1.5} />}
                             </span>
                           </div>
 
                           {isOpen && (
-                            <div className="px-12 pb-4 pt-1 space-y-3" style={{ borderTop: "1px solid var(--line-1)" }}>
-                              <div className="grid grid-cols-[120px_1fr] gap-3 items-center pt-3">
-                                <label className="text-[13px] uppercase tracking-wider text-ink-3">Schedule</label>
+                            <div className="px-4 sm:px-12 pb-4 pt-1 space-y-3 border-t border-line-1">
+                              <div className="grid grid-cols-[88px_1fr] sm:grid-cols-[120px_1fr] gap-3 items-center pt-3">
+                                <label className="label-caps">Schedule</label>
                                 <input
                                   value={(buf.schedule as string) ?? job.schedule}
                                   onChange={(e) => setEditBuffer((b) => ({ ...b, schedule: e.target.value }))}
                                   placeholder="* * * * *"
-                                  className="text-sm rounded px-3 py-1.5 mono w-full bg-ground border border-line-1 text-ink-1"
+                                  className={INPUT_CLS}
                                 />
 
                                 {bufType === "script" ? (
                                   <>
-                                    <label className="text-[13px] uppercase tracking-wider text-ink-3">Command</label>
+                                    <label className="label-caps">Command</label>
                                     <input
                                       value={(buf.command as string) ?? job.command ?? ""}
                                       onChange={(e) => setEditBuffer((b) => ({ ...b, command: e.target.value }))}
-                                      className="text-sm rounded px-3 py-1.5 mono w-full bg-ground border border-line-1 text-ink-1"
+                                      className={INPUT_CLS}
                                     />
                                   </>
                                 ) : (
                                   <>
-                                    <label className="text-xs uppercase tracking-wider self-start pt-1 text-ink-3">Prompt</label>
+                                    <label className="label-caps self-start pt-2">Prompt</label>
                                     <textarea
                                       value={(buf.prompt as string) ?? job.prompt ?? ""}
                                       onChange={(e) => setEditBuffer((b) => ({ ...b, prompt: e.target.value }))}
                                       rows={4}
-                                      className="text-sm rounded px-3 py-1.5 mono w-full bg-ground border border-line-1 text-ink-1"
+                                      className={INPUT_CLS}
                                       style={{ resize: "vertical" }}
                                     />
-                                    <label className="text-[13px] uppercase tracking-wider text-ink-3">Model</label>
+                                    <label className="label-caps">Model</label>
                                     <select
                                       value={(buf.model as string) ?? job.model ?? ""}
                                       onChange={(e) => setEditBuffer((b) => ({ ...b, model: e.target.value || null }))}
-                                      className="text-sm rounded px-3 py-1.5 mono w-full bg-ground border border-line-1 text-ink-1"
+                                      className={INPUT_CLS}
                                     >
                                       <option value="">(default)</option>
                                       <option value="haiku">haiku</option>
@@ -814,7 +757,7 @@ export default function AssistantPage() {
                                   </>
                                 )}
 
-                                <label className="text-xs uppercase tracking-wider self-start pt-1 text-ink-3">Output</label>
+                                <label className="label-caps self-start pt-2">Output</label>
                                 <div className="flex flex-wrap gap-2">
                                   {(["log", "voice", "ntfy", "email"] as const).map((opt) => {
                                     const active = bufOutputs.includes(opt);
@@ -833,8 +776,7 @@ export default function AssistantPage() {
                                             return { ...b, output: next as string | string[] };
                                           });
                                         }}
-                                        className={`text-xs mono px-2.5 py-1 rounded uppercase tracking-wider ${active ? "" : "bg-surface-1 text-ink-2 border border-line-1"}`}
-                                        style={active ? dimStyle("rhythms", true) : undefined}
+                                        className={`mono text-[10px] px-2.5 py-1 rounded-[10px] uppercase tracking-[0.16em] border transition-colors ${active ? "text-ink-1 border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)]" : "text-ink-2 border-line-2 hover:text-ink-1"}`}
                                       >
                                         {opt}
                                       </button>
@@ -843,18 +785,19 @@ export default function AssistantPage() {
                                 </div>
                               </div>
 
-                              {editError && <div className="text-xs text-err">{editError}</div>}
+                              {editError && (
+                                <div className="text-xs text-ink-1 flex items-center gap-2">
+                                  <Marker dim="err" /> {editError}
+                                </div>
+                              )}
 
-                              <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid var(--line-1)" }}>
+                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-line-1">
                                 <div className="text-xs mono text-ink-3">
-                                  source: <span style={{ color: job.source === "user" ? "var(--creative)" : "var(--ink-2)" }}>{job.source}</span>
+                                  source: <span className="text-ink-2">{job.source}</span>
                                   {" · "}type: <span className="text-ink-1">{job.type}</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <button
-                                    onClick={closeExpand}
-                                    className="text-sm px-3 py-1 rounded bg-transparent text-ink-2 border border-line-1"
-                                  >
+                                  <button onClick={closeExpand} className={BTN_CLS}>
                                     Cancel
                                   </button>
                                   <button
@@ -871,8 +814,7 @@ export default function AssistantPage() {
                                       if (Object.keys(patch).length === 0) { closeExpand(); return; }
                                       patchCron.mutate({ name: job.name, patch }, { onSuccess: () => closeExpand() });
                                     }}
-                                    className="text-sm px-3.5 py-1 rounded-full font-medium cursor-pointer"
-                                    style={dimStyle("rhythms", true)}
+                                    className={BTN_PRIMARY_CLS}
                                     disabled={patchCron.isPending}
                                   >
                                     {patchCron.isPending ? "Saving…" : "Save"}
@@ -894,8 +836,8 @@ export default function AssistantPage() {
                 const start = safePage * CRON_PAGE_SIZE;
                 const end = Math.min(start + CRON_PAGE_SIZE, cronData.jobs.length);
                 return (
-                  <div className="mt-3 flex items-center justify-between text-xs pt-2" style={{ borderTop: "1px solid var(--line-1)" }}>
-                    <span className="mono muted">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs pt-2 border-t border-line-1">
+                    <span className="mono text-ink-3">
                       Showing <span className="text-ink-1">{start + 1}–{end}</span> of <span className="text-ink-1">{cronData.jobs.length}</span>
                     </span>
                     <div className="flex items-center gap-2">
@@ -903,24 +845,18 @@ export default function AssistantPage() {
                         type="button"
                         onClick={() => { closeExpand(); setCronPage((p) => Math.max(0, p - 1)); }}
                         disabled={safePage === 0}
-                        className="text-xs px-3 py-1 rounded mono border border-line-1"
-                        style={safePage === 0
-                          ? { background: "transparent", color: "var(--ink-3)", cursor: "not-allowed" }
-                          : { background: "var(--surface-1)", color: "var(--rhythms)", cursor: "pointer" }}
+                        className={`mono ${BTN_CLS}`}
                       >
                         ← Prev
                       </button>
-                      <span className="mono muted">
+                      <span className="mono text-ink-3">
                         Page <span className="text-ink-1">{safePage + 1}</span> / {pageCount}
                       </span>
                       <button
                         type="button"
                         onClick={() => { closeExpand(); setCronPage((p) => Math.min(pageCount - 1, p + 1)); }}
                         disabled={safePage >= pageCount - 1}
-                        className="text-xs px-3 py-1 rounded mono border border-line-1"
-                        style={safePage >= pageCount - 1
-                          ? { background: "transparent", color: "var(--ink-3)", cursor: "not-allowed" }
-                          : { background: "var(--surface-1)", color: "var(--rhythms)", cursor: "pointer" }}
+                        className={`mono ${BTN_CLS}`}
                       >
                         Next →
                       </button>
@@ -937,19 +873,18 @@ export default function AssistantPage() {
         {/* PERSONALITY TAB */}
         {activeTab === "personality" && personality && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Section title="Personality Traits" icon={Brain} dimension="creative">
+            <Section title="Personality Traits">
               {personality.base_description && (
                 <p className="mb-5 leading-relaxed text-sm text-ink-1">
                   {personality.base_description}
                 </p>
               )}
               <div className="space-y-3">
-                {Object.entries(personality.traits).map(([name, value], index) => (
+                {Object.entries(personality.traits).map(([name, value]) => (
                   <TraitBar
                     key={name}
                     name={name}
                     value={value as number}
-                    color={dimColors[traitDimensions[index % traitDimensions.length]]}
                     onEdit={(v) => updateTrait.mutate({ [name]: v })}
                   />
                 ))}
@@ -957,22 +892,22 @@ export default function AssistantPage() {
             </Section>
 
             <div className="space-y-6">
-              <Section title="What I Love" icon={Heart} dimension="money">
+              <Section title="What I Love">
                 <ul className="space-y-2">
                   {personality.preferences.what_i_love.map((item, i) => (
                     <li key={i} className="leading-relaxed flex gap-2 text-sm text-ink-1">
-                      <span className="shrink-0 mt-0.5 green-up">+</span>
+                      <span className="shrink-0 mono text-ink-3">+</span>
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               </Section>
 
-              <Section title="What I Dislike" dimension="money">
+              <Section title="What I Dislike">
                 <ul className="space-y-2">
                   {personality.preferences.what_i_dislike.map((item, i) => (
                     <li key={i} className="leading-relaxed flex gap-2 text-sm text-ink-1">
-                      <span className="shrink-0 mt-0.5 coral-down">-</span>
+                      <span className="shrink-0 mono text-ink-3">-</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -981,11 +916,11 @@ export default function AssistantPage() {
             </div>
 
             {personality.anchors.length > 0 && (
-              <Section title="Key Moments" dimension="relationships">
+              <Section title="Key Moments">
                 <div className="space-y-4">
                   {personality.anchors.map((anchor, i) => (
                     <div key={i}>
-                      <div className="text-sm font-medium" style={{ color: "var(--relationships)" }}>{anchor.name}</div>
+                      <div className="text-sm font-medium text-ink-1">{anchor.name}</div>
                       <div className="text-sm mt-1 text-ink-2">{anchor.description}</div>
                     </div>
                   ))}
@@ -994,29 +929,26 @@ export default function AssistantPage() {
             )}
 
             {personality.companion && (
-              <Section title="Companion" dimension="relationships">
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl">🐱</div>
-                  <div>
-                    <div className="text-base font-medium text-ink-1">{personality.companion.name}</div>
-                    <div className="text-sm text-ink-2">
-                      {personality.companion.species} — {personality.companion.personality}
-                    </div>
+              <Section title="Companion">
+                <div>
+                  <div className="text-base font-medium text-ink-1">{personality.companion.name}</div>
+                  <div className="text-sm text-ink-2">
+                    {personality.companion.species} — {personality.companion.personality}
                   </div>
                 </div>
               </Section>
             )}
 
-            <Section title="Autonomy" icon={Shield} dimension="freedom">
+            <Section title="Autonomy">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <div className="text-xs tracking-wider uppercase mb-2 green-up">Can Initiate</div>
+                  <div className="label-caps mb-2">Can Initiate</div>
                   {personality.autonomy.can_initiate.map((item, i) => (
                     <div key={i} className="py-1 text-sm text-ink-1">{item.replace(/_/g, " ")}</div>
                   ))}
                 </div>
                 <div>
-                  <div className="text-xs tracking-wider uppercase mb-2" style={{ color: "var(--money)" }}>Must Ask</div>
+                  <div className="label-caps mb-2">Must Ask</div>
                   {personality.autonomy.must_ask.map((item, i) => (
                     <div key={i} className="py-1 text-sm text-ink-1">{item.replace(/_/g, " ")}</div>
                   ))}
@@ -1024,7 +956,7 @@ export default function AssistantPage() {
               </div>
             </Section>
 
-            <Section title="Formed Opinions" dimension="creative">
+            <Section title="Formed Opinions">
               {!opinionsData?.raw ? (
                 <div className="text-sm text-ink-3">No opinions yet</div>
               ) : (
@@ -1037,7 +969,7 @@ export default function AssistantPage() {
                       <div key={i} className="flex items-start gap-3">
                         <div
                           className="w-2 h-2 rounded-full mt-2 shrink-0"
-                          style={{ backgroundColor: `rgba(249, 115, 22, ${Math.max(0.2, confidence)})` }}
+                          style={{ backgroundColor: "var(--accent-blue)", opacity: Math.max(0.2, confidence) }}
                         />
                         <div className="min-w-0 flex-1">
                           <div className="text-sm text-ink-1">{topic}</div>
@@ -1061,7 +993,7 @@ export default function AssistantPage() {
 
         {/* DIARY TAB */}
         {activeTab === "diary" && (
-          <Section title="Diary Entries" dimension="rhythms">
+          <Section title="Diary Entries">
             {!diaryData || diaryData.entries.length === 0 ? (
               <div className="text-sm text-ink-3">No diary entries</div>
             ) : (
@@ -1069,22 +1001,20 @@ export default function AssistantPage() {
                 {diaryData.entries.slice().reverse().map((entry) => (
                   <div
                     key={entry.date}
-                    className="p-4 rounded-md space-y-3 bg-surface-1 border border-line-1"
+                    className="p-4 rounded-[10px] space-y-3 border border-line-2"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="mono text-ink-1" style={{ fontSize: 15 }}>{entry.date}</span>
-                      <div className="flex items-center gap-4 text-sm text-ink-2">
+                      <div className="flex items-center gap-4 mono text-xs text-ink-2">
                         <span>{entry.interaction_count} sessions</span>
-                        <span className={entry.mood === "positive" ? "green-up" : entry.mood === "frustrated" ? "coral-down" : "flat-muted"}>
-                          {entry.mood}
-                        </span>
+                        <span>{entry.mood}</span>
                         <span>{entry.avg_rating}/10</span>
                       </div>
                     </div>
                     {entry.topics.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
                         {entry.topics.map((topic, i) => (
-                          <Pill key={i} dim="rhythms">{topic}</Pill>
+                          <Pill key={i}>{topic}</Pill>
                         ))}
                       </div>
                     )}
@@ -1092,10 +1022,7 @@ export default function AssistantPage() {
                       <div key={i} className="text-sm text-ink-1">{moment}</div>
                     ))}
                     {entry.learning && (
-                      <div
-                        className="text-sm italic pl-3 text-ink-2"
-                        style={{ borderLeft: "2px solid rgba(63,178,201,0.4)" }}
-                      >
+                      <div className="text-sm pl-3 text-ink-2 border-l border-line-3">
                         {entry.learning}
                       </div>
                     )}
@@ -1108,26 +1035,25 @@ export default function AssistantPage() {
 
         {/* Identity Card — schedules lead the page; identity lives down here */}
         {identity && (
-          <Panel className="flex flex-row items-center gap-6">
+          <Panel className="flex flex-row flex-wrap items-center gap-6">
             {identity.has_avatar ? (
               <img
                 src="/assistant/avatar"
                 alt={identity.display_name}
-                className="w-20 h-20 rounded-full object-cover"
-                style={{ border: "2px solid var(--creative)" }}
+                className="w-20 h-20 rounded-full object-cover shrink-0 border border-line-3"
               />
             ) : (
               <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shrink-0"
-                style={{ backgroundColor: "rgba(249,115,22,0.14)", color: "var(--creative)" }}
+                className="w-20 h-20 rounded-full flex items-center justify-center shrink-0 border border-line-3 text-ink-1"
+                style={{ font: "500 30px/1 var(--font-display)" }}
               >
                 {identity.display_name.charAt(0)}
               </div>
             )}
-            <div className="flex-1 min-w-0" data-sensitive>
+            <div className="flex-1 min-w-[12rem]" data-sensitive>
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-ink-1 font-medium" style={{ fontSize: 20 }}>{identity.full_name}</h2>
-                <Pill dim="creative" className="tracking-wide font-semibold">{identity.display_name}</Pill>
+                <Pill>{identity.display_name}</Pill>
               </div>
               <p className="mt-1 text-sm text-ink-1">{identity.role}</p>
               {identity.origin_story && (
@@ -1135,10 +1061,7 @@ export default function AssistantPage() {
               )}
             </div>
             <div className="text-right text-sm space-y-1.5 shrink-0 text-ink-2">
-              <div className="flex items-center gap-2 justify-end">
-                <Clock className="w-4 h-4" style={{ color: "var(--creative)" }} />
-                <span>Up {formatUptime(identity.uptime_ms)}</span>
-              </div>
+              <div className="mono text-xs">Up {formatUptime(identity.uptime_ms)}</div>
               <div>Principal: <span className="text-ink-1">{identity.principal}</span></div>
               <div>{health?.opinions_count ?? 0} opinions formed</div>
             </div>

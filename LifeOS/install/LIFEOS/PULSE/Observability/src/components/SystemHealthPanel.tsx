@@ -5,13 +5,13 @@
  * capability manifest + heartbeat written by LIFEOS/TOOLS/Doctor.ts, plus the
  * hook reconciler. DIAGNOSTIC REGISTER ONLY: no scores, no percentages, no
  * meters. Declined renders calm ("off (declined)"), never red. A dead checker
- * (heartbeat > 7 days) is rendered loud/red, because a silent checker hides
+ * (heartbeat > 7 days) carries the error key, because a silent checker hides
  * every regression behind it.
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { Stethoscope, Wrench } from "lucide-react";
-import { Panel, PanelHeader } from "@/components/ui/chrome";
+import { Wrench } from "lucide-react";
+import { Marker, Panel, PanelHeader, type Dim } from "@/components/ui/chrome";
 
 type CapState = "live" | "broken" | "declined" | "stale";
 
@@ -37,14 +37,19 @@ interface DoctorData {
   reconcile: { unwired: string[]; missing: string[]; note: string };
 }
 
-// state → { glyph, color, label }. Stale (a live entry past its TTL) reads as a
-// calm hollow marker, not an error. Declined is calm and never red.
-function stateFace(cap: Capability): { glyph: string; color: string; label: string } {
-  if (cap.state === "declined") return { glyph: "⏸", color: "var(--ink-3)", label: "off (declined)" };
-  if (cap.state === "broken") return { glyph: "❌", color: "var(--err)", label: "broken" };
-  if (cap.stale) return { glyph: "◌", color: "var(--ink-3)", label: "stale — re-run doctor" };
-  if (cap.state === "live") return { glyph: "✅", color: "var(--ok)", label: "live" };
-  return { glyph: "◌", color: "var(--ink-3)", label: "stale — re-run doctor" };
+// state → { dim, hollow, label }. Stale (a live entry past its TTL) reads as a
+// calm dashed key, not an error. Declined is calm and never red.
+function stateFace(cap: Capability): { dim: Dim; hollow: boolean; label: string } {
+  if (cap.state === "declined") return { dim: "neutral", hollow: false, label: "off (declined)" };
+  if (cap.state === "broken") return { dim: "err", hollow: false, label: "broken" };
+  if (cap.stale) return { dim: "neutral", hollow: true, label: "stale — re-run doctor" };
+  if (cap.state === "live") return { dim: "ok", hollow: false, label: "live" };
+  return { dim: "neutral", hollow: true, label: "stale — re-run doctor" };
+}
+
+function StateKey({ dim, hollow }: { dim: Dim; hollow: boolean }) {
+  if (hollow) return <span aria-hidden className="fig-key is-plan" style={{ color: "var(--ink-3)" }} />;
+  return <Marker dim={dim} />;
 }
 
 function humanizeAge(ms: number | null): string {
@@ -72,10 +77,8 @@ export default function SystemHealthPanel() {
   if (isError) {
     return (
       <Panel>
-        <PanelHeader title="System Health" icon={Stethoscope} />
-        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-          Doctor surface unavailable.
-        </p>
+        <PanelHeader title="System Health" />
+        <p className="text-[13px] text-ink-3">Doctor surface unavailable.</p>
       </Panel>
     );
   }
@@ -83,10 +86,8 @@ export default function SystemHealthPanel() {
   if (!data) {
     return (
       <Panel>
-        <PanelHeader title="System Health" icon={Stethoscope} />
-        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-          Loading…
-        </p>
+        <PanelHeader title="System Health" />
+        <p className="text-[13px] text-ink-3">Loading…</p>
       </Panel>
     );
   }
@@ -99,10 +100,10 @@ export default function SystemHealthPanel() {
     <Panel>
       <PanelHeader
         title="System Health"
-        icon={Stethoscope}
         meta={
           heartbeat.present ? (
-            <span style={{ color: hbRed ? "var(--err)" : "var(--ink-3)" }}>
+            <span className={`inline-flex items-center gap-2 ${hbRed ? "text-ink-1" : "text-ink-3"}`}>
+              {hbRed && <Marker dim="err" />}
               doctor last ran {hbAge}
               {heartbeat.network ? " · network" : ""}
               {hbRed ? " — checker may be dead" : ""}
@@ -113,20 +114,17 @@ export default function SystemHealthPanel() {
 
       {/* Heartbeat absent — no doctor run yet */}
       {!heartbeat.present && (
-        <p className="mb-4 text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--warn)" }}>
+        <p className="mb-4 flex items-start gap-2 text-[13px] text-ink-2">
+          <span className="mt-1.5 flex shrink-0"><Marker dim="warn" /></span>
           {heartbeat.hint}
         </p>
       )}
 
       {/* Capabilities */}
       {!manifest.present ? (
-        <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ink-3)" }}>
-          {manifest.hint}
-        </p>
+        <p className="text-[13px] text-ink-3">{manifest.hint}</p>
       ) : manifest.capabilities.length === 0 ? (
-        <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ink-3)" }}>
-          No capabilities probed yet — bun LIFEOS/TOOLS/Doctor.ts
-        </p>
+        <p className="text-[13px] text-ink-3">No capabilities probed yet — bun LIFEOS/TOOLS/Doctor.ts</p>
       ) : (
         <div className="flex flex-col gap-2">
           {manifest.capabilities.map((cap) => {
@@ -134,31 +132,28 @@ export default function SystemHealthPanel() {
             return (
               <div
                 key={cap.id}
-                className="flex items-start gap-3 rounded-lg px-3 py-2 bg-surface-3/40 border border-line-2"
+                className="flex items-start gap-3 rounded-[10px] px-3 py-2.5 border border-line-2"
               >
-                <span className="text-[15px] leading-5 shrink-0" style={{ color: face.color }} aria-hidden>
-                  {face.glyph}
+                <span className="mt-1.5 flex shrink-0">
+                  <StateKey dim={face.dim} hollow={face.hollow} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-[13px] leading-snug text-ink-1 flex-1 min-w-0 truncate"
-                      style={{ fontFamily: "'Albert Sans', sans-serif" }}
-                    >
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                    <span className="text-[13px] leading-snug text-ink-1 flex-1 min-w-0 break-words">
                       {cap.title}
                     </span>
-                    <span className="text-[12px] leading-snug shrink-0 ml-auto" style={{ color: face.color }}>
+                    <span className="mono text-[10px] uppercase tracking-[0.1em] leading-snug text-ink-2 shrink-0 ml-auto">
                       {face.label}
                     </span>
                   </div>
                   {cap.state !== "declined" && cap.detail && (
-                    <div className="text-[12px] leading-snug text-ink-3 mt-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+                    <div className="text-[12px] leading-snug text-ink-3 mt-1">
                       {cap.detail}
                     </div>
                   )}
                   {cap.state === "broken" && cap.fixCmd && (
                     <div className="flex items-start gap-1.5 mt-1">
-                      <Wrench className="w-3 h-3 shrink-0 mt-0.5 text-ink-3" />
+                      <Wrench className="w-3 h-3 shrink-0 mt-0.5 text-ink-3" strokeWidth={1.5} />
                       <code className="text-[12px] mono text-ink-2 break-all">{cap.fixCmd}</code>
                     </div>
                   )}
@@ -171,26 +166,23 @@ export default function SystemHealthPanel() {
 
       {/* Hook reconciliation */}
       <div className="mt-4 pt-3 border-t border-line-2">
-        <div
-          className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3 mb-2"
-          style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
-        >
-          Hook reconciliation
-        </div>
+        <div className="label-caps mb-2">Hook reconciliation</div>
         {reconcile.unwired.length === 0 && reconcile.missing.length === 0 ? (
-          <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ok)" }}>
-            ✅ hooks fully reconciled — every declared hook is registered
+          <p className="flex items-center gap-2 text-[13px] text-ink-2">
+            <Marker dim="ok" />
+            hooks fully reconciled — every declared hook is registered
           </p>
         ) : (
           <div className="flex flex-col gap-2">
             {reconcile.unwired.length > 0 && (
               <div>
-                <span className="text-[12px]" style={{ color: "var(--warn)" }}>
+                <span className="flex items-center gap-2 text-[12px] text-ink-2">
+                  <Marker dim="warn" />
                   declared on disk but not registered ({reconcile.unwired.length}):
                 </span>
-                <div className="flex flex-wrap gap-1.5 mt-1">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                   {reconcile.unwired.map((f) => (
-                    <code key={f} className="text-[12px] mono text-ink-2 px-1.5 py-0.5 rounded bg-surface-3/60 border border-line-2">
+                    <code key={f} className="text-[12px] mono text-ink-2 break-all">
                       {f}
                     </code>
                   ))}
@@ -199,12 +191,13 @@ export default function SystemHealthPanel() {
             )}
             {reconcile.missing.length > 0 && (
               <div>
-                <span className="text-[12px]" style={{ color: "var(--err)" }}>
+                <span className="flex items-center gap-2 text-[12px] text-ink-2">
+                  <Marker dim="err" />
                   registered but missing from disk ({reconcile.missing.length}):
                 </span>
-                <div className="flex flex-wrap gap-1.5 mt-1">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                   {reconcile.missing.map((f) => (
-                    <code key={f} className="text-[12px] mono text-ink-2 px-1.5 py-0.5 rounded bg-surface-3/60 border border-line-2">
+                    <code key={f} className="text-[12px] mono text-ink-2 break-all">
                       {f}
                     </code>
                   ))}

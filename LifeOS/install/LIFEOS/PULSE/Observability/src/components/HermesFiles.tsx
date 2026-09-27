@@ -21,8 +21,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { localApiCall } from "@/lib/local-api";
 import { Panel, PanelHeader, Pill } from "@/components/ui/chrome";
 import {
-  FileText, Lock, RefreshCw, Save, X, ChevronRight, ChevronDown,
-  Cpu, User, Boxes, AlertTriangle, Check,
+  Lock, RefreshCw, Save, X, ChevronRight, ChevronDown, AlertTriangle,
 } from "lucide-react";
 
 // ── Types (mirror modules/hermes.ts) ──
@@ -105,7 +104,6 @@ function GuardFrictionPanel() {
     <Panel>
       <PanelHeader
         title="Guard friction"
-        icon={AlertTriangle}
         meta={<span className="whitespace-nowrap">{data.totalBlocks} blocks · {data.windowDays}d</span>}
       />
       <div className="text-[12px] text-ink-3 mb-3">
@@ -122,32 +120,54 @@ function GuardFrictionPanel() {
       </div>
 
       {data.byDay.length > 1 && (
-        <div className="flex items-end gap-[3px] h-16 mb-4">
-          {data.byDay.map((d) => (
-            <div key={d.day} className="flex-1 flex flex-col justify-end" title={`${d.day}: ${d.total} (${d.taint} taint)`}>
-              <div className="bg-amber-500/70 rounded-t-sm" style={{ height: `${(d.taint / maxDay) * 100}%` }} />
-              <div className="bg-line-2 rounded-b-sm" style={{ height: `${(d.other / maxDay) * 100}%` }} />
-            </div>
-          ))}
+        <div className="mb-4">
+          <div className="flex items-end gap-[3px] h-16 border-b border-line-2">
+            {data.byDay.map((d) => (
+              <div key={d.day} className="flex-1 h-full flex flex-col justify-end" title={`${d.day}: ${d.total} (${d.taint} taint)`}>
+                {d.taint > 0 && (
+                  <div
+                    style={{
+                      height: `${(d.taint / maxDay) * 100}%`,
+                      border: "1px solid var(--accent-blue)",
+                      background: "color-mix(in srgb, var(--accent-blue) 12%, transparent)",
+                    }}
+                  />
+                )}
+                {d.other > 0 && (
+                  <div style={{ height: `${(d.other / maxDay) * 100}%`, border: "1px solid var(--line-3)" }} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 mt-2 mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+            <span className="flex items-center gap-1.5">
+              <span className="fig-key" style={{ color: "var(--accent-blue)" }} aria-hidden />
+              taint
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="fig-key" aria-hidden />
+              other
+            </span>
+          </div>
         </div>
       )}
 
       {data.findings.length === 0 ? (
         <div className="flex items-center gap-2 text-[12px] text-ink-2">
-          <Check className="w-3.5 h-3.5" /> No friction findings in the window — remaining blocks look like real protection.
+          <span className="fig-key" style={{ color: "var(--ok)" }} aria-hidden /> No friction findings in the window — remaining blocks look like real protection.
         </div>
       ) : (
         <div className="space-y-2">
           {data.findings.map((f) => (
-            <div key={`${f.kind}-${f.title}`} className="p-3 rounded-md bg-surface-1 border border-line-2">
+            <div key={`${f.kind}-${f.title}`} className="p-3 rounded-[10px] border border-line-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <Pill dim={SEVERITY_DIM[f.severity] ?? "neutral"}>{f.severity}</Pill>
-                <span className="text-[12px] font-medium">{f.title}</span>
+                <span className="text-[12px] font-medium text-ink-1">{f.title}</span>
                 <span className="text-[11px] text-ink-3 mono">×{f.count}</span>
               </div>
               <div className="mt-1 text-[12px] text-ink-2">{f.detail}</div>
               <div className="mt-1 text-[12px] text-ink-3 flex items-start gap-1.5">
-                <ChevronRight className="w-3.5 h-3.5 mt-[1px] shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 mt-[1px] shrink-0" strokeWidth={1.5} />
                 <span>{f.recommendation}</span>
               </div>
             </div>
@@ -175,10 +195,10 @@ function GuardFrictionPanel() {
   );
 }
 
-const PLANE_META: Record<Plane, { title: string; icon: typeof Cpu }> = {
-  source: { title: "Source · what the soul is rendered from", icon: User },
-  runtime: { title: "Runtime · the mounted install", icon: Boxes },
-  code: { title: "Code · install-generic, ships publicly", icon: Cpu },
+const PLANE_META: Record<Plane, { title: string }> = {
+  source: { title: "Source · what the soul is rendered from" },
+  runtime: { title: "Runtime · the mounted install" },
+  code: { title: "Code · install-generic, ships publicly" },
 };
 
 const PLANE_ORDER: Plane[] = ["source", "runtime", "code"];
@@ -262,20 +282,20 @@ function FileRow({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center gap-3 py-2.5 px-1 text-left hover:bg-surface-3 rounded transition-colors"
+        className="w-full flex items-center gap-3 py-2.5 px-1 text-left hover:bg-surface-3 rounded-[10px] transition-colors"
       >
-        {open ? <ChevronDown className="w-3.5 h-3.5 text-ink-3 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-ink-3 shrink-0" />}
-        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusColor }} />
+        {open ? <ChevronDown className="w-3.5 h-3.5 text-ink-3 shrink-0" strokeWidth={1.5} /> : <ChevronRight className="w-3.5 h-3.5 text-ink-3 shrink-0" strokeWidth={1.5} />}
+        <span className="fig-key is-round" style={{ color: statusColor }} aria-hidden />
         <span className="text-[13px] mono text-ink-1 shrink-0">{file.label}</span>
         {file.sealed && (
-          <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.06em] text-ink-3 shrink-0">
-            <Lock className="w-3 h-3" /> sealed
+          <span className="flex items-center gap-1 mono text-[10px] uppercase tracking-[0.1em] text-ink-3 shrink-0">
+            <Lock className="w-3 h-3" strokeWidth={1.5} /> sealed
           </span>
         )}
         {file.generatedBy && !file.sealed && (
-          <span className="text-[10px] uppercase tracking-[0.06em] text-ink-3 shrink-0">generated</span>
+          <span className="mono text-[10px] uppercase tracking-[0.1em] text-ink-3 shrink-0">generated</span>
         )}
-        <span className="text-[12px] text-ink-3 flex-1 truncate">{file.role}</span>
+        <span className="text-[12px] text-ink-3 flex-1 min-w-0 break-words">{file.role}</span>
         <span className="text-[11px] mono text-ink-3 shrink-0 whitespace-nowrap w-14 text-right">
           {file.lines !== null ? `${file.lines} ln` : formatBytes(file.bytes)}
         </span>
@@ -284,13 +304,13 @@ function FileRow({
 
       {open && (
         <div className="pb-4 pl-7 pr-1 space-y-2">
-          <div className="text-[11px] mono text-ink-3">{file.displayPath}</div>
+          <div className="text-[11px] mono text-ink-3 break-all">{file.displayPath}</div>
 
           {!file.exists && <div className="text-[12px] text-ink-3">Not present on disk.</div>}
 
           {file.sealed && (
             <div className="text-[12px] text-ink-2 flex items-start gap-2">
-              <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--warn)" }} />
+              <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-ink-3" strokeWidth={1.5} />
               <span>
                 Credential material. Listed here so you know it exists, never read into the dashboard.
                 Edit it in a terminal.
@@ -300,7 +320,7 @@ function FileRow({
 
           {file.generatedBy && !file.sealed && (
             <div className="text-[12px] text-ink-2 flex items-start gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--warn)" }} />
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-ink-3" strokeWidth={1.5} />
               <span>
                 Written by <code className="mono">{file.generatedBy}</code>. A hand edit here lasts until the next mount.
                 {file.sourceIds.length > 0 && (
@@ -343,13 +363,14 @@ function FileRow({
                   onChange={(e) => setDraft(e.target.value)}
                   readOnly={!file.editable}
                   spellCheck={false}
-                  className="w-full mono text-[12px] leading-[1.55] p-3 rounded-md bg-surface-1 border border-line-2 text-ink-1 focus:outline-none focus:border-line-3"
+                  className="w-full mono text-[12px] leading-[1.55] p-3 rounded-[10px] bg-transparent border border-line-2 text-ink-1 focus:outline-none focus:border-[color:var(--accent-blue)]"
                   style={{ minHeight: "22rem", resize: "vertical" }}
                 />
               )}
               {error && (
-                <div className="text-[12px]" style={{ color: "var(--err)" }}>
-                  {error}
+                <div className="flex items-start gap-2 text-[12px] text-ink-1">
+                  <span className="fig-key mt-[5px]" style={{ color: "var(--err)" }} aria-hidden />
+                  <span>{error}</span>
                 </div>
               )}
               {file.editable && draft !== null && (
@@ -358,22 +379,22 @@ function FileRow({
                     type="button"
                     disabled={!dirty || save.isPending}
                     onClick={() => save.mutate(draft)}
-                    className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-md border border-line-2 hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-[10px] border border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-line-2 disabled:hover:text-ink-2"
                   >
-                    <Save className="w-3.5 h-3.5" /> {save.isPending ? "Saving…" : "Save"}
+                    <Save className="w-3.5 h-3.5" strokeWidth={1.5} /> {save.isPending ? "Saving…" : "Save"}
                   </button>
                   <button
                     type="button"
                     disabled={!dirty}
                     onClick={() => data && setDraft(data.content)}
-                    className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-md border border-line-2 hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-[10px] border border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-line-2 disabled:hover:text-ink-2"
                   >
-                    <X className="w-3.5 h-3.5" /> Revert
+                    <X className="w-3.5 h-3.5" strokeWidth={1.5} /> Revert
                   </button>
                   {dirty && <span className="text-[11px] text-ink-3">unsaved</span>}
                   {saved && (
-                    <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--ok)" }}>
-                      <Check className="w-3.5 h-3.5" /> saved · backup kept
+                    <span className="flex items-center gap-1.5 text-[11px] text-ink-2">
+                      <span className="fig-key" style={{ color: "var(--ok)" }} aria-hidden /> saved · backup kept
                     </span>
                   )}
                 </div>
@@ -429,16 +450,15 @@ export default function HermesFiles() {
       <Panel>
         <PanelHeader
           title="Mount"
-          icon={RefreshCw}
-          meta={data.hermesHome}
+          meta={<span className="break-all">{data.hermesHome}</span>}
           actions={
             <button
               type="button"
               disabled={remount.isPending || !data.health?.installed}
               onClick={() => remount.mutate()}
-              className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-md border border-line-2 hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-[10px] border border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-line-2 disabled:hover:text-ink-2"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${remount.isPending ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${remount.isPending ? "animate-spin" : ""}`} strokeWidth={1.5} />
               {remount.isPending ? "Mounting…" : "Re-mount"}
             </button>
           }
@@ -454,10 +474,10 @@ export default function HermesFiles() {
           </span>
         </div>
         {data.mount.detail && (
-          <pre className="mt-3 text-[11px] mono text-ink-3 whitespace-pre-wrap">{data.mount.detail}</pre>
+          <pre className="mt-3 text-[11px] mono text-ink-3 whitespace-pre-wrap break-words">{data.mount.detail}</pre>
         )}
         {remountResult && (
-          <pre className="mt-3 text-[11px] mono text-ink-2 whitespace-pre-wrap p-3 rounded-md bg-surface-1 border border-line-2">
+          <pre className="mt-3 text-[11px] mono text-ink-2 whitespace-pre-wrap break-words p-3 rounded-[10px] border border-line-2">
             {remountResult}
           </pre>
         )}
@@ -468,10 +488,10 @@ export default function HermesFiles() {
       {PLANE_ORDER.map((plane) => {
         const files = data.files.filter((f) => f.plane === plane);
         if (files.length === 0) return null;
-        const { title, icon } = PLANE_META[plane];
+        const { title } = PLANE_META[plane];
         return (
           <Panel key={plane}>
-            <PanelHeader title={title} icon={icon} meta={<span className="whitespace-nowrap">{files.length} files</span>} />
+            <PanelHeader title={title} meta={<span className="whitespace-nowrap">{files.length} files</span>} />
             <div className="text-[12px] text-ink-3 mb-3">{data.planes[plane]}</div>
             <div>
               {files.map((f) => (
@@ -490,8 +510,7 @@ export default function HermesFiles() {
         );
       })}
 
-      <div className="flex items-center gap-2 text-[11px] text-ink-3">
-        <FileText className="w-3.5 h-3.5" />
+      <div className="text-[11px] text-ink-3">
         Every save keeps the previous bytes under <code className="mono">LIFEOS/MEMORY/STATE/hermes-edits/</code>.
       </div>
     </div>

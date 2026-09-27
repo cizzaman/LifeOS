@@ -3,20 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { wikiPageUrl } from "@/lib/wiki-links";
 import {
-  Share2,
   ArrowRight,
   Library,
-  Table2,
   Bookmark,
-  Database,
-  GitBranch,
   CircleDot,
-  Sparkles,
-  Radio,
-  BarChart3,
-  BookOpen,
   FileText,
-  CircleCheck,
   Film,
   MessageCircle,
   ScrollText,
@@ -35,6 +26,7 @@ import {
   StatTile,
   TabBar,
   Pill,
+  Marker,
   dimStyle,
   type Dim,
   type TabSpec,
@@ -125,9 +117,9 @@ interface SynapseData {
 
 type TabId = "stream" | "stats" | "system";
 const TABS: TabSpec<TabId>[] = [
-  { id: "stream", label: "Stream", icon: Radio, dim: "money" },
-  { id: "stats", label: "Stats", icon: BarChart3, dim: "money" },
-  { id: "system", label: "System", icon: BookOpen, dim: "money" },
+  { id: "stream", label: "Stream" },
+  { id: "stats", label: "Stats" },
+  { id: "system", label: "System" },
 ];
 
 type StreamKind = "capture" | "note" | "issue";
@@ -175,13 +167,6 @@ function domainOf(url: string | null): string | null {
   }
 }
 
-// Synapse's own hue (money token) marks captures; notes ride the ok token, issues the relationships token.
-const KIND_DIM: Record<StreamKind, Dim> = {
-  capture: "money",
-  note: "ok",
-  issue: "relationships",
-};
-
 // One icon per ledger content_kind — the at-a-glance "what is this" signal.
 const CONTENT_KIND_ICON: Record<string, LucideIcon> = {
   article: FileText,
@@ -195,17 +180,17 @@ const CONTENT_KIND_ICON: Record<string, LucideIcon> = {
   other: CircleDot,
 };
 
-// routed_actions values → human labels + tint. Unknown actions prettify from snake_case.
-const ACTION_META: Record<string, { label: string; dim: Dim }> = {
-  create_knowledge_idea_entry: { label: "knowledge idea", dim: "ok" },
-  create_knowledge_research_entry: { label: "knowledge research", dim: "ok" },
-  create_work_issue: { label: "work issue", dim: "relationships" },
-  create_blog_seed: { label: "blog seed", dim: "creative" },
-  add_feed_source: { label: "feed source", dim: "freedom" },
-  send_to_newsletter_sheet: { label: "newsletter sheet", dim: "freedom" },
+// routed_actions values → human labels. Unknown actions prettify from snake_case.
+const ACTION_LABEL: Record<string, string> = {
+  create_knowledge_idea_entry: "knowledge idea",
+  create_knowledge_research_entry: "knowledge research",
+  create_work_issue: "work issue",
+  create_blog_seed: "blog seed",
+  add_feed_source: "feed source",
+  send_to_newsletter_sheet: "newsletter sheet",
 };
-function actionMeta(a: string): { label: string; dim: Dim } {
-  return ACTION_META[a] ?? { label: a.replace(/_/g, " "), dim: "neutral" };
+function actionLabel(a: string): string {
+  return ACTION_LABEL[a] ?? a.replace(/_/g, " ");
 }
 
 // Score bands: what routing considers worth acting on reads green, the middle amber, the rest muted.
@@ -214,28 +199,20 @@ function scoreDim(score: number): Dim {
 }
 
 /** The capture lifecycle as a 3-segment track: captured → graded → routed.
- *  Filled segments show how far the item got; the next segment pulses while
- *  the 30-min router hasn't picked it up yet. */
+ *  Filled segments show how far the item got. */
 function LifecycleTrack({ status, score }: { status: string; score: number | null }) {
   const stage = status === "routed" ? 3 : status === "graded" || score !== null ? 2 : 1;
-  const segs: { dim: Dim; label: string }[] = [
-    { dim: "money", label: "captured" },
-    { dim: "relationships", label: "graded" },
-    { dim: "ok", label: "routed" },
-  ];
+  const segs = ["captured", "graded", "routed"];
   return (
     <span
       className="inline-flex items-center gap-[3px] shrink-0"
-      title={`${segs[stage - 1].label} — captured → graded → routed`}
+      title={`${segs[stage - 1]} — captured → graded → routed`}
     >
-      {segs.map((s, i) => (
+      {segs.map((label, i) => (
         <span
-          key={s.label}
-          className={i === stage ? "w-3 h-[5px] rounded-full animate-pulse" : "w-3 h-[5px] rounded-full"}
-          style={{
-            background: i < stage ? `var(--${s.dim === "ok" ? "ok" : s.dim})` : "rgba(152,168,179,0.18)",
-            opacity: i < stage ? 0.9 : 1,
-          }}
+          key={label}
+          className="w-3 h-[2px]"
+          style={{ background: i < stage ? "var(--accent-blue)" : "var(--line-3)" }}
         />
       ))}
     </span>
@@ -243,15 +220,17 @@ function LifecycleTrack({ status, score }: { status: string; score: number | nul
 }
 
 // The five-stage loop, rendered as a horizontal flow with live counts.
-function FlowStage({ name, desc, count, dim }: { name: string; desc: string; count?: string; dim: Dim }) {
+function FlowStage({ name, desc, count }: { name: string; desc: string; count?: string }) {
   return (
-    <div className="flex-1 min-w-[150px] rounded-lg p-3" style={dimStyle(dim, true)}>
-      <div className="text-[12px] font-semibold tracking-[0.12em] uppercase">{name}</div>
+    <div className="flex-1 min-w-[150px] rounded-[10px] border border-line-3 p-3">
+      <div className="label-caps text-ink-1">{name}</div>
       <div className="text-[11px] text-ink-3 mt-1 leading-snug">{desc}</div>
-      {count && <div className="text-lg font-semibold text-ink-1 mt-1.5 tabular-nums">{count}</div>}
+      {count && <div className="mono text-lg text-ink-1 mt-1.5">{count}</div>}
     </div>
   );
 }
+
+const chipClass = "mono text-[10px] uppercase tracking-[0.1em] px-2.5 py-1 rounded-full transition-colors";
 
 export default function SynapsePage() {
   const [data, setData] = useState<SynapseData | null>(null);
@@ -388,11 +367,10 @@ export default function SynapsePage() {
     <PageShell className="max-w-[1200px]">
       {/* ── Header ── */}
       <PageHeader
-        icon={Share2}
         title={
-          <span className="flex items-center gap-3">
+          <span className="flex flex-wrap items-center gap-3">
             Synapse
-            <Pill dim="money">input router</Pill>
+            <Pill>input router</Pill>
           </span>
         }
         subtitle="One contract in, the right home out — capture → amber ledger → grade → route → resurface."
@@ -404,11 +382,8 @@ export default function SynapsePage() {
         active={tab}
         onChange={switchTab}
         right={
-          <div className="flex items-center gap-2 text-[11px] text-ink-3">
-            <span
-              className={error ? "inline-block w-1.5 h-1.5 rounded-full" : "inline-block w-1.5 h-1.5 rounded-full animate-pulse"}
-              style={{ background: error ? "var(--err)" : "var(--ok)" }}
-            />
+          <div className="flex items-center gap-2 mono text-[10px] text-ink-3">
+            <Marker dim={error ? "err" : "ok"} />
             <span className="whitespace-nowrap">
               {error ? "offline" : fetchedAt ? `updated ${ago(new Date(fetchedAt).toISOString())} · auto 60s` : "loading…"}
             </span>
@@ -416,7 +391,11 @@ export default function SynapsePage() {
         }
       />
 
-      {error && <div className="text-warn text-sm">Couldn&apos;t reach the Synapse API: {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 text-ink-2 text-sm">
+          <Marker dim="err" /> Couldn&apos;t reach the Synapse API: {error}
+        </div>
+      )}
       {!data && !error && <div className="text-ink-3 text-sm">Loading…</div>}
 
       {/* ════ STREAM ════ */}
@@ -424,29 +403,29 @@ export default function SynapsePage() {
         <>
           {/* Compact stat strip */}
           <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[12px] text-ink-3">
-            <span><span className="text-ink-1 tabular-nums font-medium">{nf(L?.total ?? null)}</span> preserved</span>
-            <span><span className="text-ink-1 tabular-nums font-medium">{nf(L?.routed ?? 0)}</span> routed · <span className="text-ink-1 tabular-nums font-medium">{nf(L?.captured ?? 0)}</span> waiting</span>
-            <span><span className="text-ink-1 tabular-nums font-medium">{nf(K?.last7d ?? null)}</span> notes / 7d</span>
-            <span><span className="text-ink-1 tabular-nums font-medium">{nf(B?.cloud_parsed ?? null)}</span> bookmarks / 90d</span>
+            <span><span className="mono text-ink-1">{nf(L?.total ?? null)}</span> preserved</span>
+            <span><span className="mono text-ink-1">{nf(L?.routed ?? 0)}</span> routed · <span className="mono text-ink-1">{nf(L?.captured ?? 0)}</span> waiting</span>
+            <span><span className="mono text-ink-1">{nf(K?.last7d ?? null)}</span> notes / 7d</span>
+            <span><span className="mono text-ink-1">{nf(B?.cloud_parsed ?? null)}</span> bookmarks / 90d</span>
           </div>
 
           {/* Origin + state filter chips */}
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => setOriginFilter("all")}
-              className="text-[11px] px-2.5 py-1 rounded-full transition-colors"
-              style={dimStyle("money", originFilter === "all")}
+              className={chipClass}
+              style={dimStyle("neutral", originFilter === "all")}
             >
-              all <span className="tabular-nums opacity-70">{stream.length}</span>
+              all <span className="text-ink-3">{stream.length}</span>
             </button>
             {origins.map(([o, n]) => (
               <button
                 key={o}
                 onClick={() => setOriginFilter(originFilter === o ? "all" : o)}
-                className="text-[11px] px-2.5 py-1 rounded-full mono transition-colors"
-                style={dimStyle("money", originFilter === o)}
+                className={chipClass}
+                style={dimStyle("neutral", originFilter === o)}
               >
-                {o} <span className="tabular-nums opacity-70">{n}</span>
+                {o} <span className="text-ink-3">{n}</span>
               </button>
             ))}
             <span className="w-px h-4 bg-line-2 mx-1" />
@@ -454,8 +433,8 @@ export default function SynapsePage() {
               <button
                 key={s}
                 onClick={() => setStateFilter(stateFilter === s ? "all" : s)}
-                className="text-[11px] px-2.5 py-1 rounded-full transition-colors"
-                style={dimStyle(s === "routed" ? "ok" : "warn", stateFilter === s)}
+                className={chipClass}
+                style={dimStyle("neutral", stateFilter === s)}
               >
                 {s}
               </button>
@@ -476,21 +455,20 @@ export default function SynapsePage() {
                 <div key={it.id} className={isOpen ? "bg-surface-3" : "transition-colors hover:bg-surface-3"}>
                   {/* ── Row ── */}
                   <div
-                    className={expandable ? "flex items-center gap-3 px-4 py-2.5 min-w-0 cursor-pointer select-none" : "flex items-center gap-3 px-4 py-2.5 min-w-0"}
+                    className={expandable ? "flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 min-w-0 cursor-pointer select-none" : "flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 min-w-0"}
                     onClick={expandable ? () => setExpanded(isOpen ? null : it.id) : undefined}
                   >
                     {/* kind badge */}
                     <span
-                      className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={dimStyle(KIND_DIM[it.kind], true)}
+                      className="shrink-0 w-4 flex items-center justify-center text-ink-3"
                       title={it.kind === "capture" ? `${it.contentKind} capture` : it.kind}
                     >
-                      <KindIcon className="w-3.5 h-3.5" />
+                      <KindIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </span>
 
                     {/* title + meta, two lines */}
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate text-sm text-ink-1 leading-tight">
+                    <div className="flex-1 min-w-0 basis-[calc(100%-2.5rem)] sm:basis-auto">
+                      <div className="break-words text-sm text-ink-1 leading-tight">
                         {titleLink ? (
                           <a
                             href={titleLink}
@@ -505,26 +483,23 @@ export default function SynapsePage() {
                           it.title
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-ink-3 mt-0.5 min-w-0 overflow-hidden whitespace-nowrap">
-                        <span className="mono shrink-0">{it.origin}</span>
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-ink-3 mt-0.5 min-w-0">
+                        <span className="mono">{it.origin}</span>
                         {it.contentKind && it.contentKind !== "other" && (
-                          <><span className="opacity-50">·</span><span className="shrink-0">{it.contentKind}</span></>
+                          <><span className="opacity-50">·</span><span>{it.contentKind}</span></>
                         )}
-                        {domain && <><span className="opacity-50">·</span><span className="truncate">{domain}</span></>}
-                        {it.author && <><span className="opacity-50">·</span><span className="truncate">{it.author}</span></>}
+                        {domain && <><span className="opacity-50">·</span><span className="break-all">{domain}</span></>}
+                        {it.author && <><span className="opacity-50">·</span><span className="break-words">{it.author}</span></>}
                         {/* routing destinations, inline */}
                         {(it.actions?.length ?? 0) > 0 &&
-                          it.actions!.map((a) => {
-                            const m = actionMeta(a);
-                            return (
-                              <span key={a} className="hidden sm:inline-flex items-center gap-0.5 shrink-0 whitespace-nowrap" style={{ color: `var(--${m.dim === "neutral" ? "ink-2" : m.dim})` }}>
-                                <ArrowRight className="w-2.5 h-2.5 shrink-0" />
-                                {m.label}
-                              </span>
-                            );
-                          })}
+                          it.actions!.map((a) => (
+                            <span key={a} className="hidden sm:inline-flex items-center gap-0.5 whitespace-nowrap text-ink-2">
+                              <ArrowRight className="w-2.5 h-2.5 shrink-0 text-ink-3" strokeWidth={1.5} />
+                              {actionLabel(a)}
+                            </span>
+                          ))}
                         {it.routed && it.actions !== null && it.actions.length === 0 && (
-                          <span className="hidden sm:inline shrink-0 whitespace-nowrap opacity-70">→ held in amber</span>
+                          <span className="hidden sm:inline whitespace-nowrap">→ held in amber</span>
                         )}
                       </div>
                     </div>
@@ -533,47 +508,40 @@ export default function SynapsePage() {
                     {it.note && (
                       <a
                         href={wikiPageUrl(encodeURIComponent(it.note.category), encodeURIComponent(it.note.slug))}
-                        className="shrink-0 hidden sm:flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-opacity hover:opacity-80"
-                        style={dimStyle("ok", true)}
+                        className="shrink-0 hidden sm:flex items-center mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border border-line-2 text-ink-2 transition-colors hover:text-ink-1 hover:border-[color:var(--accent-blue)]"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Library className="w-3 h-3" />
                         note
                       </a>
                     )}
 
                     {/* score */}
                     {it.score !== null && (
-                      <span
-                        className="shrink-0 text-[11px] tabular-nums font-medium px-1.5 py-0.5 rounded"
-                        style={dimStyle(scoreDim(it.score), true)}
-                        title={`graded ${it.score}/10 against TELOS`}
-                      >
+                      <Pill dim={scoreDim(it.score)} className="shrink-0 text-[11px] text-ink-1" title={`graded ${it.score}/10 against TELOS`}>
                         {it.score}
-                      </span>
+                      </Pill>
                     )}
 
                     {/* lifecycle */}
                     {it.kind === "capture" && it.status ? (
                       <LifecycleTrack status={it.status} score={it.score} />
                     ) : (
-                      <span className="shrink-0 hidden md:flex items-center gap-1 text-[11px]" style={{ color: `var(--${it.kind === "note" ? "ok" : "relationships"})` }}>
-                        <CircleCheck className="w-3 h-3" />
+                      <Pill className="shrink-0 hidden md:inline-flex">
                         {it.kind === "note" ? "curated" : "issue"}
-                      </span>
+                      </Pill>
                     )}
 
-                    <span className="shrink-0 whitespace-nowrap text-[12px] text-ink-3 tabular-nums w-14 text-right">{ago(it.ts)}</span>
+                    <span className="shrink-0 whitespace-nowrap mono text-[11px] text-ink-3 w-14 text-right">{ago(it.ts)}</span>
                     {expandable && (
-                      <ChevronRight className={isOpen ? "w-3.5 h-3.5 shrink-0 text-ink-3 rotate-90 transition-transform" : "w-3.5 h-3.5 shrink-0 text-ink-3 transition-transform"} />
+                      <ChevronRight strokeWidth={1.5} className={isOpen ? "w-3.5 h-3.5 shrink-0 text-ink-3 rotate-90 transition-transform" : "w-3.5 h-3.5 shrink-0 text-ink-3 transition-transform"} />
                     )}
                   </div>
 
                   {/* ── Expanded detail ── */}
                   {isOpen && (
-                    <div className="px-4 pb-3.5 pl-14 flex flex-col gap-2.5 text-[12px]">
+                    <div className="px-4 pb-3.5 sm:pl-11 flex flex-col gap-2.5 text-[12px]">
                       {it.excerpt && (
-                        <p className="text-ink-2 leading-relaxed max-w-3xl border-l-2 border-line-2 pl-3">
+                        <p className="text-ink-2 leading-relaxed max-w-3xl border-l border-line-3 pl-3">
                           {it.excerpt}
                           {it.excerpt.length >= 240 ? "…" : ""}
                         </p>
@@ -585,39 +553,32 @@ export default function SynapsePage() {
                         </span>
                         <span>
                           score{" "}
-                          <span className="text-ink-1 font-medium tabular-nums">{it.score !== null ? `${it.score}/10` : "ungraded"}</span>
-                          {it.gradeVersion && <span className="opacity-70"> · {it.gradeVersion}</span>}
+                          <span className="mono text-ink-1">{it.score !== null ? `${it.score}/10` : "ungraded"}</span>
+                          {it.gradeVersion && <span> · {it.gradeVersion}</span>}
                         </span>
                         <span className="flex items-center gap-1.5 flex-wrap">
                           routed to{" "}
                           {(it.actions?.length ?? 0) > 0 ? (
-                            it.actions!.map((a) => {
-                              const m = actionMeta(a);
-                              return (
-                                <span key={a} className="px-1.5 py-0.5 rounded text-[11px]" style={dimStyle(m.dim, true)}>
-                                  {m.label}
-                                </span>
-                              );
-                            })
+                            it.actions!.map((a) => <Pill key={a}>{actionLabel(a)}</Pill>)
                           ) : (
                             <span className="text-ink-2">{it.routed ? "nowhere — held in amber (below action bar)" : "not yet routed"}</span>
                           )}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-ink-3">
-                        <span className="mono text-[11px] opacity-70">{it.id}</span>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-3">
+                        <span className="mono text-[11px] break-all">{it.id}</span>
                         {it.href && (
                           <a href={it.href} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-ink-1" onClick={(e) => e.stopPropagation()}>
-                            <ExternalLink className="w-3 h-3" /> open source
+                            <ExternalLink className="w-3 h-3" strokeWidth={1.5} /> open source
                           </a>
                         )}
                         {it.note && (
                           <a
                             href={wikiPageUrl(encodeURIComponent(it.note.category), encodeURIComponent(it.note.slug))}
-                            className="flex items-center gap-1 hover:text-ink-1"
+                            className="hover:text-ink-1"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Library className="w-3 h-3" /> open knowledge note
+                            open knowledge note
                           </a>
                         )}
                       </div>
@@ -639,54 +600,45 @@ export default function SynapsePage() {
         <>
           {/* ── What each number is ── */}
           <Panel className="text-[13px] leading-relaxed text-ink-2 space-y-1.5">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-ink-3 mb-2">What each number is</div>
-            <div><span className="font-medium text-dim-money">The ledger</span> — the amber ledger, Synapse&apos;s permanent store (a D1 database). Every capture is written here the instant it&apos;s caught, before any grading. &ldquo;Preserved&rdquo; is its row count.</div>
-            <div><span className="font-medium text-ok">Knowledge notes</span> — curated markdown notes in the Knowledge Archive (Ideas, Research, People…). The tile counts notes created across the <em>whole archive</em> by any pipeline (harvest, research, curation); &ldquo;via Synapse&rdquo; counts only notes Synapse promoted from the amber ledger.</div>
-            <div><span className="font-medium text-dim-freedom">Spreadsheet</span> — the newsletter capture sheet the summarize worker appends to. Counts are per instrumented path; the browser-hotkey path has no counter yet.</div>
-            <div><span className="font-medium text-dim-relationships">X bookmarks</span> — bookmarks the every-minute cloud cron pulled from X, summarized, and sent to the sheet (rolling 90 days), plus the local <span className="mono">tb</span> sweep that turns bookmarks into work issues.</div>
+            <div className="label-caps mb-2">What each number is</div>
+            <div><span className="font-medium text-ink-1">The ledger</span> — the amber ledger, Synapse&apos;s permanent store (a D1 database). Every capture is written here the instant it&apos;s caught, before any grading. &ldquo;Preserved&rdquo; is its row count.</div>
+            <div><span className="font-medium text-ink-1">Knowledge notes</span> — curated markdown notes in the Knowledge Archive (Ideas, Research, People…). The tile counts notes created across the <em>whole archive</em> by any pipeline (harvest, research, curation); &ldquo;via Synapse&rdquo; counts only notes Synapse promoted from the amber ledger.</div>
+            <div><span className="font-medium text-ink-1">Spreadsheet</span> — the newsletter capture sheet the summarize worker appends to. Counts are per instrumented path; the browser-hotkey path has no counter yet.</div>
+            <div><span className="font-medium text-ink-1">X bookmarks</span> — bookmarks the every-minute cloud cron pulled from X, summarized, and sent to the sheet (rolling 90 days), plus the local <span className="mono">tb</span> sweep that turns bookmarks into work issues.</div>
           </Panel>
 
           {/* ── Stats tiles ── */}
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             <StatTile
-              icon={Database}
               label="Preserved"
               value={nf(L?.total ?? null)}
-              dim="money"
               sub="append-only D1 ledger rows"
             />
             <StatTile
-              icon={GitBranch}
               label="Routed / waiting"
               value={`${nf(L?.routed ?? 0)} / ${nf(L?.captured ?? 0)}`}
               sub="routed to a home / caught, not yet routed"
             />
             <StatTile
-              icon={Library}
               label="Knowledge notes"
               value={nf(K?.last7d ?? null)}
-              dim="ok"
               sub={`created in 7d, whole archive · ${nf(K?.last30d ?? null)} in 30d · via Synapse: ${nf(K?.amber_promoted ?? null)}`}
             />
             <StatTile
-              icon={Table2}
               label="To spreadsheet"
               value={nf((B?.cloud_parsed ?? 0) + (L?.by_source?.["surface"] ?? 0))}
-              dim="freedom"
               sub="observed 90d: bookmark cron + Surface saves (hotkey path un-instrumented)"
             />
             <StatTile
-              icon={Bookmark}
               label="X bookmarks"
               value={nf(B?.cloud_parsed ?? null)}
-              dim="relationships"
               sub={`cloud cron, last 90d · ${nf(B?.local_seen ?? 0)} via local tb · ${nf(B?.issues_created ?? 0)} became issues`}
             />
           </div>
 
           {/* ── Knowledge base breakdown ── */}
           <div>
-            <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-1">Knowledge base — what got saved</h2>
+            <h2 className="label-caps mb-1">Knowledge base — what got saved</h2>
             <p className="text-[12px] text-ink-3 mb-3">
               Notes created in the Knowledge Archive by <em>all</em> pipelines, by type.
               Synapse&apos;s own contribution is the &ldquo;via Synapse&rdquo; row — {nf(K?.amber_promoted ?? 0)} notes promoted from the
@@ -695,11 +647,11 @@ export default function SynapsePage() {
             <Panel className="p-0 overflow-x-auto">
               <table className="w-full text-sm min-w-[480px]">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-[0.12em] text-ink-3 border-b border-line-2">
-                    <th className="px-4 py-2.5 font-medium">Note type</th>
-                    <th className="px-4 py-2.5 font-medium text-right">7 days</th>
-                    <th className="px-4 py-2.5 font-medium text-right">30 days</th>
-                    <th className="px-4 py-2.5 font-medium text-right">All time</th>
+                  <tr className="label-caps text-left border-b border-line-2">
+                    <th className="px-4 py-2.5 font-normal">Note type</th>
+                    <th className="px-4 py-2.5 font-normal text-right">7 days</th>
+                    <th className="px-4 py-2.5 font-normal text-right">30 days</th>
+                    <th className="px-4 py-2.5 font-normal text-right">All time</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line-1">
@@ -708,14 +660,14 @@ export default function SynapsePage() {
                     .map(([type, c]) => (
                       <tr key={type}>
                         <td className="px-4 py-2.5 text-ink-1">{type}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-ink-2">{nf(c.last7d)}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-ink-2">{nf(c.last30d)}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-ink-3">{nf(c.total)}</td>
+                        <td className="px-4 py-2.5 text-right mono text-ink-2">{nf(c.last7d)}</td>
+                        <td className="px-4 py-2.5 text-right mono text-ink-2">{nf(c.last30d)}</td>
+                        <td className="px-4 py-2.5 text-right mono text-ink-3">{nf(c.total)}</td>
                       </tr>
                     ))}
                   <tr className="border-t border-line-2">
-                    <td className="px-4 py-2.5 text-ok">via Synapse routing (all types)</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-ok" colSpan={3}>{nf(K?.amber_promoted ?? 0)}</td>
+                    <td className="px-4 py-2.5 text-ink-1">via Synapse routing (all types)</td>
+                    <td className="px-4 py-2.5 text-right mono text-ink-1" colSpan={3}>{nf(K?.amber_promoted ?? 0)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -725,25 +677,25 @@ export default function SynapsePage() {
           {/* ── Ledger by source + sheet paths ── */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-3">Ledger by source</h2>
+              <h2 className="label-caps mb-3">Ledger by source</h2>
               <Panel className="p-0 divide-y divide-line-1">
                 {sourceEntries.length === 0 && <div className="p-4 text-sm text-ink-3">No captures yet.</div>}
                 {sourceEntries.map(([source, n]) => (
-                  <div key={source} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                    <span className="text-ink-2 mono">{source}</span>
-                    <span className="text-ink-1 tabular-nums">{nf(n)}</span>
+                  <div key={source} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                    <span className="text-ink-2 mono break-all">{source}</span>
+                    <span className="text-ink-1 mono">{nf(n)}</span>
                   </div>
                 ))}
               </Panel>
             </div>
             <div>
-              <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-3">Spreadsheet sends (per path)</h2>
+              <h2 className="label-caps mb-3">Spreadsheet sends (per path)</h2>
               <Panel className="p-0 divide-y divide-line-1">
                 {data.sheet.paths.map((p) => (
                   <div key={p.name} className="px-4 py-2.5">
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="text-ink-2 whitespace-nowrap">{p.name}</span>
-                      <span className="text-ink-1 tabular-nums shrink-0">{nf(p.count)}</span>
+                      <span className="text-ink-2">{p.name}</span>
+                      <span className="text-ink-1 mono shrink-0">{nf(p.count)}</span>
                     </div>
                     <div className="text-[11px] text-ink-3 mt-1 leading-snug">{p.note}</div>
                   </div>
@@ -758,7 +710,7 @@ export default function SynapsePage() {
       {data && tab === "system" && (
         <>
           <Panel className="text-[13px] leading-relaxed text-ink-2 max-w-3xl">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-ink-3 mb-2">What Synapse is</div>
+            <div className="label-caps mb-2">What Synapse is</div>
             <p className="mb-2">
               Synapse is the input router: anything worth keeping — a page, a tweet, a spoken thought, a feed item —
               gets caught by the nearest input, written to the amber ledger <em>before</em> any judgment,
@@ -772,39 +724,34 @@ export default function SynapsePage() {
 
           {/* ── The flow ── */}
           <div>
-            <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-3">The one loop</h2>
+            <h2 className="label-caps mb-3">The one loop</h2>
             <div className="flex flex-wrap items-stretch gap-2 mb-3">
               <FlowStage
                 name="Capture"
                 desc="8 live inputs, 3 roadmap — hotkey, bookmarks, harvest, voice, feed, Surface, CLI"
                 count={`${data.inputs.filter((i) => i.status === "live").length} live inputs`}
-                dim="freedom"
               />
-              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" /></div>
+              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" strokeWidth={1.5} /></div>
               <FlowStage
                 name="Journal"
                 desc="write-ahead to the amber ledger, before grading — nothing is ever lost"
                 count={nf(L?.total ?? null)}
-                dim="money"
               />
-              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" /></div>
+              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" strokeWidth={1.5} /></div>
               <FlowStage
                 name="Grade"
                 desc="scored against TELOS — is this good for what the principal is actually doing?"
-                dim="relationships"
               />
-              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" /></div>
+              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" strokeWidth={1.5} /></div>
               <FlowStage
                 name="Route"
                 desc="fan to KNOWLEDGE notes, Type:queue / Type:project issues, blog seeds, newsletter"
                 count={`${nf(L?.routed ?? 0)} routed`}
-                dim="ok"
               />
-              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" /></div>
+              <div className="hidden lg:flex items-center text-ink-3"><ArrowRight className="w-4 h-4" strokeWidth={1.5} /></div>
               <FlowStage
                 name="Resurface"
                 desc="amber search · this page · promotion of the best rows to curated notes"
-                dim="creative"
               />
             </div>
             <p className="text-[12px] text-ink-3">
@@ -816,29 +763,29 @@ export default function SynapsePage() {
 
           {/* ── Inputs catalog ── */}
           <div>
-            <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-3">Inputs — every way an idea gets caught</h2>
+            <h2 className="label-caps mb-3">Inputs — every way an idea gets caught</h2>
             <Panel className="p-0 overflow-x-auto mb-2">
               <table className="w-full text-sm min-w-[640px]">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-[0.12em] text-ink-3 border-b border-line-2">
-                    <th className="px-4 py-2.5 font-medium">#</th>
-                    <th className="px-4 py-2.5 font-medium">Input</th>
-                    <th className="px-4 py-2.5 font-medium">Trigger</th>
-                    <th className="px-4 py-2.5 font-medium">Component</th>
-                    <th className="px-4 py-2.5 font-medium text-right">Ledger rows</th>
-                    <th className="px-4 py-2.5 font-medium text-right">Status</th>
+                  <tr className="label-caps text-left border-b border-line-2">
+                    <th className="px-4 py-2.5 font-normal">#</th>
+                    <th className="px-4 py-2.5 font-normal">Input</th>
+                    <th className="px-4 py-2.5 font-normal">Trigger</th>
+                    <th className="px-4 py-2.5 font-normal">Component</th>
+                    <th className="px-4 py-2.5 font-normal text-right">Ledger rows</th>
+                    <th className="px-4 py-2.5 font-normal text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line-1">
                   {data.inputs.map((i) => (
                     <tr key={i.n} className={i.status === "roadmap" ? "opacity-60" : ""}>
-                      <td className="px-4 py-2.5 text-ink-3 tabular-nums">{i.n}</td>
+                      <td className="px-4 py-2.5 text-ink-3 mono">{i.n}</td>
                       <td className="px-4 py-2.5 text-ink-1">{i.name}</td>
                       <td className="px-4 py-2.5 text-ink-2">{i.trigger}</td>
                       <td className="px-4 py-2.5 text-ink-2 mono text-[12px]">{i.component}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-ink-2">{i.ledger_count === null ? "—" : nf(i.ledger_count)}</td>
+                      <td className="px-4 py-2.5 text-right mono text-ink-2">{i.ledger_count === null ? "—" : nf(i.ledger_count)}</td>
                       <td className="px-4 py-2.5 text-right">
-                        <Pill dim={i.status === "live" ? "ok" : "neutral"} className="text-[11px] uppercase tracking-wider px-2 py-0.5">
+                        <Pill dim={i.status === "live" ? "ok" : "neutral"}>
                           {i.status}
                         </Pill>
                       </td>
@@ -855,11 +802,11 @@ export default function SynapsePage() {
 
           {/* ── How this page works ── */}
           <div>
-            <h2 className="text-sm uppercase tracking-[0.16em] text-ink-2 mb-3">How this page gets its numbers</h2>
+            <h2 className="label-caps mb-3">How this page gets its numbers</h2>
             <Panel className="text-[13px] leading-relaxed text-ink-2 space-y-1.5 max-w-3xl">
-              <div className="flex gap-2"><FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-dim-money" /><span><span className="text-ink-1">Ledger worker</span> — <span className="mono">/stats</span> and <span className="mono">/captures</span> on the D1-backed amber-ledger worker, bearer-authed server-side.</span></div>
-              <div className="flex gap-2"><FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-ok" /><span><span className="text-ink-1">Knowledge Archive</span> — a frontmatter scan of <span className="mono">MEMORY/KNOWLEDGE</span> note files (<span className="mono">created:</span>, <span className="mono">source_amber_id:</span>).</span></div>
-              <div className="flex gap-2"><FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-dim-relationships" /><span><span className="text-ink-1">X bookmarks</span> — SEEN_BOOKMARKS KV key count via the Cloudflare API, plus local <span className="mono">_X</span> state files for the <span className="mono">tb</span> sweep and issue creation.</span></div>
+              <div><span><span className="text-ink-1">Ledger worker</span> — <span className="mono">/stats</span> and <span className="mono">/captures</span> on the D1-backed amber-ledger worker, bearer-authed server-side.</span></div>
+              <div><span><span className="text-ink-1">Knowledge Archive</span> — a frontmatter scan of <span className="mono">MEMORY/KNOWLEDGE</span> note files (<span className="mono">created:</span>, <span className="mono">source_amber_id:</span>).</span></div>
+              <div><span><span className="text-ink-1">X bookmarks</span> — SEEN_BOOKMARKS KV key count via the Cloudflare API, plus local <span className="mono">_X</span> state files for the <span className="mono">tb</span> sweep and issue creation.</span></div>
               <div className="pt-1">
                 Everything is composed server-side by the Pulse <span className="mono">synapse</span> module (60s cache); no
                 secrets reach the browser. Every number is a live probe of what actually ran — un-instrumented paths are
@@ -871,8 +818,7 @@ export default function SynapsePage() {
       )}
 
       {data && (
-        <div className="flex items-center gap-2 text-[11px] text-ink-3">
-          <Sparkles className="w-3 h-3" />
+        <div className="mono text-[10px] text-ink-3">
           <span>
             generated {ago(data.generated_at)} · 60s cache
             {data.errors ? ` · degraded probes: ${Object.keys(data.errors).join(", ")}` : ""}

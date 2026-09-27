@@ -1,15 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import {
-  Shield, ShieldAlert, ShieldX, ShieldCheck, Eye, Lock,
-  FileWarning, Server, Info, ChevronDown, ChevronRight, Terminal, Globe,
-  BookOpen as BookIcon, Radar, Boxes, Clock, AlertTriangle, Cloud,
-} from "lucide-react";
-import {
-  PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill, dimStyle,
+  PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill, Marker,
   type Dim,
 } from "@/components/ui/chrome";
-import type { LucideIcon } from "lucide-react";
 
 // ── API shape (as of the 2026-05-06 minimal-v1 security model) ──
 // GET /api/security             → { model, description, denyList, hooks }
@@ -90,7 +85,7 @@ function NotConfigured({ what }: { what: string }) {
   );
 }
 
-const LEVEL_DIM: Record<string, Dim> = { Critical: "err", High: "warn", Medium: "freedom", Low: "rhythms" };
+const LEVEL_DIM: Record<string, Dim> = { Critical: "err", High: "warn" };
 const GRADE_DIM: Record<string, Dim> = { red: "err", orange: "warn", green: "ok" };
 
 function relTime(iso: string | null | undefined): string {
@@ -106,14 +101,11 @@ function relTime(iso: string | null | undefined): string {
 }
 
 // ── Section Header ──
-function SectionHeader({ icon: Icon, title, count, accentClass = "text-dim-freedom" }: {
-  icon: LucideIcon; title: string; count?: number; accentClass?: string;
-}) {
+function SectionHeader({ title, count }: { title: string; count?: number }) {
   return (
-    <div className="flex items-center gap-2 mb-3 mt-8 first:mt-0">
-      <Icon className={`w-5 h-5 shrink-0 ${accentClass}`} />
-      <h2 className="text-sm font-semibold tracking-wider uppercase whitespace-nowrap text-ink-1">{title}</h2>
-      {count !== undefined && <span className="text-xs text-ink-3 ml-1 shrink-0">({count})</span>}
+    <div className="flex flex-wrap items-center gap-2 mb-3 mt-8 first:mt-0">
+      <h2 className="label-caps">{title}</h2>
+      {count !== undefined && <span className="mono text-[10px] text-ink-3 shrink-0">({count})</span>}
     </div>
   );
 }
@@ -121,24 +113,15 @@ function SectionHeader({ icon: Icon, title, count, accentClass = "text-dim-freed
 // ── Deny-rule grouping ──
 // Deny entries look like `Bash(rm -rf /)`, `Write(~/.claude/**/memory/**)`, `Edit(...)`.
 // Group by the leading tool so the list reads as policy, not a wall of regex.
-interface DenyGroup { tool: string; icon: LucideIcon; dim: Dim; entries: string[] }
+interface DenyGroup { tool: string; entries: string[] }
 
 function groupDenyList(denyList: string[]): DenyGroup[] {
-  const toolMeta: Record<string, { icon: LucideIcon; dim: Dim }> = {
-    Bash: { icon: Terminal, dim: "err" },
-    Write: { icon: FileWarning, dim: "warn" },
-    Edit: { icon: FileWarning, dim: "warn" },
-    Read: { icon: Eye, dim: "freedom" },
-    WebFetch: { icon: Globe, dim: "freedom" },
-    WebSearch: { icon: Globe, dim: "freedom" },
-  };
   const groups = new Map<string, DenyGroup>();
   for (const raw of denyList) {
     const m = raw.match(/^(\w+)\((.*)\)$/);
     const tool = m ? m[1] : "Other";
     const arg = m ? m[2] : raw;
-    const meta = toolMeta[tool] ?? { icon: Lock, dim: "neutral" as Dim };
-    if (!groups.has(tool)) groups.set(tool, { tool, icon: meta.icon, dim: meta.dim, entries: [] });
+    if (!groups.has(tool)) groups.set(tool, { tool, entries: [] });
     groups.get(tool)!.entries.push(arg);
   }
   // Bash/Write/Edit first (the destructive ones), then the rest alphabetically.
@@ -151,19 +134,14 @@ function groupDenyList(denyList: string[]): DenyGroup[] {
 }
 
 function DenyGroupCard({ group }: { group: DenyGroup }) {
-  const color = dimStyle(group.dim, true).color as string;
   return (
     <Panel className="flex flex-col gap-2">
-      <PanelHeader
-        icon={group.icon}
-        title={<span style={{ color }}>{group.tool}</span>}
-        meta={`(${group.entries.length})`}
-      />
-      <div className="space-y-1">
+      <PanelHeader title={group.tool} meta={`(${group.entries.length})`} className="mb-2" />
+      <div className="divide-y divide-line-1">
         {group.entries.map((entry, i) => (
           <code
             key={i}
-            className="block text-xs mono rounded px-2 py-1 bg-surface-1 text-ink-2"
+            className="block text-xs mono py-1.5 text-ink-2"
             style={{ wordBreak: "break-all" }}
           >
             {entry}
@@ -184,37 +162,34 @@ function HookDetailRow({ hook, detail }: { hook: HookRegistration; detail?: Hook
     <div className="border-b border-line-1 last:border-b-0">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-3 py-2.5 w-full text-left px-2 rounded transition-colors hover:bg-surface-1"
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 w-full text-left px-2 rounded-[10px] transition-colors hover:bg-surface-3"
       >
-        <Arrow className="w-3 h-3 shrink-0 text-ink-3" />
-        <span
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{ background: isActive ? "var(--ok)" : "var(--err)" }}
-        />
-        <span className="text-xs mono flex-1 truncate text-ink-1">{hook.command}</span>
+        <Arrow className="w-3 h-3 shrink-0 text-ink-3" strokeWidth={1.5} />
+        <Marker dim={isActive ? "ok" : "err"} />
+        <span className="text-xs mono flex-1 min-w-0 break-all text-ink-1">{hook.command}</span>
         <span className="text-xs text-ink-3">{hook.type} · {hook.matcher}</span>
-        {detail?.canBlock && <Pill dim="err">CAN BLOCK</Pill>}
-        {detail && !detail.canBlock && <Pill dim="neutral">ADVISORY</Pill>}
+        {detail?.canBlock && <Pill>CAN BLOCK</Pill>}
+        {detail && !detail.canBlock && <Pill>ADVISORY</Pill>}
         {!isActive && <Pill dim="err">MISSING</Pill>}
       </button>
       {expanded && detail && (
         <div className="pl-10 pr-4 pb-3 space-y-2">
           <div>
-            <div className="text-xs tracking-wider uppercase mb-0.5 text-ink-3">Description</div>
+            <div className="label-caps mb-0.5">Description</div>
             <div className="text-xs text-ink-1">{detail.description}</div>
           </div>
           <div>
-            <div className="text-xs tracking-wider uppercase mb-0.5 text-ink-3">Behavior</div>
+            <div className="label-caps mb-0.5">Behavior</div>
             <div className="text-xs text-ink-2">{detail.behavior}</div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             <div>
               <span className="text-xs text-ink-3">Event: </span>
-              <span className="text-xs mono text-dim-freedom">{detail.event}</span>
+              <span className="text-xs mono text-ink-2">{detail.event}</span>
             </div>
             <div>
               <span className="text-xs text-ink-3">Blocking: </span>
-              <span className={`text-xs ${detail.canBlock ? "text-err" : "text-ink-2"}`}>
+              <span className="text-xs text-ink-2">
                 {detail.canBlock ? "Yes (can deny the call)" : "No (advisory only)"}
               </span>
             </div>
@@ -231,18 +206,14 @@ function HookDetailRow({ hook, detail }: { hook: HookRegistration; detail?: Hook
 }
 
 // ── Defense-layer card (the three-layer model) ──
-function LayerCard({ n, icon: Icon, title, where, body, dim }: {
-  n: number; icon: LucideIcon; title: string; where: string; body: string; dim: Dim;
-}) {
-  const color = dimStyle(dim, true).color as string;
+function LayerCard({ n, title, where, body }: { n: number; title: string; where: string; body: string }) {
   return (
-    <div className="px-3 py-3 rounded-lg bg-surface-1 border border-line-1">
+    <div className="p-4 rounded-[10px] border border-line-3">
       <div className="flex items-center gap-2 mb-1.5">
         <span className="mono text-xs text-ink-3">{n}</span>
-        <Icon className="w-4 h-4 shrink-0" style={{ color }} />
-        <span className="text-xs font-semibold whitespace-nowrap text-ink-1">{title}</span>
+        <span className="text-[13px] font-medium text-ink-1">{title}</span>
       </div>
-      <code className="text-xs mono block mb-1" style={{ color }}>{where}</code>
+      <code className="text-xs mono block mb-1 text-ink-2 break-all">{where}</code>
       <p className="text-xs text-ink-2">{body}</p>
     </div>
   );
@@ -254,11 +225,10 @@ function LayerCard({ n, icon: Icon, title, where, body, dim }: {
 
 // ── Attack Surface Monitoring section ──
 function TypePill({ type, multiTenant }: { type: string; multiTenant?: boolean }) {
-  const dim: Dim = type === "api" ? "freedom" : type === "worker" ? "rhythms" : "creative";
   return (
-    <span className="inline-flex items-center gap-1">
-      <Pill dim={dim}>{type}</Pill>
-      {multiTenant && <Pill dim="warn">multi-tenant</Pill>}
+    <span className="inline-flex items-center gap-2">
+      <Pill>{type}</Pill>
+      {multiTenant && <Pill>multi-tenant</Pill>}
     </span>
   );
 }
@@ -268,7 +238,7 @@ function AttackSurfaceSection({ surface }: { surface: PrivateData<AttackSurfaceD
   if (surface === "unavailable") {
     return (
       <div>
-        <SectionHeader icon={Radar} title="Attack Surface Monitoring" />
+        <SectionHeader title="Attack Surface Monitoring" />
         <NotConfigured what="this section reads a private infrastructure scanner that runs alongside Pulse." />
       </div>
     );
@@ -276,7 +246,7 @@ function AttackSurfaceSection({ surface }: { surface: PrivateData<AttackSurfaceD
   if (!surface) {
     return (
       <div>
-        <SectionHeader icon={Radar} title="Attack Surface Monitoring" />
+        <SectionHeader title="Attack Surface Monitoring" />
         <Panel><p className="text-xs text-center py-6 text-ink-3">Loading scan status…</p></Panel>
       </div>
     );
@@ -288,41 +258,41 @@ function AttackSurfaceSection({ surface }: { surface: PrivateData<AttackSurfaceD
 
   return (
     <div>
-      <SectionHeader icon={Radar} title="Attack Surface Monitoring" count={scan?.targetsScanned} accentClass="text-dim-freedom" />
-      <p className="text-xs mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-ink-2">
-        <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> Hourly scan · last run {relTime(scan?.timestamp)}</span>
-        <span className="flex items-center gap-1.5"><Cloud className="w-3 h-3" /> Discovery {relTime(inv?.lastSync)} (4×/day, local)</span>
-        <span className="flex items-center gap-1.5 text-ink-3"><Lock className="w-3 h-3" /> Private — read live from this machine, never shipped</span>
+      <SectionHeader title="Attack Surface Monitoring" count={scan?.targetsScanned} />
+      <p className="text-xs mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-2">
+        <span>Hourly scan · last run {relTime(scan?.timestamp)}</span>
+        <span>Discovery {relTime(inv?.lastSync)} (4×/day, local)</span>
+        <span className="text-ink-3">Private — read live from this machine, never shipped</span>
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile icon={Globe} label="Targets Scanned" value={scan?.targetsScanned ?? "—"} dim="freedom" />
-        <StatTile icon={Shield} label="Curated" value={inv?.curated ?? "—"} dim="ok" />
-        <StatTile icon={Radar} label="Discovered Sites" value={inv?.dnsHosts ?? "—"} dim="creative" />
-        <StatTile icon={Boxes} label="Worker Origins" value={inv?.workerOrigins ?? "—"} dim="rhythms" />
+        <StatTile label="Targets Scanned" value={scan?.targetsScanned ?? "—"} />
+        <StatTile label="Curated" value={inv?.curated ?? "—"} />
+        <StatTile label="Discovered Sites" value={inv?.dnsHosts ?? "—"} />
+        <StatTile label="Worker Origins" value={inv?.workerOrigins ?? "—"} />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile icon={ShieldX} label="Critical" value={fc?.critical ?? 0} dim={fc?.critical ? "err" : "ok"} />
-        <StatTile icon={ShieldAlert} label="High" value={fc?.high ?? 0} dim={fc?.high ? "warn" : "ok"} />
-        <StatTile icon={Eye} label="Medium" value={fc?.medium ?? 0} dim="freedom" />
-        <StatTile icon={Info} label="Low" value={fc?.low ?? 0} dim="rhythms" />
+        <StatTile label="Critical" value={fc?.critical ?? 0} dim={fc?.critical ? "err" : "ok"} />
+        <StatTile label="High" value={fc?.high ?? 0} dim={fc?.high ? "warn" : "ok"} />
+        <StatTile label="Medium" value={fc?.medium ?? 0} />
+        <StatTile label="Low" value={fc?.low ?? 0} />
       </div>
 
       {critHigh.length > 0 ? (
         <Panel className="p-2 mb-3">
           {critHigh.map((f, i) => (
-            <div key={i} className="flex items-start gap-2 px-2 py-1.5 text-xs border-b last:border-b-0 border-[var(--hairline)]">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-err" />
-              <span className="mono text-ink-1">{f.target}</span>
+            <div key={i} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-2 py-1.5 text-xs border-b last:border-b-0 border-line-1">
+              <Marker dim="err" />
+              <span className="mono text-ink-1 break-all">{f.target}</span>
               <span className="text-ink-3">{f.category}/{f.check}</span>
-              <span className="text-ink-2 truncate">{f.evidence}</span>
+              <span className="text-ink-2 min-w-0 break-words">{f.evidence}</span>
             </div>
           ))}
         </Panel>
       ) : (
-        <p className="text-xs mb-3 flex items-center gap-1.5 text-ink-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-ok" /> No critical or high findings on the current surface.
+        <p className="text-xs mb-3 flex items-center gap-2 text-ink-2">
+          <Marker dim="ok" /> No critical or high findings on the current surface.
         </p>
       )}
 
@@ -330,7 +300,7 @@ function AttackSurfaceSection({ surface }: { surface: PrivateData<AttackSurfaceD
         onClick={() => setShowTargets((v) => !v)}
         className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink-1 mb-2"
       >
-        {showTargets ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        {showTargets ? <ChevronDown className="w-3.5 h-3.5 text-ink-3" strokeWidth={1.5} /> : <ChevronRight className="w-3.5 h-3.5 text-ink-3" strokeWidth={1.5} />}
         Auto-discovered targets ({inv?.targets?.length ?? 0})
       </button>
       {showTargets && (
@@ -338,7 +308,7 @@ function AttackSurfaceSection({ surface }: { surface: PrivateData<AttackSurfaceD
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5">
             {(inv?.targets ?? []).map((t) => (
               <div key={t.name} className="flex items-center justify-between gap-2 text-xs">
-                <span className="mono truncate text-ink-2">{t.name}</span>
+                <span className="mono min-w-0 break-all text-ink-2">{t.name}</span>
                 <TypePill type={t.type} multiTenant={t.multiTenant} />
               </div>
             ))}
@@ -356,7 +326,7 @@ function RiskRegisterSection({ tm }: { tm: PrivateData<ThreatModelData> }) {
   if (tm === "unavailable") {
     return (
       <div>
-        <SectionHeader icon={FileWarning} title="Risk Register" accentClass="text-warn" />
+        <SectionHeader title="Risk Register" />
         <NotConfigured what="the risk register is served by the ThreatModel skill on the machine running Pulse." />
       </div>
     );
@@ -364,7 +334,7 @@ function RiskRegisterSection({ tm }: { tm: PrivateData<ThreatModelData> }) {
   if (!tm) {
     return (
       <div>
-        <SectionHeader icon={FileWarning} title="Risk Register" accentClass="text-warn" />
+        <SectionHeader title="Risk Register" />
         <Panel><p className="text-xs text-center py-6 text-ink-3">Loading risk register…</p></Panel>
       </div>
     );
@@ -372,7 +342,7 @@ function RiskRegisterSection({ tm }: { tm: PrivateData<ThreatModelData> }) {
   if (!tm.available) {
     return (
       <div>
-        <SectionHeader icon={FileWarning} title="Risk Register" accentClass="text-warn" />
+        <SectionHeader title="Risk Register" />
         <Panel>
           <p className="text-xs text-center py-6 text-ink-3">
             No risk register yet — run <code className="mono text-ink-2">bun ~/.claude/skills/ThreatModel/Tools/RiskRegister.ts init</code>
@@ -388,24 +358,24 @@ function RiskRegisterSection({ tm }: { tm: PrivateData<ThreatModelData> }) {
 
   return (
     <div>
-      <SectionHeader icon={FileWarning} title="Risk Register" count={tm.open ?? 0} accentClass="text-warn" />
-      <p className="text-xs mb-3 flex items-center gap-1.5 text-ink-2">
-        <Info className="w-3 h-3" /> Defensive threat-model risks, scored likelihood×impact. Managed via the ThreatModel skill; data is private.
+      <SectionHeader title="Risk Register" count={tm.open ?? 0} />
+      <p className="text-xs mb-3 text-ink-2">
+        Defensive threat-model risks, scored likelihood×impact. Managed via the ThreatModel skill; data is private.
       </p>
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
-        <StatTile icon={Shield} label="Grade" value={gradeLabel ?? "—"} dim={gradeDim} />
-        <StatTile icon={ShieldX} label="Critical" value={bl.Critical ?? 0} dim={bl.Critical ? "err" : "ok"} />
-        <StatTile icon={ShieldAlert} label="High" value={bl.High ?? 0} dim={bl.High ? "warn" : "ok"} />
-        <StatTile icon={Eye} label="Medium" value={bl.Medium ?? 0} dim="freedom" />
-        <StatTile icon={Info} label="Low" value={bl.Low ?? 0} dim="rhythms" />
-        <StatTile icon={Clock} label="Overdue" value={tm.overdue_review ?? 0} dim={tm.overdue_review ? "warn" : "ok"} />
+        <StatTile label="Grade" value={gradeLabel ?? "—"} dim={gradeDim} />
+        <StatTile label="Critical" value={bl.Critical ?? 0} dim={bl.Critical ? "err" : "ok"} />
+        <StatTile label="High" value={bl.High ?? 0} dim={bl.High ? "warn" : "ok"} />
+        <StatTile label="Medium" value={bl.Medium ?? 0} />
+        <StatTile label="Low" value={bl.Low ?? 0} />
+        <StatTile label="Overdue" value={tm.overdue_review ?? 0} dim={tm.overdue_review ? "warn" : "ok"} />
       </div>
       {risks.length === 0 ? (
         <Panel><p className="text-xs text-center py-6 text-ink-3">No open risks.</p></Panel>
       ) : (
         <Panel className="p-0 overflow-hidden">
           {risks.map((r, i) => (
-            <div key={r.id} className={`flex items-start gap-3 p-3 ${i > 0 ? "border-t border-line" : ""}`}>
+            <div key={r.id} className={`flex flex-wrap sm:flex-nowrap items-start gap-3 p-3 ${i > 0 ? "border-t border-line-2" : ""}`}>
               <Pill dim={LEVEL_DIM[r.level] ?? "neutral"} title={`score ${r.score} = L${r.likelihood}×I${r.impact}`}>
                 {r.level} · {r.score}
               </Pill>
@@ -413,16 +383,16 @@ function RiskRegisterSection({ tm }: { tm: PrivateData<ThreatModelData> }) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="mono text-xs text-ink-3">{r.id}</span>
                   <span className="text-sm text-ink-1">{r.title}</span>
-                  {r.overdue && <Pill dim="warn" title="review overdue"><Clock className="w-3 h-3 inline" /> overdue</Pill>}
+                  {r.overdue && <Pill dim="warn" title="review overdue">overdue</Pill>}
                 </div>
                 <p className="text-xs mt-1 text-ink-3">{r.threat}</p>
                 <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                  {r.data_classes.map(dc => <Pill key={dc} dim="creative">{dc}</Pill>)}
+                  {r.data_classes.map(dc => <Pill key={dc}>{dc}</Pill>)}
                   {r.assets.slice(0, 3).map(a => <span key={a} className="mono text-[10px] text-ink-3">{a}</span>)}
                   {r.assets.length > 3 && <span className="text-[10px] text-ink-3">+{r.assets.length - 3}</span>}
                 </div>
               </div>
-              <div className="text-right shrink-0 text-[10px] text-ink-3">
+              <div className="sm:text-right shrink-0 mono text-[10px] text-ink-3">
                 <div>{r.owner || "—"}</div>
                 <div>review {r.review_by || "—"}</div>
               </div>
@@ -459,15 +429,15 @@ export default function SecurityPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 text-ink-2">
-        <Shield className="w-6 h-6 animate-pulse mr-2 text-dim-freedom" /> Loading security model...
+      <div className="flex items-center justify-center h-96 text-ink-3">
+        Loading security model...
       </div>
     );
   }
   if (failed || !data) {
     return (
-      <div className="flex items-center justify-center h-96 text-err">
-        <ShieldAlert className="w-6 h-6 mr-2" /> Failed to load security data
+      <div className="flex items-center justify-center gap-2 h-96 text-ink-2">
+        <Marker dim="err" /> Failed to load security data
       </div>
     );
   }
@@ -480,7 +450,6 @@ export default function SecurityPage() {
   return (
     <PageShell>
       <PageHeader
-        icon={Shield}
         title="Security"
         subtitle={data.description}
         actions={<span className="text-xs mono text-ink-3">{data.model}</span>}
@@ -488,10 +457,10 @@ export default function SecurityPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile icon={ShieldCheck} label="Defense Layers" value={3} dim="ok" />
-        <StatTile icon={ShieldX} label="Deny Rules" value={data.denyList?.length ?? 0} dim="err" />
-        <StatTile icon={Server} label="Active Hooks" value={activeHooks} dim="freedom" />
-        {missingHooks > 0 && <StatTile icon={ShieldAlert} label="Missing Hooks" value={missingHooks} dim="warn" />}
+        <StatTile label="Defense Layers" value={3} />
+        <StatTile label="Deny Rules" value={data.denyList?.length ?? 0} />
+        <StatTile label="Active Hooks" value={activeHooks} />
+        {missingHooks > 0 && <StatTile label="Missing Hooks" value={missingHooks} dim="warn" />}
       </div>
 
       {/* Attack Surface Monitoring (private, runtime-only) */}
@@ -502,20 +471,20 @@ export default function SecurityPage() {
 
       {/* Three-layer model */}
       <div>
-        <SectionHeader icon={Shield} title="How Security Works" />
+        <SectionHeader title="How Security Works" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
           <LayerCard
-            n={1} icon={BookIcon} title="Constitutional Rule" dim="freedom"
+            n={1} title="Constitutional Rule"
             where="LIFEOS_SYSTEM_PROMPT.md"
             body="The Security Protocol in the system prompt. External content is read-only data, never instructions. This is the actual defense — it survives compaction and binds every mode and agent."
           />
           <LayerCard
-            n={2} icon={ShieldX} title="Native Deny List" dim="err"
+            n={2} title="Native Deny List"
             where="settings.json · permissions.deny"
             body="Harness-enforced hard denials. The list below. Deterministic — the call never runs. Edit these in settings.json directly."
           />
           <LayerCard
-            n={3} icon={ShieldAlert} title="Safety Hook" dim="warn"
+            n={3} title="Safety Hook"
             where="hooks/Safety.hook.ts"
             body="One consolidated hook, two events. Its PostToolUse path tags every WebFetch/WebSearch result as data before it reaches the model; its PermissionRequest path shape-classifies outgoing tool calls. Advisory — the constitutional rule does the enforcing."
           />
@@ -527,9 +496,9 @@ export default function SecurityPage() {
 
       {/* Deny List */}
       <div>
-        <SectionHeader icon={ShieldX} title="Native Deny List" count={data.denyList?.length ?? 0} accentClass="text-err" />
-        <p className="text-xs mb-3 flex items-center gap-1.5 text-ink-2">
-          <Info className="w-3 h-3" /> Harness-enforced. Read-only here — edit <code className="mono text-ink-2">settings.json</code> <code className="mono text-ink-2">permissions.deny</code> to change.
+        <SectionHeader title="Native Deny List" count={data.denyList?.length ?? 0} />
+        <p className="text-xs mb-3 text-ink-2">
+          Harness-enforced. Read-only here — edit <code className="mono text-ink-2">settings.json</code> <code className="mono text-ink-2">permissions.deny</code> to change.
         </p>
         {denyGroups.length === 0 ? (
           <Panel>
@@ -544,9 +513,9 @@ export default function SecurityPage() {
 
       {/* Hooks */}
       <div>
-        <SectionHeader icon={Server} title="Security Hooks" count={hooks.length} />
-        <p className="text-xs mb-3 flex items-center gap-1.5 text-ink-2">
-          <Info className="w-3 h-3" /> Click a hook to see what it does and whether it can block a call. Green = registered and the file exists.
+        <SectionHeader title="Security Hooks" count={hooks.length} />
+        <p className="text-xs mb-3 text-ink-2">
+          Click a hook to see what it does and whether it can block a call. Green = registered and the file exists.
         </p>
         {hooks.length === 0 ? (
           <Panel>

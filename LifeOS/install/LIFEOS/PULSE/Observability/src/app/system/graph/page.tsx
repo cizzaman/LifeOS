@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { wikiPageUrl } from "@/lib/wiki-links";
 import KnowledgeGraph from "@/components/wiki/KnowledgeGraph";
-import { Network } from "lucide-react";
-import { PageShell, Pill } from "@/components/ui/chrome";
+import { PageShell } from "@/components/ui/chrome";
 
 interface GraphData {
   nodes: Array<{
@@ -41,9 +40,7 @@ export default function GraphPage() {
   if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-xs text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
-          Loading graph...
-        </div>
+        <div className="label-caps text-ink-3">Loading graph...</div>
       </div>
     );
   }
@@ -51,30 +48,24 @@ export default function GraphPage() {
   return (
     <PageShell fullBleed className="h-full">
       {/* Header bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-line-2 bg-surface-1 shrink-0">
-        <Network className="w-4 h-4 text-dim-relationships" />
-        <h1
-          className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-          style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
-        >
-          KNOWLEDGE GRAPH
-        </h1>
-        <span className="text-[13px] text-ink-3 ml-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 border-b border-line-2 shrink-0">
+        <h1 className="label-caps">Knowledge Graph</h1>
+        <span className="mono text-[10px] text-ink-3">
           {data.nodes.length} nodes · {data.edges.length} edges
         </span>
 
-        {/* Legend — dot colors are the graph node color scale (intentional) */}
-        <div className="ml-auto flex items-center gap-1.5">
+        {/* Legend — key colours are the graph node colour scale */}
+        <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1">
           {[
             { label: "System", color: "#5cc4d8" },
             { label: "People", color: "#5cc4d8" },
             { label: "Companies", color: "#f5c451" },
             { label: "Ideas", color: "#a78bfa" },
           ].map((item) => (
-            <Pill key={item.label} dim="neutral">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+            <span key={item.label} className="inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-2">
+              <span className="fig-key is-round" style={{ color: item.color }} />
               {item.label}
-            </Pill>
+            </span>
           ))}
         </div>
       </div>

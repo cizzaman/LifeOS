@@ -52,7 +52,7 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-video justify-center mono text-[10px] text-ink-3 [&_.recharts-cartesian-axis-tick_text]:fill-[color:var(--ink-3)] [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-[color:var(--line-1)] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[color:var(--line-3)] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-[color:var(--line-1)] [&_.recharts-radial-bar-background-sector]:fill-[color:var(--line-1)] [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-[color:var(--surface-3)] [&_.recharts-reference-line_[stroke='#ccc']]:stroke-[color:var(--line-3)] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           className
         )}
         {...props}
@@ -148,7 +148,7 @@ const ChartTooltipContent = React.forwardRef<
 
       if (labelFormatter) {
         return (
-          <div className={cn("font-medium", labelClassName)}>
+          <div className={cn("text-ink-1", labelClassName)}>
             {labelFormatter(value, payload)}
           </div>
         )
@@ -158,7 +158,7 @@ const ChartTooltipContent = React.forwardRef<
         return null
       }
 
-      return <div className={cn("font-medium", labelClassName)}>{value}</div>
+      return <div className={cn("text-ink-1", labelClassName)}>{value}</div>
     }, [
       label,
       labelFormatter,
@@ -179,7 +179,7 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+          "grid min-w-[8rem] items-start gap-1.5 rounded-[10px] border border-line-3 bg-surface-1 px-2.5 py-1.5 mono text-[11px] text-ink-1",
           className
         )}
       >
@@ -196,7 +196,7 @@ const ChartTooltipContent = React.forwardRef<
                 <div
                   key={item.dataKey}
                   className={cn(
-                    "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+                    "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-ink-3",
                     indicator === "dot" && "items-center"
                   )}
                 >
@@ -209,18 +209,16 @@ const ChartTooltipContent = React.forwardRef<
                       ) : (
                         !hideIndicator && (
                           <div
-                            className={cn(
-                              "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                              {
-                                "h-2.5 w-2.5": indicator === "dot",
-                                "w-1": indicator === "line",
-                                "w-0 border-[1.5px] border-dashed bg-transparent":
-                                  indicator === "dashed",
-                                "my-0.5": nestLabel && indicator === "dashed",
-                              }
-                            )}
+                            className={cn("shrink-0", {
+                              "fig-key": indicator === "dot",
+                              "w-px bg-[--color-bg]": indicator === "line",
+                              "w-0 border-l border-dashed border-[--color-border]":
+                                indicator === "dashed",
+                              "my-0.5": nestLabel && indicator === "dashed",
+                            })}
                             style={
                               {
+                                color: indicatorColor,
                                 "--color-bg": indicatorColor,
                                 "--color-border": indicatorColor,
                               } as React.CSSProperties
@@ -236,12 +234,12 @@ const ChartTooltipContent = React.forwardRef<
                       >
                         <div className="grid gap-1.5">
                           {nestLabel ? tooltipLabel : null}
-                          <span className="text-muted-foreground">
+                          <span className="text-ink-2">
                             {itemConfig?.label || item.name}
                           </span>
                         </div>
                         {item.value && (
-                          <span className="font-mono font-medium tabular-nums text-foreground">
+                          <span className="mono tabular-nums text-ink-1">
                             {item.value.toLocaleString()}
                           </span>
                         )}
@@ -282,7 +280,7 @@ const ChartLegendContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-center gap-4",
+          "flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-ink-2",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           className
         )}
@@ -297,17 +295,16 @@ const ChartLegendContent = React.forwardRef<
               <div
                 key={item.value}
                 className={cn(
-                  "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
+                  "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-ink-3"
                 )}
               >
                 {itemConfig?.icon && !hideIcon ? (
                   <itemConfig.icon />
                 ) : (
-                  <div
-                    className="h-2 w-2 shrink-0 rounded-[2px]"
-                    style={{
-                      backgroundColor: item.color,
-                    }}
+                  <span
+                    aria-hidden
+                    className="fig-key"
+                    style={{ color: item.color }}
                   />
                 )}
                 {itemConfig?.label}

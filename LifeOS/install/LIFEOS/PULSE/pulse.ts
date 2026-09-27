@@ -1048,14 +1048,14 @@ async function main() {
       if (req.method === "GET" && !pathname.includes(".") && !pathname.startsWith("/api/") && dashboardHealth(config).status === "missing") {
         const cmd = `cd ${PULSE_DIR}/Observability && bun install && bun run build`
         return new Response(
-          `<!doctype html><html><head><title>Pulse — dashboard build missing</title></head>` +
-          `<body style="font-family:monospace;background:#0a0a0a;color:#e5e5e5;padding:3rem;max-width:48rem">` +
-          `<h1 style="color:#f87171">Pulse is running, but the dashboard build is missing</h1>` +
+          `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pulse — dashboard build missing</title></head>` +
+          `<body style="font:15px/1.6 system-ui,sans-serif;background:#0a0a0a;color:#f0e8d8;padding:3rem 1rem;max-width:48rem;margin:0 auto">` +
+          `<h1 style="font-weight:500;font-size:28px;line-height:1.2;color:#f0e8d8">Pulse is running, but the dashboard build is missing</h1>` +
           `<p>The server and APIs are up. The Next.js static export at <code>Observability/out/</code> ` +
           `does not exist (usually a fresh clone or cleaned build artifacts).</p>` +
-          `<p>Rebuild it:</p><pre style="background:#171717;padding:1rem">${cmd}</pre>` +
+          `<p>Rebuild it:</p><pre style="font:12px/1.6 ui-monospace,monospace;background:#111111;border:1px solid #262626;border-radius:10px;padding:1rem;overflow-x:auto">${cmd}</pre>` +
           `<p>Then reload — no Pulse restart needed.</p>` +
-          `<p><a style="color:#60a5fa" href="/healthz">/healthz</a> shows full subsystem status.</p>` +
+          `<p><a style="color:#f0e8d8;text-decoration-color:#3a3a3a;text-underline-offset:3px" href="/healthz">/healthz</a> shows full subsystem status.</p>` +
           `</body></html>`,
           { status: 503, headers: { "Content-Type": "text/html" } },
         )

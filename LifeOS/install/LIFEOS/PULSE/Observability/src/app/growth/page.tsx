@@ -9,11 +9,9 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
-  Cell,
   CartesianGrid,
 } from "recharts";
-import { TrendingUp, Users, Mail, Video, Globe, type LucideIcon } from "lucide-react";
-import { PageShell, PageHeader, Panel, StatTile, type Dim } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, StatTile } from "@/components/ui/chrome";
 
 interface GrowthData {
   generatedAt: string;
@@ -42,22 +40,18 @@ interface GrowthData {
   errors: string[];
 }
 
-// Chart palette maps straight onto the life-dimension tokens.
-const GREEN = "var(--health)";
-const GOLD = "var(--money)";
-const BLUE = "var(--freedom)";
-const RED = "var(--creative)";
-const PURPLE = "var(--relationships)";
-const TEAL = "var(--rhythms)";
-const CHANNEL_COLORS = [GREEN, BLUE, GOLD, PURPLE, RED, TEAL];
+// One series per chart, so one colour: the teal.
+const SERIES = "var(--accent-blue)";
 
 const CHART_TOOLTIP = {
   background: "var(--surface-1)",
-  border: "1px solid var(--line-1)",
-  borderRadius: 8,
-  fontSize: 12,
+  border: "1px solid var(--line-3)",
+  borderRadius: 10,
+  fontFamily: "var(--font-mono)",
+  fontSize: 11,
   color: "var(--ink-1)",
 };
+const AXIS_TICK = { fill: "var(--ink-3)", fontSize: 10, fontFamily: "var(--font-mono)" };
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -71,23 +65,22 @@ function mmdd(d: string): string {
 
 function Hero({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
   return (
-    <Panel style={{ borderLeft: `2px solid ${GREEN}` }}>
+    <Panel>
       <div className="flex items-start gap-6 flex-wrap">
-        <TrendingUp className="w-10 h-10 shrink-0" color={GREEN} />
         <div className="flex-1 min-w-0">
-          <div className="text-xs uppercase tracking-widest mb-2 text-ink-3">
+          <div className="label-caps mb-4">
             Audience Growth
           </div>
           <div className="flex items-baseline gap-8 flex-wrap">
             <div>
-              <div className="text-xs uppercase tracking-wider text-ink-3">New subscribers today</div>
-              <div className="text-5xl lg:text-6xl font-medium tabular-nums leading-tight" style={{ color: GREEN }}>
+              <div className="label-caps text-ink-3">New subscribers today</div>
+              <div className="mono text-5xl lg:text-6xl leading-tight text-ink-1">
                 {nl.newToday}
               </div>
             </div>
             <div>
-              <div className="text-xs uppercase tracking-wider text-ink-3">Total active</div>
-              <div className="text-3xl lg:text-4xl font-medium tabular-nums leading-tight text-ink-1">
+              <div className="label-caps text-ink-3">Total active</div>
+              <div className="mono text-3xl lg:text-4xl leading-tight text-ink-1">
                 {fmt(nl.totalActive)}
               </div>
               <div className="text-xs mt-1 text-ink-2">
@@ -96,11 +89,11 @@ function Hero({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
             </div>
             <div className="text-sm space-y-1 text-ink-2">
               <div>
-                <span className="tabular-nums" style={{ color: BLUE }}>{nl.new7d}</span> in 7d ·{" "}
+                <span className="mono text-ink-1">{nl.new7d}</span> in 7d ·{" "}
                 {nl.avgPerDay7d}/day
               </div>
               <div>
-                <span className="tabular-nums" style={{ color: BLUE }}>{nl.new30d.toLocaleString()}</span> in 30d ·{" "}
+                <span className="mono text-ink-1">{nl.new30d.toLocaleString()}</span> in 30d ·{" "}
                 {nl.avgPerDay30d}/day
               </div>
               <div className="text-xs">
@@ -118,27 +111,22 @@ function TrendChart({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
   const data = nl.dailyTrend.map((d) => ({ ...d, label: mmdd(d.date) }));
   return (
     <section>
-      <h2 className="text-sm font-medium uppercase tracking-widest mb-4 text-ink-3">
+      <h2 className="label-caps mb-4">
         New Subscribers · 30 Days
       </h2>
-      <Panel style={{ borderLeft: `2px solid ${GREEN}` }}>
+      <Panel>
         <div style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ left: 0, right: 12, top: 8 }}>
-              <defs>
-                <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={GREEN} stopOpacity={0.45} />
-                  <stop offset="100%" stopColor={GREEN} stopOpacity={0.03} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid stroke="var(--line-1)" vertical={false} />
-              <XAxis dataKey="label" stroke="var(--ink-3)" fontSize={10} interval={4} tickLine={false} />
-              <YAxis stroke="var(--ink-3)" fontSize={10} width={32} tickLine={false} axisLine={false} />
+              <CartesianGrid stroke="var(--line-1)" strokeDasharray="2 4" vertical={false} />
+              <XAxis dataKey="label" stroke="var(--line-2)" tick={AXIS_TICK} interval={4} tickLine={false} />
+              <YAxis stroke="var(--line-2)" tick={AXIS_TICK} width={32} tickLine={false} axisLine={false} />
               <Tooltip
                 contentStyle={CHART_TOOLTIP}
+                cursor={{ stroke: "var(--line-3)" }}
                 formatter={(v: number) => [`${v} new`, "Subscribers"]}
               />
-              <Area type="monotone" dataKey="count" stroke={GREEN} strokeWidth={2} fill="url(#subGrad)" />
+              <Area type="monotone" dataKey="count" stroke={SERIES} strokeWidth={1.5} fill={SERIES} fillOpacity={0.1} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -154,29 +142,26 @@ function Channels({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
   if (rows.length === 0) return null;
   return (
     <section>
-      <h2 className="text-sm font-medium uppercase tracking-widest mb-4 text-ink-3">
+      <h2 className="label-caps mb-4">
         Where They Came From · 30 Days
       </h2>
-      <Panel style={{ borderLeft: `2px solid ${BLUE}` }}>
+      <Panel>
         <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows.map(([name, count]) => ({ name, count }))} layout="vertical" margin={{ left: 20, right: 40 }}>
-              <XAxis type="number" stroke="var(--ink-3)" fontSize={11} tickLine={false} />
-              <YAxis type="category" dataKey="name" stroke="var(--ink-3)" fontSize={11} width={120} tickLine={false} axisLine={false} />
+              <XAxis type="number" stroke="var(--line-2)" tick={AXIS_TICK} tickLine={false} />
+              <YAxis type="category" dataKey="name" stroke="var(--line-2)" tick={AXIS_TICK} width={120} tickLine={false} axisLine={false} />
               <Tooltip
                 contentStyle={CHART_TOOLTIP}
+                cursor={{ fill: "var(--surface-3)" }}
                 formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(0)}%)`, "Subs"]}
               />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {rows.map((_, i) => (
-                  <Cell key={i} fill={CHANNEL_COLORS[i % CHANNEL_COLORS.length]} />
-                ))}
-              </Bar>
+              <Bar dataKey="count" fill={SERIES} fillOpacity={0.12} stroke={SERIES} strokeWidth={1} radius={0} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         {today.length > 0 && (
-          <div className="text-xs text-ink-2 mt-4 pt-4" style={{ borderTop: "1px solid var(--line-1)" }}>
+          <div className="text-xs text-ink-2 mt-4 pt-4 border-t border-line-2">
             Today: {today.map(([k, v]) => `${k} ${v}`).join(" · ")}
           </div>
         )}
@@ -185,16 +170,13 @@ function Channels({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
   );
 }
 
-function NotConnected({ icon: Icon, accent, label, envVar, note }: { icon: LucideIcon; accent: string; label: string; envVar: string; note: string }) {
+function NotConnected({ label, envVar, note }: { label: string; envVar: string; note: string }) {
   return (
-    <Panel className="p-4" style={{ borderLeft: `2px solid var(--line-2)`, opacity: 0.75 }}>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 shrink-0" color={accent} />
-        <h3 className="text-xs uppercase tracking-wider text-ink-3">{label}</h3>
-      </div>
+    <Panel className="p-4">
+      <h3 className="label-caps mb-2">{label}</h3>
       <div className="text-sm text-ink-2">Not connected</div>
-      <div className="text-xs text-ink-3 mt-1">
-        {note} Set <code style={{ color: accent }}>{envVar}</code> in <code>~/.claude/.env</code>.
+      <div className="text-xs text-ink-3 mt-1 break-words">
+        {note} Set <code className="mono text-ink-1">{envVar}</code> in <code className="mono">~/.claude/.env</code>.
       </div>
     </Panel>
   );
@@ -214,9 +196,12 @@ export default function GrowthPage() {
     return (
       <PageShell>
         <PageHeader title="Growth" subtitle="Audience across newsletter, YouTube, and web." />
-        <Panel style={{ borderLeft: `2px solid ${RED}` }}>
-          <h2 className="font-medium" style={{ color: RED }}>Failed to load growth</h2>
-          <p className="text-sm text-err">{error}</p>
+        <Panel>
+          <h2 className="flex items-center gap-2 label-caps text-ink-1 mb-2">
+            <span className="fig-key" style={{ color: "var(--err)" }} aria-hidden />
+            Failed to load growth
+          </h2>
+          <p className="text-sm text-ink-2">{error}</p>
         </Panel>
       </PageShell>
     );
@@ -256,47 +241,41 @@ export default function GrowthPage() {
           </div>
         </>
       ) : (
-        <Panel style={{ borderLeft: `2px solid ${RED}` }}>
-          <h2 className="font-medium" style={{ color: RED }}>Newsletter not connected</h2>
+        <Panel>
+          <h2 className="label-caps text-ink-1 mb-2">Newsletter not connected</h2>
           <p className="text-sm text-ink-2">Set BEEHIIV_API_KEY and BEEHIIV_PUB_ID in ~/.claude/.env.</p>
         </Panel>
       )}
 
-      <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3">Other Channels</h2>
+      <h2 className="label-caps">Other Channels</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {data.youtube ? (
           <StatTile
-            icon={Video}
-            dim="creative"
             label="YouTube"
             value={fmt(data.youtube.subscribers)}
             sub={`${fmt(data.youtube.totalViews)} views · ${data.youtube.videoCount} videos`}
           />
         ) : (
-          <NotConnected icon={Video} accent={RED} label="YouTube" envVar="GOOGLE_API_KEY" note="Enable YouTube Data API v3 on this key's project." />
+          <NotConnected label="YouTube" envVar="GOOGLE_API_KEY" note="Enable YouTube Data API v3 on this key's project." />
         )}
         {data.web ? (
           <StatTile
-            icon={Globe}
-            dim="money"
             label={`Web traffic (${data.web.range})`}
             value={fmt(data.web.pageviews)}
             sub={`${fmt(data.web.visitors)} visitors`}
           />
         ) : (
-          <NotConnected icon={Globe} accent={GOLD} label="Web traffic" envVar="CLOUDFLARE_API_TOKEN" note="Needs Account Analytics Read scope." />
+          <NotConnected label="Web traffic" envVar="CLOUDFLARE_API_TOKEN" note="Needs Account Analytics Read scope." />
         )}
         {nl && (
           <StatTile
-            icon={Mail}
-            dim="relationships"
             label="List health"
             value={`${nl.openRate}%`}
             sub={`open · ${nl.clickRate}% click · ${nl.premium.toLocaleString()} premium`}
           />
         )}
         {nl && (
-          <StatTile icon={Users} dim="health" label="Free / Premium" value={fmt(nl.free)} sub={`free · ${nl.premium.toLocaleString()} premium`} />
+          <StatTile label="Free / Premium" value={fmt(nl.free)} sub={`free · ${nl.premium.toLocaleString()} premium`} />
         )}
       </div>
     </PageShell>

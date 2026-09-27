@@ -5,6 +5,8 @@
 // PUTs /api/telos/file on save, calls onSaved() + onClose().
 
 import { useCallback, useEffect, useState } from "react";
+import { Marker } from "@/components/ui/chrome";
+import { Icons } from "./icons";
 
 export interface FileEditorProps {
   open: boolean;
@@ -122,44 +124,28 @@ export function FileEditor({ open, filename, onClose, onSaved }: FileEditorProps
   if (!open || !filename) return null;
 
   return (
-    <div
-      onClick={closeWithConfirm}
-      style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.7)", display: "grid", placeItems: "center" }}
-    >
-      <div
-        className="telos-card"
-        onClick={(event) => event.stopPropagation()}
-        style={{ width: 900, maxWidth: "90vw", maxHeight: "80vh", padding: 20, background: "#111111", color: "#f0e8d8", border: "1px solid #1f1f1f" }}
-      >
-        <header style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-          <div style={{ fontFamily: "monospace", fontSize: 14 }}>{filename}</div>
-          <button type="button" onClick={closeWithConfirm} aria-label="Close editor" style={{ marginLeft: "auto" }}>x</button>
+    <div className="telos-editor-backdrop" onClick={closeWithConfirm}>
+      <div className="telos-editor" onClick={(event) => event.stopPropagation()}>
+        <header className="telos-editor-head">
+          <div className="telos-editor-name">{filename}</div>
+          <button type="button" className="modal-x" onClick={closeWithConfirm} aria-label="Close editor">
+            <Icons.X size={16} />
+          </button>
         </header>
         <textarea
+          className="telos-editor-text"
           value={content}
           onChange={(event) => setContent(event.target.value)}
           disabled={loading || saving}
           spellCheck={false}
-          style={{
-            width: "100%",
-            minHeight: "55vh",
-            resize: "vertical",
-            fontFamily: "var(--font-mono)",
-            fontSize: 14,
-            lineHeight: 1.5,
-            background: "#111111",
-            color: "#f0e8d8",
-            border: "1px solid #1f1f1f",
-            padding: 20,
-            outline: "none",
-          }}
         />
-        <footer style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14 }}>
-          <div style={{ color: error ? "#F87171" : "#98a8b3", fontSize: 13 }}>
+        <footer className="telos-editor-foot">
+          <div className="telos-editor-status">
+            {error && <Marker dim="err" />}
             {error ?? status ?? (loading ? "Loading..." : dirty ? "Unsaved changes" : "Ready")}
           </div>
-          <button type="button" onClick={closeWithConfirm} disabled={saving} style={{ marginLeft: "auto" }}>Cancel</button>
-          <button type="button" onClick={() => void save()} disabled={loading || saving || !dirty}>
+          <button type="button" className="telos-btn" onClick={closeWithConfirm} disabled={saving}>Cancel</button>
+          <button type="button" className="telos-btn" onClick={() => void save()} disabled={loading || saving || !dirty}>
             {saving ? "Saving..." : "Save"}
           </button>
         </footer>

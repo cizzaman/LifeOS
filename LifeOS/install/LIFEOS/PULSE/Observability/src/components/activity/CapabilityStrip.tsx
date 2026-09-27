@@ -2,17 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { localOnlyApiCall } from "@/lib/local-api";
-import {
-  Zap,
-  Bot,
-  Layers,
-  Workflow,
-  Plug,
-  Globe,
-  Terminal,
-  MessageSquare,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { TabBar } from "@/components/ui/chrome";
 
 // ─── Capability Strip ───
 //
@@ -60,12 +50,12 @@ interface CapabilitiesData {
 }
 
 const WINDOWS = [
-  { minutes: 60, label: "1h" },
-  { minutes: 360, label: "6h" },
-  { minutes: 1440, label: "24h" },
+  { id: "60", label: "1h" },
+  { id: "360", label: "6h" },
+  { id: "1440", label: "24h" },
 ];
 
-/** Fresh = fired inside the last 2 minutes — the chip pulses. */
+/** Fresh = fired inside the last 2 minutes — the chip carries the live dot. */
 const FRESH_MS = 2 * 60 * 1000;
 
 function agoShort(ts: number): string {
@@ -87,12 +77,12 @@ function Sparkline({ buckets }: { buckets: number[] }) {
     .map((v, i) => `${(i * step).toFixed(1)},${(h - 2 - (v / max) * (h - 4)).toFixed(1)}`)
     .join(" ");
   return (
-    <svg width={w} height={h} className="shrink-0 opacity-90" aria-hidden>
+    <svg width={w} height={h} className="shrink-0" aria-hidden>
       <polyline
         points={points}
         fill="none"
-        stroke="#7cd5e6"
-        strokeWidth="1.5"
+        stroke="var(--accent-blue)"
+        strokeWidth="1.25"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
@@ -101,7 +91,7 @@ function Sparkline({ buckets }: { buckets: number[] }) {
         cx={w}
         cy={h - 2 - (buckets[buckets.length - 1] / max) * (h - 4)}
         r="2"
-        fill="#7cd5e6"
+        fill="var(--accent-blue)"
       />
     </svg>
   );
@@ -109,7 +99,6 @@ function Sparkline({ buckets }: { buckets: number[] }) {
 
 interface ChipDef {
   key: string;
-  icon: LucideIcon;
   label: string;
   value: string;
   count: number;
@@ -119,24 +108,20 @@ interface ChipDef {
 
 function Chip({ chip }: { chip: ChipDef }) {
   const fresh = chip.lastUsed != null && Date.now() - chip.lastUsed < FRESH_MS;
-  const Icon = chip.icon;
   return (
-    <div className="group relative flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-      {fresh && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse shrink-0" />}
-      <Icon className={`w-3.5 h-3.5 shrink-0 ${fresh ? "text-sky-300" : "text-sky-400"}`} />
-      <span className="text-[13px] text-ink-3 whitespace-nowrap">{chip.label}</span>
-      <span className="text-[13px] font-mono whitespace-nowrap text-ink-1 font-semibold">
-        {chip.value}
-      </span>
+    <div className="group relative flex items-center gap-2 shrink-0 whitespace-nowrap">
+      {fresh && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--accent-blue)" }} />}
+      <span className="label-caps whitespace-nowrap">{chip.label}</span>
+      <span className="mono text-[12px] whitespace-nowrap text-ink-1">{chip.value}</span>
       {chip.lastUsed != null && (
-        <span className={`text-[11px] font-mono ${fresh ? "text-sky-300" : "text-ink-3"}`}>
+        <span className={`mono text-[10px] ${fresh ? "text-ink-2" : "text-ink-3"}`}>
           {agoShort(chip.lastUsed)}
         </span>
       )}
       {chip.tooltip && chip.tooltip.length > 0 && (
-        <div className="absolute top-full left-0 mt-1.5 px-2.5 py-1.5 rounded-md bg-[rgba(20,20,20,0.97)] border border-line-2 text-[13px] text-ink-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 min-w-[160px] max-w-[320px] whitespace-nowrap">
+        <div className="absolute top-full left-0 mt-1.5 px-3 py-2 rounded-[10px] bg-surface-1 border border-line-3 text-[11px] text-ink-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 min-w-[160px] max-w-[320px] whitespace-nowrap">
           {chip.tooltip.map((line, i) => (
-            <div key={i} className="leading-snug font-mono">
+            <div key={i} className="leading-relaxed mono">
               {line}
             </div>
           ))}
@@ -182,7 +167,6 @@ export default function CapabilityStrip() {
     const chips: ChipDef[] = [
       {
         key: "skills",
-        icon: Zap,
         label: "Skills",
         value:
           data.skills.length > 0
@@ -197,7 +181,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "agents",
-        icon: Bot,
         label: "Agents",
         value:
           t.agent_dispatches > 0
@@ -216,7 +199,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "parallel",
-        icon: Layers,
         label: "Parallel",
         value:
           data.parallel.bursts > 0
@@ -232,7 +214,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "workflow",
-        icon: Workflow,
         label: "Orchestrator",
         value: `${t.workflow_runs}`,
         count: t.workflow_runs,
@@ -240,7 +221,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "send_messages",
-        icon: MessageSquare,
         label: "Agent msgs",
         value: `${t.send_messages}`,
         count: t.send_messages,
@@ -248,7 +228,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "mcp",
-        icon: Plug,
         label: "MCP",
         value: data.mcp.length > 0 ? data.mcp.map((m) => m.server).join(", ") : "0",
         count: data.mcp.reduce((s, m) => s + m.count, 0),
@@ -257,7 +236,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "web",
-        icon: Globe,
         label: "Web",
         value: `${webTotal}`,
         count: webTotal,
@@ -265,7 +243,6 @@ export default function CapabilityStrip() {
       },
       {
         key: "tools",
-        icon: Terminal,
         label: "Tool calls",
         value: `${t.tool_calls} · ${t.sessions} sess`,
         count: t.tool_calls,
@@ -286,10 +263,8 @@ export default function CapabilityStrip() {
   if (!data) return null;
 
   return (
-    <div className="flex items-center flex-wrap gap-x-5 gap-y-1 px-4 py-1.5 bg-[rgba(17,17,17,0.5)] border-b border-white/[0.04] shrink-0">
-      <span className="text-[13px] font-semibold text-ink-2 tracking-wide shrink-0 uppercase">
-        Capabilities
-      </span>
+    <div className="flex items-center flex-wrap gap-x-5 gap-y-1.5 px-4 py-2 border-b border-line-2 shrink-0">
+      <span className="label-caps text-ink-1 shrink-0">Capabilities</span>
 
       {data.series?.buckets?.length > 1 && <Sparkline buckets={data.series.buckets} />}
 
@@ -299,29 +274,19 @@ export default function CapabilityStrip() {
 
       {quiet.length > 0 && (
         <span
-          className="text-[12px] text-ink-3 opacity-60 shrink-0 whitespace-nowrap"
+          className="text-[12px] text-ink-3 shrink-0 whitespace-nowrap"
           title="No use inside the selected window"
         >
           quiet: {quiet.map((c) => c.label).join(" · ")}
         </span>
       )}
 
-      {/* Window toggle */}
-      <div className="flex items-center gap-1 ml-auto shrink-0">
-        {WINDOWS.map((w) => (
-          <button
-            key={w.minutes}
-            onClick={() => setWindowMin(w.minutes)}
-            className={`px-1.5 py-0.5 rounded text-[13px] font-mono transition-colors ${
-              windowMin === w.minutes
-                ? "bg-sky-500/15 text-sky-300"
-                : "text-ink-3 hover:text-ink-2"
-            }`}
-          >
-            {w.label}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        className="ml-auto shrink-0"
+        tabs={WINDOWS}
+        active={String(windowMin)}
+        onChange={(id) => setWindowMin(Number(id))}
+      />
     </div>
   );
 }

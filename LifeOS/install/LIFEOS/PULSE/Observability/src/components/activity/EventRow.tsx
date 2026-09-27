@@ -2,122 +2,7 @@
 
 import { useState } from "react";
 import type { HookEvent } from "@/hooks/useAgentEvents";
-import {
-  Wrench,
-  CheckCircle,
-  Bell,
-  StopCircle,
-  UserCheck,
-  Package,
-  MessageSquare,
-  Rocket,
-  Flag,
-  FileText,
-  Copy,
-  Eye,
-  FilePlus,
-  Edit3,
-  Terminal,
-  Search,
-  FolderSearch,
-  Globe,
-  Compass,
-  Zap,
-  Command,
-  CheckSquare,
-  MessageCircleQuestion,
-  BookOpen,
-  Code,
-  type LucideIcon,
-} from "lucide-react";
-
-// ─── Color Maps ───
-
-const EVENT_TYPE_COLORS: Record<string, string> = {
-  PreToolUse: "#f5c451",
-  PostToolUse: "#f97316",
-  Completed: "#22c55e",
-  Notification: "#f97316",
-  Stop: "#f87171",
-  SubagentStop: "#a78bfa",
-  PreCompact: "#1abc9c",
-  UserPromptSubmit: "#7cd5e6",
-  SessionStart: "#5cc4d8",
-  SessionEnd: "#5cc4d8",
-};
-
-const TOOL_COLORS: Record<string, string> = {
-  Read: "#5cc4d8",
-  Write: "#22c55e",
-  Edit: "#f5c451",
-  Bash: "#a78bfa",
-  Grep: "#f87171",
-  Glob: "#f97316",
-  Task: "#5cc4d8",
-  WebFetch: "#7cd5e6",
-  WebSearch: "#7cd5e6",
-  Skill: "#d9d2c4",
-  SlashCommand: "#d9d2c4",
-  TodoWrite: "#f5c451",
-  AskUserQuestion: "#a78bfa",
-  NotebookEdit: "#22c55e",
-  NotebookRead: "#5cc4d8",
-  BashOutput: "#a78bfa",
-  KillShell: "#f87171",
-  ExitPlanMode: "#22c55e",
-};
-
-const AGENT_HEX: Record<string, string> = {
-  pentester: "#f87171",
-  engineer: "#3fb2c9",
-  designer: "#a78bfa",
-  architect: "#a78bfa",
-  intern: "#3fb2c9",
-  artist: "#3fb2c9",
-  "perplexity-researcher": "#f5c451",
-  "claude-researcher": "#f5c451",
-  "gemini-researcher": "#f5c451",
-  main: "#3fb2c9",
-  da: "#3fb2c9",
-  pai: "#3fb2c9",
-  "claude-code": "#3fb2c9",
-};
-
-// ─── Icons ───
-
-const HOOK_ICONS: Record<string, LucideIcon> = {
-  PreToolUse: Wrench,
-  PostToolUse: CheckCircle,
-  Notification: Bell,
-  Stop: StopCircle,
-  SubagentStop: UserCheck,
-  PreCompact: Package,
-  UserPromptSubmit: MessageSquare,
-  SessionStart: Rocket,
-  SessionEnd: Flag,
-  Completed: CheckCircle,
-};
-
-const TOOL_ICONS: Record<string, LucideIcon> = {
-  Read: Eye,
-  Write: FilePlus,
-  Edit: Edit3,
-  Bash: Terminal,
-  Grep: Search,
-  Glob: FolderSearch,
-  Task: Zap,
-  WebFetch: Globe,
-  WebSearch: Compass,
-  Skill: Zap,
-  SlashCommand: Command,
-  TodoWrite: CheckSquare,
-  AskUserQuestion: MessageCircleQuestion,
-  NotebookEdit: BookOpen,
-  NotebookRead: FileText,
-  BashOutput: Terminal,
-  KillShell: Terminal,
-  ExitPlanMode: CheckCircle,
-};
+import { Copy } from "lucide-react";
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   PreToolUse: "Pre-Tool",
@@ -223,14 +108,7 @@ export default function EventRow({ event }: EventRowProps) {
       ? event.source_app.charAt(0).toUpperCase() + event.source_app.slice(1)
       : "unknown";
 
-  const agentKey = (event.agent_name || event.source_app || "unknown").split(":")[0].toLowerCase();
-  const appColor = AGENT_HEX[agentKey] || "#5cc4d8";
-  const eventTypeColor = EVENT_TYPE_COLORS[event.hook_event_type] || "#5cc4d8";
-  const HookIcon = HOOK_ICONS[event.hook_event_type] || MessageSquare;
-
   const toolInfo = getToolInfo(event);
-  const toolColor = toolInfo?.tool ? TOOL_COLORS[toolInfo.tool] || "#5cc4d8" : "#5cc4d8";
-  const ToolIcon = toolInfo?.tool ? TOOL_ICONS[toolInfo.tool] || Code : Code;
 
   const copyPayload = async () => {
     try {
@@ -245,63 +123,38 @@ export default function EventRow({ event }: EventRowProps) {
 
   return (
     <div
-      className={`group relative p-3 rounded-xl cursor-pointer hover:bg-white/[0.02] transition-colors ${
-        expanded ? "ring-1 ring-blue-500/50" : ""
+      className={`group relative p-3 rounded-[10px] border cursor-pointer transition-colors ${
+        expanded
+          ? "border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)]"
+          : "border-transparent hover:bg-surface-3"
       }`}
       onClick={() => setExpanded(!expanded)}
     >
       <div className="ml-1">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            {/* Agent Badge */}
-            <div
-              className="text-xs font-medium px-2.5 py-1 rounded-lg border flex items-center gap-1.5 shrink-0"
-              style={{
-                borderColor: appColor + "50",
-                backgroundColor: appColor + "15",
-              }}
-            >
-              <span className="font-mono text-xs whitespace-nowrap text-white">{agentId}</span>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 flex-1 min-w-0">
+            {/* Agent */}
+            <span className="mono text-[11px] whitespace-nowrap text-ink-1 shrink-0">{agentId}</span>
 
-            {/* Event Type Badge */}
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium"
-              style={{ backgroundColor: eventTypeColor + "12", color: eventTypeColor }}
-            >
-              <HookIcon size={12} strokeWidth={2} />
+            {/* Event Type */}
+            <span className="mono text-[10px] uppercase tracking-[0.1em] whitespace-nowrap text-ink-2 shrink-0">
               {EVENT_TYPE_LABELS[event.hook_event_type] || event.hook_event_type}
             </span>
 
             {/* Tool Info */}
             {toolInfo && (
-              <span className="flex items-center gap-1.5 min-w-0">
+              <span className="flex items-center gap-2 min-w-0">
                 {toolInfo.tool && (
-                  <span
-                    className="text-sm font-medium px-2 py-1 rounded-lg inline-flex items-center gap-1 shrink-0"
-                    style={{ backgroundColor: toolColor + "10", color: toolColor }}
-                  >
-                    <ToolIcon size={11} strokeWidth={2} />
-                    {toolInfo.tool}
-                  </span>
+                  <span className="mono text-[11px] text-ink-1 shrink-0">{toolInfo.tool}</span>
                 )}
                 {toolInfo.detail && (
                   <span
                     data-sensitive
-                    className="text-base truncate flex-1 min-w-0"
-                    style={{
-                      fontFamily:
-                        event.hook_event_type === "UserPromptSubmit"
-                          ? "Georgia, serif"
-                          : "Georgia, serif",
-                      fontStyle: event.hook_event_type === "UserPromptSubmit" ? "italic" : undefined,
-                      color:
-                        event.hook_event_type === "UserPromptSubmit"
-                          ? "#7cd5e6"
-                          : event.hook_event_type === "Completed"
-                          ? "#22c55e"
-                          : "var(--ink-2)",
-                    }}
+                    className={`text-[13px] truncate flex-1 min-w-0 ${
+                      event.hook_event_type === "UserPromptSubmit" || event.hook_event_type === "Completed"
+                        ? "text-ink-1"
+                        : "text-ink-2"
+                    }`}
                   >
                     {toolInfo.detail}
                   </span>
@@ -311,40 +164,36 @@ export default function EventRow({ event }: EventRowProps) {
 
             {/* Summary */}
             {event.summary && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-white font-medium px-2.5 py-1 bg-blue-500/10 rounded-lg min-w-0 max-w-sm" data-sensitive>
-                <FileText size={11} strokeWidth={2} className="text-blue-400 shrink-0" />
-                <span className="truncate">{event.summary}</span>
+              <span className="text-[13px] text-ink-2 min-w-0 max-w-sm truncate" data-sensitive>
+                {event.summary}
               </span>
             )}
           </div>
 
           {/* Timestamp */}
-          <span className="text-xs text-[var(--line-2)] font-medium whitespace-nowrap">
+          <span className="mono text-[11px] text-ink-3 whitespace-nowrap">
             {formatTime(event.timestamp)}
           </span>
         </div>
 
         {/* Expanded: Payload */}
         {expanded && (
-          <div className="mt-3 pt-3 border-t border-white/[0.04] space-y-3">
+          <div className="mt-3 pt-3 border-t border-line-2 space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-[var(--ink-2)] flex items-center gap-1.5">
-                  <Package size={14} strokeWidth={2} />
-                  Payload
-                </h4>
+                <h4 className="label-caps">Payload</h4>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     copyPayload();
                   }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 text-[var(--ink-2)] hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
+                  className="px-3 py-1.5 rounded-[10px] border border-line-2 flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.1em] text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors"
                 >
-                  <Copy size={12} strokeWidth={2} />
+                  <Copy size={12} strokeWidth={1.5} />
                   {copyText}
                 </button>
               </div>
-              <pre className="text-sm text-white bg-black/20 p-3 rounded-xl overflow-x-auto max-h-64 overflow-y-auto font-mono" data-sensitive>
+              <pre className="mono text-[12px] text-ink-2 p-3 rounded-[10px] border border-line-2 overflow-x-auto max-h-64 overflow-y-auto" data-sensitive>
                 {JSON.stringify(event.payload, null, 2)}
               </pre>
             </div>

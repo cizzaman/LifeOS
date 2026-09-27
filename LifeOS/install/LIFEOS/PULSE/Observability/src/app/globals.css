@@ -181,31 +181,34 @@
   scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
 }
 
-/* Mono text */
-.mono {
-  font-family: var(--font-mono);
-  font-feature-settings: "tnum", "zero";
-}
+/* Label voices live in the components layer so text-ink-* utilities can still set their colour. */
+@layer components {
+  /* Mono text */
+  .mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "zero";
+  }
 
-/* Small caps label — the figure-label voice from the Work modals */
-.label-caps {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
+  /* Small caps label — the figure-label voice from the Work modals */
+  .label-caps {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
 
-/* Small uppercase metric label (legacy consumer; prefer PanelHeader/StatTile) */
-.metric-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-2);
+  /* Small uppercase metric label (legacy consumer; prefer PanelHeader/StatTile) */
+  .metric-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-2);
+  }
 }
 
 /* Progress track — the Work modal's 2px line: hairline rail, one teal fill */

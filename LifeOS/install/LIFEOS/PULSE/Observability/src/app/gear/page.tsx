@@ -1,23 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Boxes,
-  Car,
-  Coffee,
-  Cpu,
-  Code2,
-  Heart,
-  Home,
-  Lamp,
-  Mic,
-  Network,
-  Radio,
-  Search,
-  Sofa,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { PageShell, PageHeader, Panel, Pill, EmptyState } from "@/components/ui/chrome";
 
 /**
@@ -57,24 +41,6 @@ interface AssetsData {
   assets: Asset[];
   gear: { sections: GearSection[]; updated: string | null };
   error?: string;
-}
-
-/** Generic category → icon heuristic; matches meaning, never a specific inventory. */
-function categoryIcon(category: string): LucideIcon {
-  const c = category.toLowerCase();
-  if (/computer|display|laptop/.test(c)) return Cpu;
-  if (/audio|studio chain|music/.test(c)) return Mic;
-  if (/light/.test(c)) return Lamp;
-  if (/office|furniture|desk/.test(c)) return Sofa;
-  if (/network/.test(c)) return Network;
-  if (/smart home|camera|sensor/.test(c)) return Radio;
-  if (/house|home|appliance/.test(c)) return Home;
-  if (/health|sleep|fitness/.test(c)) return Heart;
-  if (/carry|edc|wallet/.test(c)) return Wallet;
-  if (/coffee|kitchen/.test(c)) return Coffee;
-  if (/car|vehicle/.test(c)) return Car;
-  if (/software|stack|tech/.test(c)) return Code2;
-  return Boxes;
 }
 
 const matches = (needle: string, ...fields: (string | undefined)[]) =>
@@ -135,11 +101,10 @@ export default function GearPage() {
     <PageShell>
       <PageHeader
         title="Gear"
-        icon={Boxes}
         subtitle={
           <>
             Everything you own, by category — rendered live from{" "}
-            <code className="text-ink-2">USER/GEAR.md</code>.
+            <code className="mono text-ink-2">USER/GEAR.md</code>.
             {itemCount ? ` ${itemCount} items.` : ""}
             {data?.networkEndpoints ? ` ${data.networkEndpoints} endpoints seen on the LAN.` : ""}
             {data?.gear?.updated ? ` Inventory updated ${data.gear.updated}.` : ""}
@@ -150,13 +115,13 @@ export default function GearPage() {
       {data && itemCount > 0 && (
         <div className="flex flex-col gap-4">
           <div className="relative w-full sm:max-w-sm">
-            <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Filter by name, model, category…"
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-1 border border-line-2 text-sm text-ink-1 placeholder:text-ink-3 focus:outline-none focus:border-line-3"
+              className="w-full pl-9 pr-3 py-2 rounded-[10px] bg-transparent border border-line-2 text-sm text-ink-1 placeholder:text-ink-3 focus:outline-none focus:border-[color:var(--accent-blue)]"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -164,11 +129,11 @@ export default function GearPage() {
               <button
                 key={c}
                 onClick={() => setCat(c)}
-                className="text-[12px] px-2.5 py-1 rounded-md border transition-colors"
+                className="mono text-[10px] uppercase tracking-[0.1em] px-2.5 py-1 rounded-[10px] border transition-colors hover:text-ink-1"
                 style={
                   cat === c
-                    ? { background: "var(--surface-3)", borderColor: "var(--line-3)", color: "var(--ink-1)" }
-                    : { background: "var(--surface-1)", borderColor: "var(--line-2)", color: "var(--ink-2)" }
+                    ? { background: "var(--primary-soft)", borderColor: "var(--accent-blue)", color: "var(--ink-1)" }
+                    : { background: "transparent", borderColor: "var(--line-2)", color: "var(--ink-2)" }
                 }
               >
                 {c}
@@ -178,11 +143,15 @@ export default function GearPage() {
         </div>
       )}
 
-      {error && <div className="text-warn text-sm">Couldn&apos;t reach Gear API: {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 text-ink-2 text-sm">
+          <span className="fig-key" style={{ color: "var(--warn)" }} aria-hidden />
+          Couldn&apos;t reach Gear API: {error}
+        </div>
+      )}
       {!data && !error && <div className="text-ink-3 text-sm">Loading…</div>}
       {data && itemCount === 0 && !error && (
         <EmptyState
-          icon={Boxes}
           title={data.error ? "Couldn't read GEAR.md" : "No gear yet"}
           hint={data.error ?? "Add categories and items to LIFEOS/USER/GEAR.md and they'll appear here."}
         />
@@ -194,13 +163,12 @@ export default function GearPage() {
 
       {networkDevices.length > 0 && (
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <Network className="w-4 h-4 text-dim-health" />
-            <h2 className="text-sm font-semibold text-ink-2 tracking-wide uppercase">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+            <h2 className="label-caps">
               Network &amp; Smart Home (live)
             </h2>
-            <span className="text-[11px] text-ink-3">{networkDevices.length}</span>
-            <Pill dim="health" className="text-[10px]">
+            <span className="mono text-[10px] text-ink-3">{networkDevices.length}</span>
+            <Pill className="text-ink-3">
               topology snapshot
             </Pill>
           </div>
@@ -210,7 +178,7 @@ export default function GearPage() {
                 <div className="text-ink-1 font-medium leading-snug">{a.name}</div>
                 {a.detail && <div className="text-ink-2 text-sm leading-snug">{a.detail}</div>}
                 {a.ip && (
-                  <code className="text-[12px] text-ink-3 mt-0.5" data-sensitive title={a.ip}>
+                  <code className="mono text-[12px] text-ink-3 mt-0.5" data-sensitive title={a.ip}>
                     {a.ip}
                   </code>
                 )}
@@ -224,7 +192,6 @@ export default function GearPage() {
 }
 
 function GearSectionBlock({ section }: { section: GearSection }) {
-  const Icon = categoryIcon(section.category);
   // Preserve subgroup order as it appears in the file; ungrouped items first.
   const subgroups = useMemo(() => {
     const order: (string | undefined)[] = [];
@@ -234,10 +201,9 @@ function GearSectionBlock({ section }: { section: GearSection }) {
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 text-dim-freedom" />
-        <h2 className="text-sm font-semibold text-ink-2 tracking-wide uppercase">{section.category}</h2>
-        <span className="text-[11px] text-ink-3">{section.items.length}</span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+        <h2 className="label-caps">{section.category}</h2>
+        <span className="mono text-[10px] text-ink-3">{section.items.length}</span>
       </div>
 
       {section.notes.length > 0 && (
@@ -254,7 +220,7 @@ function GearSectionBlock({ section }: { section: GearSection }) {
         {subgroups.map(({ label, items }) => (
           <div key={label ?? "_"}>
             {label && (
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-ink-3 mb-2">{label}</div>
+              <div className="label-caps text-ink-3 mb-2">{label}</div>
             )}
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {items.map((it, i) => (
@@ -272,8 +238,8 @@ function GearSectionBlock({ section }: { section: GearSection }) {
       {section.todos.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {section.todos.map((t, i) => (
-            <Pill key={i} dim="warn" className="text-[10px]" title={t}>
-              TODO: {t.length > 60 ? `${t.slice(0, 60)}…` : t}
+            <Pill key={i} dim="warn" className="whitespace-normal" title={t}>
+              TODO: {t}
             </Pill>
           ))}
         </div>

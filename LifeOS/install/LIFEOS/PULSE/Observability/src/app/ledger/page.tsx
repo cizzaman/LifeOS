@@ -8,14 +8,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  GitCommitVertical,
-  Package,
-  Rocket,
-  ScrollText,
-  ShieldCheck,
-  Workflow,
-} from "lucide-react";
-import {
   EmptyState,
   PageHeader,
   PageShell,
@@ -61,7 +53,7 @@ interface LedgerPayload {
 const SIG_DIM: Record<string, Dim> = {
   critical: "err",
   major: "warn",
-  moderate: "blue",
+  moderate: "neutral",
   minor: "neutral",
   trivial: "neutral",
 };
@@ -102,8 +94,8 @@ export default function LedgerPage() {
   if (error) {
     return (
       <PageShell>
-        <PageHeader title="Ledger" icon={ScrollText} subtitle="Change tracking" />
-        <EmptyState icon={ScrollText} title="Ledger API unreachable" hint={error} />
+        <PageHeader title="Ledger" subtitle="Change tracking" />
+        <EmptyState title="Ledger API unreachable" hint={error} />
       </PageShell>
     );
   }
@@ -115,25 +107,22 @@ export default function LedgerPage() {
     <PageShell>
       <PageHeader
         title="Ledger"
-        icon={ScrollText}
         subtitle="What changed, when, at what version — system edits and estate deploys"
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatTile label="LifeOS" value={data?.versions?.lifeos ?? "—"} icon={Package} />
-        <StatTile label="Algorithm" value={data?.versions?.algorithm ?? "—"} icon={Workflow} />
-        <StatTile label="Prompt" value={data?.versions?.system_prompt ?? "—"} icon={ScrollText} />
+        <StatTile label="LifeOS" value={data?.versions?.lifeos ?? "—"} />
+        <StatTile label="Algorithm" value={data?.versions?.algorithm ?? "—"} />
+        <StatTile label="Prompt" value={data?.versions?.system_prompt ?? "—"} />
         <StatTile
           label="Updates"
           value={data?.registry?.total_updates ?? "—"}
-          icon={GitCommitVertical}
           sub={data?.registry?.last_updated ? `last ${timeAgo(data.registry.last_updated)}` : undefined}
         />
         <StatTile
           label="Integrity"
           value={integrityClean == null ? "—" : integrityClean ? "clean" : "blocked"}
           dim={integrityClean == null ? "neutral" : integrityClean ? "ok" : "err"}
-          icon={ShieldCheck}
           sub={data?.integrity?.last_run ? timeAgo(data.integrity.last_run.ts) : "no run recorded"}
         />
         <StatTile
@@ -141,7 +130,6 @@ export default function LedgerPage() {
           value={driftCount}
           unit="files"
           dim={driftCount >= 10 ? "warn" : "ok"}
-          icon={Rocket}
           sub={data?.drift?.tag ? `since ${data.drift.tag}` : undefined}
         />
       </div>
@@ -150,7 +138,6 @@ export default function LedgerPage() {
         <Panel>
           <PanelHeader
             title="System updates"
-            icon={GitCommitVertical}
             meta={data?.registry ? `latest ${data.registry.recent.length}` : undefined}
           />
           {data?.registry?.recent?.length ? (
@@ -159,7 +146,7 @@ export default function LedgerPage() {
                 <li key={i} className="py-2.5 flex items-center gap-3">
                   <Pill dim={SIG_DIM[u.significance ?? ""] ?? "neutral"}>{u.significance ?? "?"}</Pill>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-ink-1 truncate">{u.title}</div>
+                    <div className="text-[13px] text-ink-1 break-words">{u.title}</div>
                     <div className="text-[12px] text-ink-3 mono">
                       {timeAgo(u.timestamp)}
                       {u.version ? ` · v${u.version}` : ""}
@@ -171,14 +158,13 @@ export default function LedgerPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon={GitCommitVertical} title="No registry entries readable" />
+            <EmptyState title="No registry entries readable" />
           )}
         </Panel>
 
         <Panel>
           <PanelHeader
             title="Estate deploys"
-            icon={Rocket}
             meta={data ? `latest ${data.deploys.length}` : undefined}
           />
           {data?.deploys?.length ? (
@@ -187,7 +173,7 @@ export default function LedgerPage() {
                 <li key={i} className="py-2.5 flex items-center gap-3">
                   <Pill dim={d.ok ? "ok" : "err"}>{d.ok ? "ok" : "fail"}</Pill>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-ink-1 truncate">
+                    <div className="text-[13px] text-ink-1 break-words">
                       {d.project}
                       {d.domain ? <span className="text-ink-3"> · {d.domain}</span> : null}
                     </div>
@@ -201,7 +187,6 @@ export default function LedgerPage() {
             </ul>
           ) : (
             <EmptyState
-              icon={Rocket}
               title="No deploy events yet"
               hint="Every gated deploy records here via LedgerDeployEvent — events accumulate as projects ship."
             />

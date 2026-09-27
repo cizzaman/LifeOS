@@ -7,23 +7,7 @@ import {
   PolarAngleAxis,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Activity,
-  DollarSign,
-  Briefcase,
-  Building2,
-  Target,
-  Compass,
-  ArrowUpRight,
-  ChevronDown,
-  ChevronRight,
-  Lightbulb,
-  CheckSquare,
-  Square,
-  AlertCircle,
-  Wind,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react";
 import { PageShell, PageHeader, Panel, PanelHeader, StatTile, Pill } from "@/components/ui/chrome";
 
 // ────────── Types ──────────
@@ -117,26 +101,6 @@ interface AirData {
 
 // ────────── Helpers ──────────
 
-type Dimension = "health" | "money" | "freedom" | "creative" | "relationships" | "rhythms";
-
-// Canonical life-dimension palette. Kept as literal hex (identical to the
-// --health/--money/… design tokens) because these feed Recharts SVG gradient
-// stops and fill attributes, which cannot resolve CSS custom properties.
-const DIMENSION_COLOR: Record<Dimension, string> = {
-  health: "#22c55e",
-  money: "#f5c451",
-  freedom: "#a8e2ee",
-  creative: "#f97316",
-  relationships: "#a78bfa",
-  rhythms: "#3fb2c9",
-};
-
-const RING_GRADIENT: Record<string, [string, string]> = {
-  Mood: [DIMENSION_COLOR.relationships, DIMENSION_COLOR.health],
-  Energy: [DIMENSION_COLOR.health, DIMENSION_COLOR.rhythms],
-  Focus: [DIMENSION_COLOR.freedom, DIMENSION_COLOR.creative],
-};
-
 function parseRatio(value?: string): number | null {
   if (!value) return null;
   const m = value.match(/(\d+(?:\.\d+)?)\s*\/\s*10/);
@@ -170,14 +134,12 @@ function parseRevenueSummary(md?: string): { total?: string; deals?: string; lar
 // ────────── Primitives ──────────
 
 function RingMetric({ label, score, valueText }: { label: string; score: number | null; valueText?: string }) {
-  const gradientId = `ring-${label.toLowerCase()}`;
-  const [startColor, endColor] = RING_GRADIENT[label] ?? [DIMENSION_COLOR.relationships, DIMENSION_COLOR.health];
   if (score === null) return (
-    <div className="flex flex-col items-center gap-1 text-ink-3">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center text-xs border border-line-1 text-ink-3">
+    <div className="flex flex-col items-center gap-1">
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mono text-xs border border-line-2 text-ink-3">
         —
       </div>
-      <div className="text-[13px] uppercase tracking-wider">{label}</div>
+      <div className="label-caps text-ink-3">{label}</div>
     </div>
   );
   const data = [{ value: score }];
@@ -185,59 +147,49 @@ function RingMetric({ label, score, valueText }: { label: string; score: number 
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-20 h-20">
         <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart innerRadius="70%" outerRadius="100%" data={data} startAngle={90} endAngle={-270}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={startColor} />
-                <stop offset="100%" stopColor={endColor} />
-              </linearGradient>
-            </defs>
+          <RadialBarChart innerRadius="92%" outerRadius="100%" data={data} startAngle={90} endAngle={-270}>
             <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-            <RadialBar dataKey="value" fill={`url(#${gradientId})`} cornerRadius={10} background={{ fill: "var(--line-1)" }} />
+            <RadialBar dataKey="value" fill="var(--accent-blue)" cornerRadius={0} background={{ fill: "var(--line-2)" }} />
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-medium tabular-nums text-ink-1">{score}</span>
+          <span className="mono text-lg text-ink-1">{score}</span>
         </div>
       </div>
-      <div className="text-[13px] uppercase tracking-wider text-ink-2">{label}</div>
-      {valueText && <div className="text-[12px] text-ink-2 text-center max-w-[120px] truncate" title={valueText}>{valueText}</div>}
+      <div className="label-caps">{label}</div>
+      {valueText && <div className="text-[12px] text-ink-2 text-center max-w-[120px] break-words">{valueText}</div>}
     </div>
   );
 }
 
 function DomainCard({
-  title, icon: Icon, href, headline, secondary, children, empty, dimension, pulse = false,
+  title, href, headline, secondary, children, empty, pulse = false,
 }: {
   title: string;
-  icon: LucideIcon;
   href: string;
   headline?: string | null;
   secondary?: string | null;
   children?: React.ReactNode;
   empty?: string;
-  dimension: Dimension;
   pulse?: boolean;
 }) {
-  const color = DIMENSION_COLOR[dimension];
   return (
     <Link href={href} className="h-full">
       <Panel hover className={`h-full group flex flex-col gap-2${pulse ? " pulse" : ""}`}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span aria-hidden className="inline-block w-[7px] h-[7px] shrink-0" style={{ background: color }} />
-            <Icon className="w-3.5 h-3.5 shrink-0 text-ink-3" strokeWidth={1.5} />
-            <h2 className="label-caps whitespace-nowrap truncate">{title}</h2>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="fig-key" style={{ color: "var(--ink-3)" }} aria-hidden />
+            <h2 className="label-caps">{title}</h2>
           </div>
           <ArrowUpRight className="w-4 h-4 shrink-0 text-ink-3 transition-colors group-hover:text-ink-1" strokeWidth={1.5} />
         </div>
         {headline ? (
           <>
-            <div className="tabular-nums text-ink-1" style={{ font: "500 28px/1.2 var(--font-display)", letterSpacing: "-0.03em" }} data-sensitive>{headline}</div>
-            {secondary && <div className="text-xs text-ink-2 leading-relaxed line-clamp-2" data-sensitive>{secondary}</div>}
+            <div className="text-ink-1" style={{ font: "400 28px/1.2 var(--font-mono)", letterSpacing: "-0.03em" }} data-sensitive>{headline}</div>
+            {secondary && <div className="text-xs text-ink-2 leading-relaxed" data-sensitive>{secondary}</div>}
           </>
         ) : empty ? (
-          <div className="text-xs text-ink-3 italic py-2">{empty}</div>
+          <div className="text-xs text-ink-3 py-2">{empty}</div>
         ) : null}
         {children}
       </Panel>
@@ -247,19 +199,8 @@ function DomainCard({
 
 // ────────── Sections ──────────
 
-const DOMAIN_DIMENSION: Record<string, Dimension> = {
-  health: "health",
-  finances: "money",
-  money: "money",
-  relationships: "relationships",
-  "digital assistant": "freedom",
-  work: "creative",
-  business: "creative",
-  rhythms: "rhythms",
-};
-
 function NarrativeBanner({ home }: { home: HomeData | null }) {
-  if (!home) return <Panel className="h-24 animate-pulse" />;
+  if (!home) return <Panel className="h-24" />;
   const mood = parseMoodToScore(home.current?.mood);
   const energy = parseRatio(home.current?.energy);
   const focus = home.current?.focus ? 70 : null; // focus depth is categorical — render existence as 70
@@ -269,9 +210,9 @@ function NarrativeBanner({ home }: { home: HomeData | null }) {
     <Panel className="p-8">
       <div className="flex items-start justify-between gap-8 flex-wrap">
         <div className="flex-1 min-w-0 max-w-4xl">
-          <div className="text-[13px] uppercase tracking-widest mb-3 text-ink-3">
+          <div className="label-caps mb-3">
             How is life going
-            {home.updated && <span className="ml-3 normal-case tracking-normal">as of {home.updated}{home.updatedBy ? ` · via ${home.updatedBy}` : ""}</span>}
+            {home.updated && <span className="ml-3 text-ink-3">as of {home.updated}{home.updatedBy ? ` · via ${home.updatedBy}` : ""}</span>}
           </div>
           {home.oneSentence ? (
             <p className="text-2xl lg:text-3xl font-medium leading-snug text-ink-1" data-sensitive>
@@ -279,25 +220,19 @@ function NarrativeBanner({ home }: { home: HomeData | null }) {
             </p>
           ) : domains.length > 0 ? (
             <div className="space-y-4" data-sensitive>
-              {domains.map(d => {
-                const color = DIMENSION_COLOR[DOMAIN_DIMENSION[d.name.toLowerCase()] ?? "freedom"];
-                return (
-                  <div key={d.name} className="flex items-start gap-4">
-                    <span
-                      className="text-[12px] uppercase tracking-wider shrink-0 w-32 mt-1 font-medium"
-                      style={{ color }}
-                    >
-                      {d.name}
-                    </span>
-                    <p className="text-sm leading-relaxed text-ink-1 min-w-0" title={d.body}>
-                      {d.summary}
-                    </p>
-                  </div>
-                );
-              })}
+              {domains.map(d => (
+                <div key={d.name} className="flex items-start gap-4">
+                  <span className="label-caps shrink-0 w-32 mt-1">
+                    {d.name}
+                  </span>
+                  <p className="text-sm leading-relaxed text-ink-1 min-w-0" title={d.body}>
+                    {d.summary}
+                  </p>
+                </div>
+              ))}
             </div>
           ) : (
-            <p className="text-sm text-ink-3 italic">
+            <p className="text-sm text-ink-3">
               No Current State yet — run an interview or add a Current State section to Telos.
             </p>
           )}
@@ -308,7 +243,7 @@ function NarrativeBanner({ home }: { home: HomeData | null }) {
           )}
         </div>
         {hasRings && (
-          <div className="flex items-center gap-6" data-sensitive>
+          <div className="flex flex-wrap items-center gap-6" data-sensitive>
             <RingMetric label="Mood" score={mood} valueText={home.current?.mood} />
             <RingMetric label="Energy" score={energy} valueText={home.current?.energy} />
             <RingMetric label="Focus" score={focus} valueText={home.current?.focus} />
@@ -316,11 +251,11 @@ function NarrativeBanner({ home }: { home: HomeData | null }) {
         )}
       </div>
       {(home.current?.location || home.current?.sleep_last_night || home.current?.calendar_load) && (
-        <div className="mt-6 flex flex-wrap gap-2 text-xs pt-4 border-t border-line-1" data-sensitive>
-          {home.current?.location && <Pill dim="freedom">Location · {home.current.location}</Pill>}
-          {home.current?.sleep_last_night && <Pill dim="rhythms">Sleep · {home.current.sleep_last_night}</Pill>}
-          {home.current?.calendar_load && <Pill dim="creative">Calendar · {home.current.calendar_load}</Pill>}
-          {home.current?.last_meal && <Pill dim="health">Meal · {home.current.last_meal}</Pill>}
+        <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 pt-4 border-t border-line-2" data-sensitive>
+          {home.current?.location && <Pill className="whitespace-normal">Location · {home.current.location}</Pill>}
+          {home.current?.sleep_last_night && <Pill className="whitespace-normal">Sleep · {home.current.sleep_last_night}</Pill>}
+          {home.current?.calendar_load && <Pill className="whitespace-normal">Calendar · {home.current.calendar_load}</Pill>}
+          {home.current?.last_meal && <Pill className="whitespace-normal">Meal · {home.current.last_meal}</Pill>}
         </div>
       )}
     </Panel>
@@ -357,44 +292,37 @@ function DomainGrid({
     <section>
       <PanelHeader title="Domains" className="mb-4" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <DomainCard title="Business" icon={Building2} href="/business"
-          dimension="creative"
+        <DomainCard title="Business" href="/business"
           headline={rev.total || null}
           secondary={rev.deals ? `${rev.deals} deals · largest ${rev.largest ?? "—"}` : null}
           empty={!rev.total ? "Wire finances pipeline to surface revenue" : undefined}
         />
-        <DomainCard title="Health" icon={Activity} href="/health"
-          dimension="health"
+        <DomainCard title="Health" href="/health"
           headline={healthFileCount > 0 ? `${healthFileCount} sources` : null}
           secondary="Labs, fitness, nutrition tracked"
           empty={healthFileCount === 0 ? "Add health files to surface trends" : undefined}
         />
-        <DomainCard title="Work" icon={Briefcase} href="/work"
-          dimension="creative"
+        <DomainCard title="Work" href="/work"
           pulse={projectCount > 0}
           headline={projectCount > 0 ? `${projectCount} active` : null}
           secondary="Projects in flight"
           empty={projectCount === 0 ? "No active projects tracked" : undefined}
         />
-        <DomainCard title="Finances" icon={DollarSign} href="/finances"
-          dimension="money"
+        <DomainCard title="Finances" href="/finances"
           headline={accountCount > 0 ? `${accountCount} accounts` : null}
           secondary="Tracked accounts & categories"
           empty={accountCount === 0 ? "Add accounts to Finances/ domain" : undefined}
         />
-        <DomainCard title="Telos Goals" icon={Target} href="/telos"
-          dimension="relationships"
+        <DomainCard title="Telos Goals" href="/telos"
           headline={goalCount > 0 ? `${goalCount} active` : null}
           secondary={goals?.mission?.[0]?.body?.slice(0, 80) ?? "Telos mission & goals"}
           empty={goalCount === 0 ? "Define goals in Telos/" : undefined}
         />
-        <DomainCard title="Telos" icon={Compass} href="/telos"
-          dimension="freedom"
+        <DomainCard title="Telos" href="/telos"
           headline={`${goals?.mission?.length ?? 0} missions`}
           secondary={goals?.problems?.length ? `${goals.problems.length} problems · ${goals?.status?.length ?? 0} status entries` : null}
         />
-        <DomainCard title="Air Quality" icon={Wind} href="/air"
-          dimension="rhythms"
+        <DomainCard title="Air Quality" href="/air"
           headline={airHeadline}
           secondary={airSecondary}
           empty={airMonitorCount === 0 ? "Run the AirGradient poller to prime cache" : undefined}
@@ -409,21 +337,22 @@ function ActiveGoals({ goals }: { goals: GoalsData | null }) {
   if (items.length === 0) return null;
   return (
     <section>
-      <div className="flex items-center justify-between mb-4">
-        <PanelHeader title="Active Goals" />
-        <Link href="/telos" className="text-xs text-ink-3 hover:text-ink-2">see all →</Link>
-      </div>
-      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.relationships}` }}>
+      <PanelHeader
+        title="Active Goals"
+        className="mb-4"
+        actions={<Link href="/telos" className="text-xs text-ink-3 hover:text-ink-1">see all →</Link>}
+      />
+      <Panel>
         <div className="space-y-3" data-sensitive>
           {items.map(g => (
-            <div key={g.id} className="flex items-center gap-4">
-              <span className="text-xs mono text-ink-3 w-8 shrink-0">{g.id}</span>
-              <span className="text-sm flex-1 truncate text-ink-1" title={g.text}>{g.text}</span>
-              <Pill dim="relationships" className="shrink-0">active</Pill>
+            <div key={g.id} className="flex items-start gap-4">
+              <span className="text-xs mono text-ink-3 w-8 shrink-0 mt-0.5">{g.id}</span>
+              <span className="text-sm flex-1 min-w-0 text-ink-1">{g.text}</span>
+              <Pill className="shrink-0 mt-0.5">active</Pill>
             </div>
           ))}
         </div>
-        <div className="mt-4 pt-4 text-xs text-ink-3 italic border-t border-line-1">
+        <div className="mt-4 pt-4 text-xs text-ink-3 border-t border-line-2">
           Progress tracking appears once each goal has a `progress` field in Telos/Goals.md
         </div>
       </Panel>
@@ -436,33 +365,27 @@ function NextActionsSpark({ home }: { home: HomeData | null }) {
   const spark = home?.spark;
   return (
     <section className="grid gap-3 sm:grid-cols-2">
-      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.rhythms}` }}>
-        <div className="flex items-center gap-2 mb-1">
-          <CheckSquare className="w-4 h-4" color={DIMENSION_COLOR.rhythms} />
-          <h3 className="text-sm font-medium uppercase tracking-widest" style={{ color: DIMENSION_COLOR.rhythms }}>Next Actions</h3>
-        </div>
+      <Panel>
+        <PanelHeader title="Next Actions" className="mb-3" />
         {actions.length > 0 ? (
           <ul className="space-y-2 text-ink-1" data-sensitive>
             {actions.slice(0, 6).map((a, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <Square className="w-3 h-3 mt-1 shrink-0 text-ink-3" />
+              <li key={i} className="flex items-start gap-2.5 text-sm">
+                <span className="fig-key mt-[7px]" style={{ color: "var(--ink-3)" }} aria-hidden />
                 <span>{a}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-ink-3 italic">No actions in `current.md` yet.</p>
+          <p className="text-xs text-ink-3">No actions in `current.md` yet.</p>
         )}
       </Panel>
-      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.creative}` }}>
-        <div className="flex items-center gap-2 mb-1">
-          <Lightbulb className="w-4 h-4" color={DIMENSION_COLOR.creative} />
-          <h3 className="text-sm font-medium uppercase tracking-widest" style={{ color: DIMENSION_COLOR.creative }}>Spark</h3>
-        </div>
+      <Panel>
+        <PanelHeader title="Spark" className="mb-3" />
         {spark ? (
-          <p className="text-base font-serif italic leading-relaxed text-ink-1">{spark}</p>
+          <p className="text-base leading-relaxed text-ink-1">{spark}</p>
         ) : (
-          <p className="text-xs text-ink-3 italic">Sparks surfaces random entries from Telos/Sparks.md</p>
+          <p className="text-xs text-ink-3">Sparks surfaces random entries from Telos/Sparks.md</p>
         )}
       </Panel>
     </section>
@@ -484,12 +407,12 @@ function SystemContextDrawer({ index }: { index: UserIndex | null }) {
       >
         <button
           onClick={() => setOpen(o => !o)}
-          className="w-full flex items-center justify-between text-left p-5 cursor-pointer"
+          className="w-full flex items-center justify-between gap-3 text-left p-5 cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            {open ? <ChevronDown className="w-4 h-4 text-ink-3" /> : <ChevronRight className="w-4 h-4 text-ink-3" />}
-            <span className="text-xs font-medium uppercase tracking-widest text-ink-3">System Context</span>
-            <span className="text-xs text-ink-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+            {open ? <ChevronDown className="w-4 h-4 text-ink-3" strokeWidth={1.5} /> : <ChevronRight className="w-4 h-4 text-ink-3" strokeWidth={1.5} />}
+            <span className="label-caps">System Context</span>
+            <span className="mono text-xs text-ink-3">
               {index.stats.total_files} files · {daemonCount} broadcast · {index.interview_gaps.length} gaps
             </span>
           </div>
@@ -540,12 +463,12 @@ export default function LifePage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
-          <div className="flex items-center gap-2 mb-2 text-err">
-            <AlertCircle className="w-4 h-4" />
-            <h2 className="font-medium">Dashboard unavailable</h2>
+        <Panel>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="fig-key" style={{ color: "var(--err)" }} aria-hidden />
+            <h2 className="label-caps text-ink-1">Dashboard unavailable</h2>
           </div>
-          <p className="text-sm text-err">{error}</p>
+          <p className="text-sm text-ink-2">{error}</p>
         </Panel>
       </PageShell>
     );
@@ -553,7 +476,7 @@ export default function LifePage() {
 
   return (
     <PageShell className="max-w-[1920px]">
-      <PageHeader icon={Activity} title="Life" subtitle="Your current state across every domain — mood, goals, work, and the numbers behind them." />
+      <PageHeader title="Life" subtitle="Your current state across every domain — mood, goals, work, and the numbers behind them." />
       <NarrativeBanner home={home} />
       <DomainGrid business={business} health={health} finances={finances} work={work} goals={goals} air={air} />
       <ActiveGoals goals={goals} />

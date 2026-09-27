@@ -165,25 +165,6 @@ interface TraceModalProps {
   onClose: () => void;
 }
 
-const KIND_COLORS: Record<string, string> = {
-  "Ideal State": "var(--sky)",
-  Dimension:    "var(--sky)",
-  Problem:      "var(--bad)",
-  Mission:      "var(--warm)",
-  Goal:         "var(--ok)",
-  Metric:       "var(--azure)",
-  Challenge:    "var(--warm)",
-  Strategy:     "var(--accent-2)",
-  Project:      "var(--sky)",
-  Work:         "var(--text-2)",
-  Team:         "var(--accent-2)",
-  Budget:       "var(--money)",
-};
-
-function colorFor(kind: string): string {
-  return KIND_COLORS[kind] ?? "var(--text-2)";
-}
-
 interface GroupProps {
   title: string;
   arr: readonly TraceItem[];
@@ -203,7 +184,7 @@ function Group({ title, arr, dir, onTrace }: GroupProps) {
           onClick={() => onTrace(n.id)}
           type="button"
         >
-          <span className="tr-kind" style={{ color: colorFor(n.kind) }}>{n.kind}</span>
+          <span className="tr-kind">{n.kind}</span>
           <span className="tr-id mono">{n.id}</span>
           <span className="tr-title">{n.title}</span>
         </button>
@@ -236,13 +217,13 @@ export function TraceModal({ telos, id, onTrace, onClose }: TraceModalProps) {
       >
         <header className="modal-head">
           <div>
-            <div className="modal-eyebrow" style={{ color: colorFor(node.kind) }}>
+            <div className="modal-eyebrow">
               {node.kind} · trace both ways
             </div>
             <h2 className="modal-title">{node.title}</h2>
             <div className="trace-meta">
               {node.meta}{" "}
-              <span className="mono" style={{ color: "var(--text-4)", marginLeft: 8 }}>{node.id}</span>
+              <span className="mono trace-id">{node.id}</span>
             </div>
           </div>
           <button className="modal-x" onClick={onClose} type="button" aria-label="Close">

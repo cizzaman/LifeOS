@@ -3,30 +3,8 @@
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import type { HookEvent } from "@/hooks/useAgentEvents";
 import { useChartData, type TimeRange } from "@/hooks/useChartData";
-import { createChartRenderer, type ChartDimensions, type ChartConfig } from "./ChartRenderer";
+import { createChartRenderer, chartColorsFromTokens, type ChartDimensions } from "./ChartRenderer";
 import { Brain, Wrench, Clock, X, Zap, Loader2 } from "lucide-react";
-
-// ─── Agent Color Map ───
-
-const AGENT_HEX: Record<string, string> = {
-  pentester: "#f87171",
-  engineer: "#3fb2c9",
-  designer: "#a78bfa",
-  architect: "#a78bfa",
-  intern: "#3fb2c9",
-  artist: "#3fb2c9",
-  "perplexity-researcher": "#f5c451",
-  "claude-researcher": "#f5c451",
-  "gemini-researcher": "#f5c451",
-  main: "#3fb2c9",
-  da: "#3fb2c9",
-  pai: "#3fb2c9",
-  "claude-code": "#3fb2c9",
-};
-
-function getHexColor(name: string) {
-  return AGENT_HEX[name.split(":")[0].toLowerCase()] || "#5cc4d8";
-}
 
 function formatGap(ms: number): string {
   if (ms === 0) return "\u2014";
@@ -106,7 +84,6 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
   }, [events, targetAgent, targetSession]);
 
   const hasData = dataPoints.some((dp) => dp.count > 0);
-  const agentColor = getHexColor(appName);
 
   const getDimensions = useCallback(
     (): ChartDimensions => ({
@@ -136,7 +113,7 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
       animationDuration: 300,
       barWidth: 3,
       barGap: 1,
-      colors: { primary: "#3fb2c9", glow: "#5cc4d8", axis: "#333", text: "#55636d" },
+      colors: chartColorsFromTokens(),
     });
 
     const resizeObs = new ResizeObserver(() => {
@@ -186,61 +163,56 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
   }, [events]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="w-full flex flex-col gap-1 mb-3">
+    <div className="w-full flex flex-col gap-2 mb-3">
       {/* Header */}
-      <div className="flex justify-between items-center text-xs font-semibold px-2 gap-2">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap justify-between items-center px-1 gap-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
           {/* Agent label */}
-          <span
-            className="px-2 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wide text-white inline-flex items-center min-h-[28px]"
-            style={{ backgroundColor: agentColor, borderColor: agentColor }}
-          >
-            <span className="font-mono text-xs">{appName}</span>
-          </span>
+          <span className="label-caps text-ink-1">{appName}</span>
 
           {/* Model badge */}
           {modelName && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-1 rounded-lg border border-[var(--line-2)] min-h-[28px]">
-              <Brain size={14} strokeWidth={2.5} />
-              <span className="text-xs font-bold">{formatModelName(modelName)}</span>
-            </div>
+            <span className="inline-flex items-center gap-1.5" title="Model">
+              <Brain size={13} strokeWidth={1.5} className="text-ink-3 shrink-0" />
+              <span className="mono text-[11px] text-ink-1">{formatModelName(modelName)}</span>
+            </span>
           )}
 
           {/* Event count */}
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-1 rounded-lg border border-[var(--line-2)] min-h-[28px]">
-            <Zap size={14} strokeWidth={2.5} className="shrink-0" />
-            <span className="text-xs font-bold">{totalEventCount}</span>
-          </div>
+          <span className="inline-flex items-center gap-1.5" title="Events">
+            <Zap size={13} strokeWidth={1.5} className="text-ink-3 shrink-0" />
+            <span className="mono text-[11px] text-ink-1">{totalEventCount}</span>
+          </span>
 
           {/* Tool call count */}
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-1 rounded-lg border border-[var(--line-2)] min-h-[28px]">
-            <Wrench size={14} strokeWidth={2.5} className="shrink-0" />
-            <span className="text-xs font-bold">{toolCallCount}</span>
-          </div>
+          <span className="inline-flex items-center gap-1.5" title="Tool calls">
+            <Wrench size={13} strokeWidth={1.5} className="text-ink-3 shrink-0" />
+            <span className="mono text-[11px] text-ink-1">{toolCallCount}</span>
+          </span>
 
           {/* Avg gap */}
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-1 rounded-lg border border-[var(--line-2)] min-h-[28px]">
-            <Clock size={16} strokeWidth={2.5} className="shrink-0" />
-            <span className="text-sm font-bold">{formatGap(avgGap)}</span>
-          </div>
+          <span className="inline-flex items-center gap-1.5" title="Average gap between events">
+            <Clock size={13} strokeWidth={1.5} className="text-ink-3 shrink-0" />
+            <span className="mono text-[11px] text-ink-1">{formatGap(avgGap)}</span>
+          </span>
         </div>
 
         <button
           onClick={onClose}
-          className="text-[var(--ink-3)] hover:text-white transition-colors p-0.5 rounded hover:bg-white/[0.05]"
+          className="text-ink-3 hover:text-ink-1 transition-colors p-0.5 rounded-[10px]"
           title="Remove this swim lane"
         >
-          <X size={16} strokeWidth={2.5} />
+          <X size={15} strokeWidth={1.5} />
         </button>
       </div>
 
       {/* Chart */}
-      <div ref={containerRef} className="relative w-full border border-[var(--line-2)] rounded-md overflow-hidden bg-surface-1">
+      <div ref={containerRef} className="relative w-full border border-line-2 rounded-[10px] overflow-hidden">
         <canvas ref={canvasRef} className="w-full cursor-crosshair" style={{ height: chartHeight + "px" }} />
         {!hasData && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="flex items-center gap-2 text-[var(--ink-3)] text-sm font-semibold">
-              <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />
+            <p className="flex items-center gap-2 text-ink-3 text-[13px]">
+              <Loader2 size={14} strokeWidth={1.5} className="animate-spin" />
               Waiting for events...
             </p>
           </div>

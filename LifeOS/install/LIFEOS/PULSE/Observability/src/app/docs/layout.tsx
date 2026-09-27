@@ -34,9 +34,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const docsTree = data?.tree ? filterDocsTree(data.tree) : [];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
-      <WikiSidebar tree={docsTree} onSearchClick={() => openPalette("wiki")} />
-      <div className="flex-1 overflow-hidden">{children}</div>
+    <div className="flex h-[calc(100vh-3.5rem)] max-md:flex-col max-md:h-auto">
+      <WikiSidebar tree={docsTree} onSearchClick={() => openPalette("wiki")} className="max-md:w-full max-md:h-auto max-md:border-r-0 max-md:border-b" />
+      <div className="flex-1 min-w-0 overflow-hidden max-md:overflow-visible">{children}</div>
     </div>
   );
 }

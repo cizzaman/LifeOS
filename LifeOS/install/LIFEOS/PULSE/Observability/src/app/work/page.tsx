@@ -1,10 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Archive, Briefcase, Compass, ExternalLink, GitBranch, Cpu, Kanban, RefreshCw, Rocket, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, List as ListIcon, Inbox, type LucideIcon } from "lucide-react";
+import { ExternalLink, RefreshCw, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import ProjectsBoard, { type ProjectGroup } from "@/components/ProjectsBoard";
-import { PageShell, PageHeader, Panel, TabBar, Pill, EmptyState } from "@/components/ui/chrome";
-import type { Dim } from "@/components/ui/chrome";
+import { PageShell, PageHeader, Panel, TabBar, Pill, EmptyState, Marker } from "@/components/ui/chrome";
 
 interface AlgorithmSession {
   slug: string;
@@ -48,28 +47,11 @@ interface KanbanData {
   stale_reason?: string;
 }
 
-// Algorithm phase hues use the v8 dimension palette.
-const PHASE_COLOR: Record<string, string> = {
-  OBSERVE: "#a8e2ee",
-  THINK: "#a8e2ee",
-  PLAN: "#a78bfa",
-  BUILD: "#f97316",
-  EXECUTE: "#f5c451",
-  VERIFY: "#3fb2c9",
-  LEARN: "#22c55e",
-  COMPLETE: "#22c55e",
-  DEFERRED: "#98a8b3",
-};
-
-// Effort pill accents use green for easy, gold for heavy, coral for heaviest.
-const EFFORT_COLOR: Record<string, string> = {
-  fast: "#22c55e",
-  standard: "#22c55e",
-  advanced: "#f5c451",
-  deep: "#f5c451",
-  extended: "#f5c451",
-  comprehensive: "#f97316",
-};
+// Hairline control: small caps text, teal border on hover.
+const BTN =
+  "inline-flex items-center gap-1.5 mono text-[10px] uppercase tracking-[0.16em] px-2.5 py-1 rounded-[10px] border border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors cursor-pointer";
+const BTN_ICON =
+  "inline-flex items-center p-1 rounded-[10px] border border-line-2 text-ink-3 hover:text-ink-1 hover:border-[color:var(--accent-blue)] transition-colors cursor-pointer";
 
 function progressPct(p?: string): number {
   if (!p) return 0;
@@ -95,37 +77,32 @@ function Banner({
   projectCount: number;
 }) {
   return (
-    <Panel className="border-l-2 [border-left-color:var(--creative)]">
-      <div className="flex items-start gap-6 flex-wrap">
-        <Briefcase className="w-10 h-10 shrink-0" style={{ color: "var(--creative)" }} />
-        <div className="flex-1 min-w-0">
-          <div
-            className="text-[13px] uppercase tracking-widest mb-2 text-ink-3"
-          >
-            Current Focus
-          </div>
-          {focus ? (
-            <p className="text-2xl lg:text-3xl font-medium leading-snug text-ink-1" data-sensitive="strong">
-              {focus}
-            </p>
-          ) : (
-            <p className="text-xl italic text-ink-2">No current focus set in TELOS/CURRENT.md</p>
-          )}
-          {current && (
-            <p className="text-sm mt-3 text-ink-2" data-sensitive>
-              <span>Primary project:</span> {current}
-            </p>
-          )}
-          {streams && (
-            <p className="text-xs mt-2 text-ink-2" data-sensitive>
-              Streams: {streams}
-            </p>
-          )}
-          <div className="mt-4 flex gap-2 flex-wrap">
-            <Pill dim="creative">{sessionCount} active sessions</Pill>
-            <Pill dim="money">{projectCount} projects</Pill>
-          </div>
-        </div>
+    <Panel>
+      <div className="label-caps mb-2">Current Focus</div>
+      {focus ? (
+        <p
+          className="text-ink-1"
+          style={{ font: "500 clamp(20px, 2.4vw, 28px)/1.3 var(--font-display)", letterSpacing: "-0.01em" }}
+          data-sensitive="strong"
+        >
+          {focus}
+        </p>
+      ) : (
+        <p className="text-[15px] text-ink-3">No current focus set in TELOS/CURRENT.md</p>
+      )}
+      {current && (
+        <p className="text-sm mt-3 text-ink-2" data-sensitive>
+          <span>Primary project:</span> {current}
+        </p>
+      )}
+      {streams && (
+        <p className="text-xs mt-2 text-ink-2" data-sensitive>
+          Streams: {streams}
+        </p>
+      )}
+      <div className="mt-4 flex gap-4 flex-wrap">
+        <Pill>{sessionCount} active sessions</Pill>
+        <Pill>{projectCount} projects</Pill>
       </div>
     </Panel>
   );
@@ -135,55 +112,34 @@ function AlgorithmSessions({ sessions }: { sessions?: AlgorithmSession[] }) {
   if (!sessions || sessions.length === 0) return null;
   return (
     <section>
-      <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
-        <Cpu className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Algorithm Sessions
-        <span className="text-xs text-ink-3 font-normal">({sessions.length})</span>
+      <h2 className="label-caps mb-4">
+        Algorithm Sessions <span className="text-ink-3">({sessions.length})</span>
       </h2>
       <Panel className="p-0">
         <div>
           {sessions.slice(0, 10).map((s, i) => {
             const phase = (s.phase || "unknown").toUpperCase();
-            const phaseColor = PHASE_COLOR[phase] ?? "var(--ink-2)";
             const pct = progressPct(s.progress);
-            const effort = s.effort?.toLowerCase();
-            const effortColor = effort ? EFFORT_COLOR[effort] ?? "var(--ink-2)" : null;
             return (
               <div
                 key={s.slug}
-                className={`flex items-center gap-4 px-5 py-4 ${i === 0 ? "" : "border-t border-line-1"}`}
+                className={`flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 ${i === 0 ? "" : "border-t border-line-1"}`}
                 data-sensitive
               >
-                <span
-                  className="pill shrink-0"
-                  style={{
-                    width: 90,
-                    textAlign: "center",
-                    color: phaseColor,
-                    borderColor: phaseColor,
-                  }}
-                >
-                  {phase}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm truncate text-ink-1" title={s.task} data-sensitive>
+                <Pill className="w-[90px] shrink-0 justify-center">{phase}</Pill>
+                <div className="flex-1 min-w-[12rem]">
+                  <div className="text-sm break-words text-ink-1" data-sensitive>
                     {s.task}
                   </div>
-                  <div className="text-[12px] font-mono mt-0.5 truncate text-ink-3">{s.slug}</div>
+                  <div className="mono text-[12px] mt-0.5 break-all text-ink-3">{s.slug}</div>
                 </div>
                 <div className="w-28 shrink-0">
                   <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: pct + "%" }} />
+                    <div className="progress-bar-fill" style={{ width: pct + "%" }} />
                   </div>
-                  <div className="text-[12px] text-right tabular-nums mt-1 text-ink-3">{s.progress}</div>
+                  <div className="mono text-[11px] text-right mt-1 text-ink-3">{s.progress}</div>
                 </div>
-                {s.effort && effortColor && (
-                  <span
-                    className="pill shrink-0"
-                    style={{ color: effortColor, borderColor: effortColor }}
-                  >
-                    {s.effort}
-                  </span>
-                )}
+                {s.effort && <Pill className="shrink-0">{s.effort}</Pill>}
               </div>
             );
           })}
@@ -196,17 +152,6 @@ function AlgorithmSessions({ sessions }: { sessions?: AlgorithmSession[] }) {
 // ── Work items (GitHub Issues, polled from /api/work) ──────────────────────
 // One fetch lives in WorkItemsPanel and feeds BOTH the List and Kanban views —
 // they are two renderings of one dataset, never two fetches.
-
-const COLUMN_COLOR: Record<string, string> = {
-  Inbox: "#98a8b3",
-  Queued: "#a78bfa",
-  Ready: "#a8e2ee",
-  "In-Progress": "#f5c451",
-  Blocked: "#f97316",
-  "In-Review": "#a78bfa",
-  Complete: "#22c55e",
-  Done: "#22c55e",
-};
 
 // Canonical kanban pipeline order — Status sort uses this, NOT alphabetical.
 const STATUS_ORDER = ["Inbox", "Queued", "Ready", "In-Progress", "Blocked", "In-Review", "Complete", "Done"];
@@ -245,13 +190,6 @@ function priorityLabel(labels: string[]): string | null {
   return r < 4 ? "P" + r : null;
 }
 
-const PRIORITY_COLOR: Record<string, string> = {
-  P0: "#f97316",
-  P1: "#f5c451",
-  P2: "#fbd57a",
-  P3: "#6b7d89",
-};
-
 function propValue(labels: string[]): string | null {
   for (const l of labels) {
     const m = l.match(/^Property:(.+)$/i);
@@ -263,17 +201,6 @@ function propValue(labels: string[]): string | null {
   }
   return null;
 }
-
-const TYPE_COLOR: Record<string, string> = {
-  feature: "#a8e2ee",
-  problem: "#f97316",
-  research: "#a78bfa",
-  project: "#f5c451",
-  decision: "#5cc4d8",
-  reminder: "#fbd57a",
-  "metric-alert": "#FB923C",
-  queue: "#6b7d89",
-};
 
 // The canonical Type:* on an issue. Prefers a real type over the generic
 // Type:queue when an issue still carries both.
@@ -311,23 +238,23 @@ function KanbanCard({ issue }: { issue: KanbanIssue }) {
       href={issue.url}
       target="_blank"
       rel="noreferrer"
-      className="block no-underline bg-surface-2 border border-line-2 rounded-lg px-3 py-2.5 mb-2 transition-colors duration-200 hover:bg-surface-3 hover:border-line-3"
+      className="block no-underline border border-line-2 rounded-[10px] px-3 py-2.5 mb-2 transition-colors duration-200 hover:border-[color:var(--accent-blue)]"
     >
-      <div className="mono text-[12px] text-ink-3 mb-1">
+      <div className="mono text-[11px] text-ink-3 mb-1">
         #{issue.number}
       </div>
-      <div className="text-[13px] font-medium leading-snug mb-1.5 text-ink-1" title={issue.title} data-sensitive>
+      <div className="text-[13px] leading-snug mb-1.5 text-ink-1 break-words" data-sensitive>
         {cleanTitle(issue.title)}
       </div>
       {labels.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 mt-1.5">
           {labels.slice(0, 4).map((l) => (
-            <span key={l} className="pill" style={{ fontSize: 12, padding: "1px 6px" }}>{l}</span>
+            <Pill key={l} className="whitespace-normal break-all">{l}</Pill>
           ))}
         </div>
       )}
-      <div className="flex justify-between items-center mt-1.5 text-[12px] text-ink-3">
-        <span style={{ color: "var(--freedom)" }}>
+      <div className="flex justify-between items-center gap-2 mt-1.5 mono text-[11px] text-ink-3">
+        <span className="text-ink-2 break-all">
           {issue.assignees && issue.assignees.length > 0 ? "@" + issue.assignees.join(" @") : ""}
         </span>
         <span>{ageStr(issue.ageHours)}</span>
@@ -353,22 +280,12 @@ function KanbanView({ data }: { data: KanbanData }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginBottom: 8 }}>
-        <button
-          onClick={() => scrollByCol(-1)}
-          className="pill"
-          style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", padding: "2px 6px" }}
-          aria-label="Scroll columns left"
-        >
-          <ChevronLeft className="w-4 h-4" />
+      <div className="flex justify-end gap-1.5 mb-2">
+        <button onClick={() => scrollByCol(-1)} className={BTN_ICON} aria-label="Scroll columns left">
+          <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
         </button>
-        <button
-          onClick={() => scrollByCol(1)}
-          className="pill"
-          style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", padding: "2px 6px" }}
-          aria-label="Scroll columns right"
-        >
-          <ChevronRight className="w-4 h-4" />
+        <button onClick={() => scrollByCol(1)} className={BTN_ICON} aria-label="Scroll columns right">
+          <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
         </button>
       </div>
 
@@ -387,14 +304,12 @@ function KanbanView({ data }: { data: KanbanData }) {
       >
         {cols.map((col) => {
           const items = grouped[col] || [];
-          const color = COLUMN_COLOR[col] ?? "var(--ink-2)";
           return (
             <div
               key={col}
-              className="bg-surface-2 border border-line-2 rounded-xl"
+              className="border border-line-2 rounded-[10px]"
               style={{
                 padding: 0,
-                borderLeft: `2px solid ${color}`,
                 display: "flex",
                 flexDirection: "column",
                 width: 220,
@@ -404,15 +319,13 @@ function KanbanView({ data }: { data: KanbanData }) {
               }}
             >
               <div className="flex items-center gap-2 px-3 py-2.5 border-b border-line-1">
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
-                <span className="text-[13px] font-semibold uppercase tracking-[0.06em] text-ink-1">
-                  {col}
-                </span>
-                <span className="text-[12px] text-ink-3 ml-auto">{items.length}</span>
+                <Marker />
+                <span className="label-caps">{col}</span>
+                <span className="mono text-[11px] text-ink-3 ml-auto">{items.length}</span>
               </div>
               <div style={{ padding: 8, minHeight: 80, overflowY: "auto", flex: 1 }}>
                 {items.length === 0 ? (
-                  <div className="text-[12px] italic text-center text-ink-3 py-4">
+                  <div className="text-[12px] text-center text-ink-3 py-4">
                     empty
                   </div>
                 ) : (
@@ -473,30 +386,14 @@ function SortHeader({
   return (
     <button
       onClick={() => onSort(col)}
-      className={active ? "" : "text-ink-3"}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 3,
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        font: "inherit",
-        fontSize: 11,
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
-        fontWeight: 600,
-        color: active ? "var(--accent-soft)" : undefined,
-        justifyContent: align === "right" ? "flex-end" : "flex-start",
-        width: "100%",
-        padding: 0,
-      }}
+      className={`label-caps inline-flex items-center gap-1 w-full p-0 bg-transparent border-0 cursor-pointer hover:!text-ink-1 ${align === "right" ? "justify-end" : "justify-start"}`}
+      style={{ color: active ? "var(--ink-1)" : "var(--ink-3)" }}
     >
       {label}
       {active ? (
-        dir === -1 ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />
+        dir === -1 ? <ChevronDown className="w-3 h-3" strokeWidth={1.5} /> : <ChevronUp className="w-3 h-3" strokeWidth={1.5} />
       ) : (
-        <ChevronsUpDown className="w-3 h-3" style={{ opacity: 0.25 }} />
+        <ChevronsUpDown className="w-3 h-3 opacity-40" strokeWidth={1.5} />
       )}
     </button>
   );
@@ -554,7 +451,7 @@ function WorkList({ data }: { data: KanbanData }) {
   if (allItems.length === 0) {
     return (
       <Panel>
-        <EmptyState icon={Inbox} title="No work items. You're clear." />
+        <EmptyState title="No work items. You're clear." />
       </Panel>
     );
   }
@@ -563,11 +460,11 @@ function WorkList({ data }: { data: KanbanData }) {
     <Panel className="p-0 overflow-hidden">
       {/* Filter toolbar */}
       <div className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-line-1 flex-wrap">
-        <span className="text-[11px] uppercase tracking-[0.05em] font-semibold text-ink-3">Type</span>
+        <span className="label-caps" style={{ color: "var(--ink-3)" }}>Type</span>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-surface-1 text-ink-1 border border-line-2 rounded px-2 py-[3px] text-[12px] cursor-pointer"
+          className="bg-ground text-ink-1 border border-line-2 rounded-[10px] px-2 py-1 mono text-[12px] cursor-pointer"
         >
           <option value="all">all ({allItems.length})</option>
           {typesPresent.map((t) => (
@@ -575,29 +472,25 @@ function WorkList({ data }: { data: KanbanData }) {
           ))}
         </select>
         {typeFilter !== "all" && (
-          <button
-            onClick={() => setTypeFilter("all")}
-            className="pill"
-            style={{ fontSize: 11, padding: "2px 8px", cursor: "pointer" }}
-          >
+          <button onClick={() => setTypeFilter("all")} className={BTN}>
             clear
           </button>
         )}
         <span className="flex-1" />
-        <span className="text-[11px] mono text-ink-3">{sorted.length} shown</span>
+        <span className="mono text-[11px] text-ink-3">{sorted.length} shown</span>
       </div>
       {/* Header row */}
       <div
-        className="grid items-center px-3.5 py-2.5 border-b border-line-2 sticky top-0 z-[1] bg-surface-1"
+        className="grid items-center px-3.5 py-2.5 border-b border-line-2 sticky top-0 z-[1] bg-ground"
         style={{ gridTemplateColumns: LIST_GRID, gap: 10 }}
       >
         <span />
         <SortHeader label="P" col="priority" active={sortKey === "priority"} dir={sortDir} onSort={onSort} />
         <SortHeader label="#" col="number" active={sortKey === "number"} dir={sortDir} onSort={onSort} align="right" />
         <SortHeader label="Title" col="title" active={sortKey === "title"} dir={sortDir} onSort={onSort} />
-        <span className="text-[11px] uppercase tracking-[0.05em] font-semibold text-ink-3">Type</span>
+        <span className="label-caps" style={{ color: "var(--ink-3)" }}>Type</span>
         <SortHeader label="Status" col="status" active={sortKey === "status"} dir={sortDir} onSort={onSort} />
-        <span className="text-[11px] uppercase tracking-[0.05em] font-semibold text-ink-3">Property</span>
+        <span className="label-caps" style={{ color: "var(--ink-3)" }}>Property</span>
         <SortHeader label="Age" col="age" active={sortKey === "age"} dir={sortDir} onSort={onSort} align="right" />
         <SortHeader label="Updated" col="updated" active={sortKey === "updated"} dir={sortDir} onSort={onSort} align="right" />
         <span />
@@ -606,18 +499,16 @@ function WorkList({ data }: { data: KanbanData }) {
       {/* Rows */}
       <div>
         {sorted.length === 0 && (
-          <div className="text-ink-3 text-center text-[12px] italic px-4 py-6">
+          <div className="text-ink-3 text-center text-[12px] px-4 py-6">
             No {typeFilter} items match.
           </div>
         )}
         {sorted.map((it) => {
           const isClosed = it.state === "CLOSED";
-          const color = COLUMN_COLOR[it.column] ?? "#98a8b3";
           const prio = priorityLabel(it.labels || []);
           const prop = propValue(it.labels || []);
           const tv = typeValue(it.labels || []);
           const isExpanded = expanded === it.number;
-          const hasGoal = !!it.principal_stated_goal;
           return (
             <div key={it.number}>
               <div
@@ -629,75 +520,44 @@ function WorkList({ data }: { data: KanbanData }) {
                   alignItems: "center",
                   padding: "7px 14px",
                   borderBottom: "1px solid var(--line-1)",
-                  borderLeft: hasGoal ? "2px solid var(--money)" : "2px solid transparent",
                   cursor: "pointer",
                   opacity: isClosed ? 0.55 : 1,
                   background: isExpanded ? "var(--surface-3)" : undefined,
                 }}
                 className="work-row"
               >
-                {/* status dot */}
-                <span
-                  style={{
-                    width: 9,
-                    height: 9,
-                    borderRadius: "50%",
-                    background: isClosed ? "transparent" : color,
-                    border: isClosed ? `2px solid ${color}` : "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-                {/* priority square */}
-                <span style={{ display: "inline-flex", justifyContent: "center" }}>
-                  {prio ? (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontFamily: "var(--font-mono, monospace)",
-                        fontWeight: 700,
-                        color: PRIORITY_COLOR[prio],
-                      }}
-                    >
-                      {prio}
-                    </span>
-                  ) : null}
+                {/* status key: filled open, outlined closed */}
+                <span className="inline-flex justify-center">
+                  <Marker shape="circle" filled={!isClosed} />
+                </span>
+                {/* priority */}
+                <span className="inline-flex justify-center mono text-[10px] text-ink-2">
+                  {prio ?? null}
                 </span>
                 {/* number */}
-                <span className="text-ink-3" style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 12, textAlign: "right" }}>
+                <span className="mono text-[12px] text-right text-ink-3">
                   #{it.number}
                 </span>
                 {/* title */}
-                <span className="text-ink-1" style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }} title={cleanTitle(it.title)} data-sensitive>
+                <span className="text-ink-1 text-[13px] min-w-0 break-words" data-sensitive>
                   {cleanTitle(it.title)}
                 </span>
-                {/* type pill */}
-                <span style={{ display: "flex", minWidth: 0 }}>
-                  {tv ? (
-                    <span
-                      className="pill"
-                      style={{ fontSize: 10, padding: "1px 7px", color: TYPE_COLOR[tv] ?? "#98a8b3", borderColor: `${TYPE_COLOR[tv] ?? "#98a8b3"}55`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                    >
-                      {tv}
-                    </span>
-                  ) : null}
+                {/* type */}
+                <span className="flex min-w-0">
+                  {tv ? <Pill className="whitespace-normal break-all">{tv}</Pill> : null}
                 </span>
-                {/* status pill */}
-                <span
-                  className="pill"
-                  style={{ fontSize: 11, padding: "1px 8px", color, borderColor: `${color}55`, justifySelf: "start" }}
-                >
-                  {it.column}
-                </span>
+                {/* status */}
+                <Pill className="justify-self-start whitespace-normal">{it.column}</Pill>
                 {/* property */}
-                <span className="text-ink-3" style={{ fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span className="text-ink-3 text-[11px] min-w-0 break-words">
                   {prop ?? ""}
                 </span>
                 {/* age */}
-                <span className="text-ink-3" style={{ fontSize: 11, fontFamily: "var(--font-mono, monospace)", textAlign: "right" }}>
+                <span className="mono text-[11px] text-right text-ink-3">
                   {ageStr(it.ageHours)}
                 </span>
                 {/* updated */}
-                <span className="text-ink-3" style={{ fontSize: 11, fontFamily: "var(--font-mono, monospace)", textAlign: "right" }}>
+                <span className="mono text-[11px] text-right text-ink-3">
                   {relativeUpdated(it.updatedAt)}
                 </span>
                 {/* open in github */}
@@ -706,37 +566,36 @@ function WorkList({ data }: { data: KanbanData }) {
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-ink-3 hover:text-ink-1 transition-colors"
-                  style={{ display: "inline-flex", justifyContent: "center" }}
+                  className="inline-flex justify-center text-ink-3 hover:text-ink-1 transition-colors"
                   aria-label="Open in GitHub"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </a>
               </div>
 
               {/* Expanded detail — leads with the principal-stated goal (the "why"). */}
               {isExpanded && (
-                <div className="border-b border-line-1 bg-surface-1" style={{ padding: "10px 16px 14px 16px" }}>
+                <div className="border-b border-line-1" style={{ padding: "10px 16px 14px 16px" }}>
                   {it.principal_stated_goal && (
-                    <p style={{ fontSize: 12, fontStyle: "italic", color: "var(--freedom)", marginBottom: 8 }} data-sensitive>
-                      🎯 why: {it.principal_stated_goal}
+                    <p className="text-[12px] text-ink-2 mb-2" data-sensitive>
+                      <span className="text-ink-3">why:</span> {it.principal_stated_goal}
                     </p>
                   )}
-                  <p className="text-ink-1" style={{ fontSize: 13, marginBottom: 8, lineHeight: 1.4 }} data-sensitive>{cleanTitle(it.title)}</p>
+                  <p className="text-ink-1 text-[13px] mb-2 leading-snug break-words" data-sensitive>{cleanTitle(it.title)}</p>
                   {(it.labels || []).filter((l) => !HIDDEN_LABELS.has(l)).length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+                    <div className="flex flex-wrap gap-x-2.5 gap-y-1 mb-2">
                       {(it.labels || []).filter((l) => !HIDDEN_LABELS.has(l)).map((l) => (
-                        <span key={l} className="pill" style={{ fontSize: 11, padding: "1px 6px" }}>{l}</span>
+                        <Pill key={l} className="whitespace-normal break-all">{l}</Pill>
                       ))}
                     </div>
                   )}
-                  <div className="text-ink-3" style={{ fontSize: 11, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+                  <div className="mono text-[11px] text-ink-3 flex gap-3.5 flex-wrap items-center">
                     <span>state: {it.state}</span>
                     {it.assignees && it.assignees.length > 0 && <span>@{it.assignees.join(" @")}</span>}
                     {it.source && <span>source: {it.source}</span>}
                     <span>age {ageStr(it.ageHours)}</span>
-                    <a href={it.url} target="_blank" rel="noreferrer" style={{ color: "var(--accent-soft)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <ExternalLink className="w-3 h-3" /> Open in GitHub
+                    <a href={it.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink-2 hover:text-ink-1 transition-colors">
+                      <ExternalLink className="w-3 h-3" strokeWidth={1.5} /> Open in GitHub
                     </a>
                   </div>
                 </div>
@@ -787,11 +646,11 @@ function WorkItemsPanel() {
   if (error) {
     return (
       <section>
-        <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
-          <Kanban className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Work
-        </h2>
-        <Panel className="border-l-2 [border-left-color:var(--err)]">
-          <p className="text-sm text-err">Failed to load /api/work — {error}</p>
+        <h2 className="label-caps mb-4">Work</h2>
+        <Panel>
+          <p className="text-sm text-ink-1 flex items-center gap-2">
+            <Marker dim="err" /> Failed to load /api/work — {error}
+          </p>
         </Panel>
       </section>
     );
@@ -800,9 +659,7 @@ function WorkItemsPanel() {
   if (!data) {
     return (
       <section>
-        <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
-          <Kanban className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Work
-        </h2>
+        <h2 className="label-caps mb-4">Work</h2>
         <div className="text-sm text-ink-2">Loading work items...</div>
       </section>
     );
@@ -811,10 +668,10 @@ function WorkItemsPanel() {
   if (data.setup_required) {
     return (
       <section>
-        <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
-          <Kanban className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Work — setup required
+        <h2 className="label-caps mb-4 flex items-center gap-2">
+          <Marker dim="warn" /> Work — setup required
         </h2>
-        <Panel className="border-l-2 [border-left-color:var(--warn)]">
+        <Panel>
           <p className="text-sm text-ink-2">{data.reason}</p>
           <ol className="text-sm mt-3 ml-5 space-y-1 text-ink-1" style={{ listStyle: "decimal" }}>
             {(data.instructions || []).map((s, i) => <li key={i}>{s}</li>)}
@@ -828,17 +685,12 @@ function WorkItemsPanel() {
 
   const meta = (
     <>
-      <span className="text-xs text-ink-3 mono hidden sm:inline">
+      <span className="mono text-[11px] text-ink-3 hidden sm:inline">
         {total} issues · <span data-sensitive>{data.config?.repo}</span> · poll {data.config?.poll_interval_seconds}s
         {data.lastFetch && ` · last fetch ${new Date(data.lastFetch).toLocaleTimeString()}`}
       </span>
-      <button
-        onClick={handleRefresh}
-        disabled={refreshing}
-        className="pill"
-        style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer" }}
-      >
-        <RefreshCw className="w-3 h-3" style={{ animation: refreshing ? "spin 1s linear infinite" : undefined }} />
+      <button onClick={handleRefresh} disabled={refreshing} className={BTN}>
+        <RefreshCw className="w-3 h-3" strokeWidth={1.5} style={{ animation: refreshing ? "spin 1s linear infinite" : undefined }} />
         {refreshing ? "Refreshing" : "Refresh"}
       </button>
     </>
@@ -849,8 +701,8 @@ function WorkItemsPanel() {
       <TabBar<"list" | "kanban">
         className="mb-4"
         tabs={[
-          { id: "list", label: "List", icon: ListIcon },
-          { id: "kanban", label: "Kanban", icon: Kanban },
+          { id: "list", label: "List" },
+          { id: "kanban", label: "Kanban" },
         ]}
         active={tab}
         onChange={setTab}
@@ -858,9 +710,9 @@ function WorkItemsPanel() {
       />
 
       {data.stale && (
-        <Panel className="border-l-2 [border-left-color:var(--warn)] mb-3 py-3">
-          <p className="text-xs text-warn">
-            ⚠ Stale data — {data.stale_reason || "gh fetch failed; showing cached snapshot"}
+        <Panel className="mb-3 py-3">
+          <p className="text-xs text-ink-2 flex items-center gap-2">
+            <Marker dim="warn" /> Stale data — {data.stale_reason || "gh fetch failed; showing cached snapshot"}
           </p>
         </Panel>
       )}
@@ -876,13 +728,6 @@ function WorkItemsPanel() {
 // code change here beyond an optional icon mapping).
 
 type AreaTab = string;
-
-/** Per-group tab chrome — generic fallback for groups this map doesn't know. */
-const GROUP_TAB_META: Record<string, { icon: LucideIcon; dim: Dim }> = {
-  live: { icon: Rocket, dim: "blue" },
-  telos: { icon: Compass, dim: "money" },
-  retired: { icon: Archive, dim: "neutral" },
-};
 
 export default function WorkPage() {
   const [data, setData] = useState<WorkData | null>(null);
@@ -920,10 +765,12 @@ export default function WorkPage() {
   if (error) {
     return (
       <PageShell>
-        <PageHeader title="Work" icon={Briefcase} subtitle="Focus, work items, sessions, and projects" />
-        <Panel className="border-l-2 [border-left-color:var(--err)]">
-          <h2 className="font-medium text-err">Failed to load work</h2>
-          <p className="text-sm text-err">{error}</p>
+        <PageHeader title="Work" subtitle="Focus, work items, sessions, and projects" />
+        <Panel>
+          <h2 className="flex items-center gap-2 text-[15px] text-ink-1">
+            <Marker dim="err" /> Failed to load work
+          </h2>
+          <p className="text-sm text-ink-2">{error}</p>
         </Panel>
       </PageShell>
     );
@@ -931,7 +778,7 @@ export default function WorkPage() {
   if (!data) {
     return (
       <PageShell>
-        <PageHeader title="Work" icon={Briefcase} subtitle="Focus, work items, sessions, and projects" />
+        <PageHeader title="Work" subtitle="Focus, work items, sessions, and projects" />
         <div className="text-sm text-ink-2">Loading Work...</div>
       </PageShell>
     );
@@ -945,7 +792,7 @@ export default function WorkPage() {
 
   return (
     <PageShell>
-      <PageHeader title="Work" icon={Briefcase} subtitle="Focus, work items, sessions, and projects" />
+      <PageHeader title="Work" subtitle="Focus, work items, sessions, and projects" />
       {showEmptyGuide && (
         <EmptyStateGuide
           section="Work Hub"
@@ -966,15 +813,9 @@ export default function WorkPage() {
         active={activeGroup ? tab : tab === "sessions" ? "sessions" : "board"}
         onChange={selectTab}
         tabs={[
-          { id: "board", label: "Board", icon: Kanban, dim: "blue" },
-          { id: "sessions", label: "Sessions", icon: Cpu, dim: "creative", hint: sessionCount || undefined },
-          ...groups.map((g) => ({
-            id: g.key,
-            label: g.label,
-            icon: GROUP_TAB_META[g.key]?.icon ?? GitBranch,
-            dim: GROUP_TAB_META[g.key]?.dim ?? ("blue" as Dim),
-            hint: g.count,
-          })),
+          { id: "board", label: "Board" },
+          { id: "sessions", label: "Sessions", hint: sessionCount || undefined },
+          ...groups.map((g) => ({ id: g.key, label: g.label, hint: g.count })),
         ]}
       />
 

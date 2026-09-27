@@ -6,20 +6,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Search,
-  FileText,
-  FlaskConical,
-  GraduationCap,
-  Users,
-  Building2,
-  Lightbulb,
-  BookOpen,
-  Newspaper,
-  Sparkles,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { wikiPageUrl } from "@/lib/wiki-links";
 import { paletteEntries, type NavItem } from "@/lib/palette/nav-manifest";
 import { useEnabledModules } from "@/lib/use-enabled-modules";
@@ -40,25 +27,9 @@ type Row =
   | { kind: "page"; entry: NavItem; recent?: boolean }
   | { kind: "wiki"; result: WikiResult };
 
-const WIKI_ICONS: Record<string, LucideIcon> = {
-  "system-doc": BookOpen,
-  person: Users,
-  company: Building2,
-  idea: Lightbulb,
-  blog: Newspaper,
-  book: BookOpen,
-  research: FlaskConical,
-  isa: Workflow,
-  lesson: GraduationCap,
-  wisdom: Sparkles,
-};
-
 // Routes where ⌘K used to open the scoped WikiSearch — opening there pre-sets
 // the WIKI scope chip so the old muscle memory keeps working.
 const WIKI_SCOPED_PREFIXES = ["/docs", "/memory/knowledge", "/system"];
-
-const font = { fontFamily: "'Albert Sans', sans-serif" };
-const mono = { fontFamily: "'Fira Code', monospace" };
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -246,48 +217,33 @@ export default function CommandPalette() {
 
   const renderRow = (row: Row, idx: number) => {
     const isSelected = idx === clampedIndex;
-    const base = `w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors border-l-2 ${
-      isSelected ? "bg-[#3fb2c9]/10 border-[#3fb2c9]" : "border-transparent hover:bg-surface-3"
+    const base = `w-full text-left px-3 py-2 flex items-center gap-3 rounded-[10px] border transition-colors ${
+      isSelected
+        ? "bg-[color:var(--primary-soft)] border-[color:var(--accent-blue)]"
+        : "border-transparent hover:border-line-2"
     }`;
     if (row.kind === "page") {
-      const Icon = row.entry.icon;
       return (
         <button key={`page-${row.entry.href}`} onClick={() => activate(row, false)} className={base}>
-          <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#3fb2c9]" : "text-ink-3"}`} />
-          <span
-            className={`flex-1 truncate text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`}
-            style={font}
-          >
+          <span className={`flex-1 min-w-0 break-words text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`}>
             {row.entry.label}
           </span>
-          <span className="shrink-0 text-[12px] text-ink-3" style={mono}>
-            {row.entry.href}
-          </span>
-          {isSelected && (
-            <kbd className="shrink-0 text-[12px] px-1.5 py-0.5 rounded bg-surface-3 border border-line-2 text-ink-3" style={mono}>
-              ⏎
-            </kbd>
-          )}
+          <span className="shrink-0 mono text-[11px] text-ink-3">{row.entry.href}</span>
+          {isSelected && <kbd className="shrink-0 mono text-[10px] text-ink-3">⏎</kbd>}
         </button>
       );
     }
-    const Icon = WIKI_ICONS[row.result.category] ?? FileText;
     return (
       <button key={`wiki-${row.result.category}-${row.result.slug}`} onClick={() => activate(row, false)} className={base}>
-        <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#a78bfa]" : "text-ink-3"}`} />
         <span className="flex-1 min-w-0 flex flex-col">
-          <span className={`truncate text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`} style={font}>
+          <span className={`break-words text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`}>
             {row.result.title}
           </span>
           {row.result.excerpt && (
-            <span className="truncate text-[13px] text-ink-3" style={font}>
-              {row.result.excerpt}
-            </span>
+            <span className="break-words text-[13px] text-ink-3">{row.result.excerpt}</span>
           )}
         </span>
-        <span className="shrink-0 text-[11px] uppercase tracking-wider text-ink-3" style={font}>
-          {row.result.category}
-        </span>
+        <span className="shrink-0 label-caps text-ink-3">{row.result.category}</span>
       </button>
     );
   };
@@ -300,19 +256,16 @@ export default function CommandPalette() {
       className="fixed inset-0 z-[100] flex items-start justify-center pt-[16vh]"
       onClick={close}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-full max-w-xl bg-[rgba(17,17,17,0.97)] backdrop-blur-xl border border-line-2 rounded-xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl mx-4 bg-surface-1 border border-line-3 rounded-[10px] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input row */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-line-1">
-          <Search className="w-4 h-4 text-ink-3 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-line-2">
+          <Search className="w-4 h-4 text-ink-3 shrink-0" strokeWidth={1.5} />
           {scope && (
-            <span
-              className="shrink-0 text-[11px] uppercase tracking-widest px-2 py-0.5 rounded bg-[#3fb2c9]/15 text-[#3fb2c9] border border-[#3fb2c9]/30"
-              style={mono}
-            >
+            <span className="shrink-0 mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 rounded-[10px] text-ink-1 bg-[color:var(--primary-soft)] border border-[color:var(--accent-blue)]">
               {scope}
             </span>
           )}
@@ -323,47 +276,36 @@ export default function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder={scope === "wiki" ? "Search docs and knowledge..." : "Jump to anything..."}
-            className="flex-1 bg-transparent text-[15px] text-ink-1 placeholder:text-ink-3 outline-none caret-[#3fb2c9]"
-            style={font}
+            className="flex-1 min-w-0 bg-transparent text-[15px] text-ink-1 placeholder:text-ink-3 outline-none caret-[color:var(--accent-blue)]"
           />
-          <kbd className="text-[12px] px-1.5 py-0.5 rounded bg-surface-3 border border-line-2 text-ink-3" style={mono}>
-            ESC
-          </kbd>
+          <kbd className="shrink-0 mono text-[10px] tracking-[0.1em] text-ink-3">ESC</kbd>
         </div>
 
         {/* Results */}
-        <div className="max-h-[52vh] overflow-y-auto">
+        <div className="max-h-[52vh] overflow-y-auto p-2">
           {rows.length === 0 && (
-            <div className="px-4 py-8 text-center text-xs text-ink-3" style={font}>
+            <div className="px-4 py-8 text-center text-[13px] text-ink-3">
               {wikiLoading ? "Searching..." : query ? `No results for "${query}"` : "Nothing here yet"}
             </div>
           )}
 
-          {recentCount > 0 && (
-            <div className="px-4 py-2 text-[11px] text-ink-3 uppercase tracking-widest border-b border-line-1" style={font}>
-              Recent
-            </div>
-          )}
+          {recentCount > 0 && <div className="label-caps text-ink-3 px-3 pt-2 pb-1.5">Recent</div>}
           {pageRows.slice(0, recentCount).map((row) => renderRow(row, rowIndex++))}
           {pageRows.length > recentCount && (recentCount > 0 || wikiRows.length > 0) && (
-            <div className="px-4 py-2 text-[11px] text-ink-3 uppercase tracking-widest border-b border-line-1" style={font}>
-              Pages
-            </div>
+            <div className="label-caps text-ink-3 px-3 pt-3 pb-1.5">Pages</div>
           )}
           {pageRows.slice(recentCount).map((row) => renderRow(row, rowIndex++))}
 
           {wikiRows.length > 0 && (
             <>
-              <div className="px-4 py-2 text-[11px] text-ink-3 uppercase tracking-widest border-y border-line-1" style={font}>
-                Wiki
-              </div>
+              <div className="label-caps text-ink-3 px-3 pt-3 pb-1.5">Wiki</div>
               {wikiRows.map((row) => renderRow(row, rowIndex++))}
             </>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-line-1 text-[12px] text-ink-3" style={font}>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-t border-line-2 mono text-[10px] text-ink-3">
           <span>↑↓ navigate</span>
           <span>⏎ open</span>
           <span>⌘⏎ new tab</span>

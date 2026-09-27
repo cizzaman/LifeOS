@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { PageShell, PageHeader, Panel, PanelHeader, Pill, EmptyState, type Dim } from "@/components/ui/chrome";
-import { Container } from "lucide-react";
+import { PageShell, PageHeader, Panel, PanelHeader, Pill, Marker, EmptyState, type Dim } from "@/components/ui/chrome";
 
 // ── Bunker: the application-harness readout. Each app is a bay with ISA probes. ──
 
@@ -33,7 +32,17 @@ function st(a: App): "ok" | "down" | "idle" {
 }
 // app/probe status → design-token dimension. ok=ok, down=err, idle=warn.
 const stDim = (s: string): Dim => (s === "ok" ? "ok" : s === "down" ? "err" : "warn");
-const dimVar = (d: Dim): string => `var(--${d === "blue" ? "accent-blue" : d === "neutral" ? "ink-3" : d})`;
+
+const textButton = "mono cursor-pointer text-ink-2 hover:text-ink-1 disabled:cursor-default disabled:text-ink-3 disabled:hover:text-ink-3 transition-colors";
+
+function SignalLost({ path, error }: { path: string; error: string }) {
+  return (
+    <span className="flex items-start gap-2 text-[13px] text-ink-2">
+      <span className="pt-[5px]"><Marker dim="err" /></span>
+      <span className="min-w-0 break-words">SIGNAL LOST · {path} — {error}</span>
+    </span>
+  );
+}
 
 // Security grade pill — every bay answers "last security check: when, and
 // green/orange/red" without a click.
@@ -90,15 +99,11 @@ export default function BunkerPage() {
   return (
     <PageShell>
       <PageHeader
-        icon={Container}
         title="Bunker"
         subtitle="Universal application harness · discovery-based registry · the harness speaks ISA"
         actions={
           <>
-            <Pill dim="ok">
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--ok)", animation: "pulse 2s ease-in-out infinite" }} />
-              SYSTEMS ONLINE
-            </Pill>
+            <Pill dim="ok">SYSTEMS ONLINE</Pill>
             {data && (
               <Pill dim={data.summary.probesPass === data.summary.probesTotal ? "ok" : "warn"}>
                 {data.summary.apps} APPS · {data.summary.probesPass}/{data.summary.probesTotal} ✓
@@ -109,8 +114,8 @@ export default function BunkerPage() {
       />
 
       {error && (
-        <Panel style={{ borderLeftWidth: 2, borderLeftColor: "var(--err)" }}>
-          <span style={{ color: "var(--err)" }}>SIGNAL LOST · /api/bunker — {error}</span>
+        <Panel>
+          <SignalLost path="/api/bunker" error={error} />
         </Panel>
       )}
       {!data && !error && <EmptyState title="Establishing link…" />}
@@ -126,11 +131,10 @@ export default function BunkerPage() {
       {data && app && <Readout app={app} onBack={() => setSelected(null)} />}
 
       {data && (
-        <div className="text-[11px] tracking-[0.12em] text-ink-3">
+        <div className="mono text-[10px] tracking-[0.12em] text-ink-3">
           {data.lastFetch ? `LAST SCAN ${new Date(data.lastFetch).toLocaleTimeString()} · ` : ""}discovery-based registry
         </div>
       )}
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}`}</style>
     </PageShell>
   );
 }
@@ -146,14 +150,14 @@ function Thumb({ app, w, h }: { app: App; w: number; h: number }) {
         alt={app.name}
         onError={() => setBroken((b) => ({ ...b, [kind]: true }))}
         className="border border-line-2"
-        style={{ width: w, height: h, objectFit: "cover", objectPosition: "top", borderRadius: 3, flex: "none", background: "var(--ground)" }}
+        style={{ width: w, height: h, maxWidth: "100%", objectFit: "cover", objectPosition: "top", borderRadius: 3, flex: "none", background: "var(--ground)" }}
       />
     );
   }
   return (
     <div
       className="border border-line-2 text-ink-3"
-      style={{ width: w, height: h, borderRadius: 3, flex: "none", background: "var(--ground)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: h > 60 ? 22 : 13 }}
+      style={{ width: w, height: h, maxWidth: "100%", borderRadius: 3, flex: "none", background: "var(--ground)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: h > 60 ? 22 : 13 }}
     >
       {app.type === "cli" ? "›_" : app.name.slice(0, 2).toUpperCase()}
     </div>
@@ -168,19 +172,19 @@ function Bays({ data, onOpen }: { data: Snapshot; onOpen: (n: string) => void })
   const cur = Math.min(page, pages - 1);
   const shown = data.apps.slice(cur * PAGE_SIZE, (cur + 1) * PAGE_SIZE);
   const pager = pages > 1 && (
-    <div className="flex items-center gap-4 text-[12px] tracking-[0.14em]">
+    <div className="flex flex-wrap items-center gap-4 text-[11px] tracking-[0.14em]">
       <button
         onClick={() => setPage((p) => Math.max(0, p - 1))}
         disabled={cur === 0}
-        className="cursor-pointer disabled:cursor-default"
-        style={{ background: "none", border: "none", padding: 0, color: cur === 0 ? "var(--ink-3)" : "var(--accent-blue)" }}
+        className={textButton}
+        style={{ background: "none", border: "none", padding: 0 }}
       >◂ PREV</button>
-      <span className="text-ink-3">PAGE {cur + 1}/{pages} · {data.apps.length} APPS</span>
+      <span className="mono text-ink-3">PAGE {cur + 1}/{pages} · {data.apps.length} APPS</span>
       <button
         onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
         disabled={cur >= pages - 1}
-        className="cursor-pointer disabled:cursor-default"
-        style={{ background: "none", border: "none", padding: 0, color: cur >= pages - 1 ? "var(--ink-3)" : "var(--accent-blue)" }}
+        className={textButton}
+        style={{ background: "none", border: "none", padding: 0 }}
       >NEXT ▸</button>
     </div>
   );
@@ -192,7 +196,6 @@ function Bays({ data, onOpen }: { data: Snapshot; onOpen: (n: string) => void })
       </div>
       {shown.map((a) => {
         const dim = stDim(st(a));
-        const c = dimVar(dim);
         const total = a.pass + a.fail;
         const pct = total === 0 ? 0 : Math.round((a.pass / total) * 100);
         return (
@@ -200,61 +203,59 @@ function Bays({ data, onOpen }: { data: Snapshot; onOpen: (n: string) => void })
             key={a.name}
             hover
             onClick={() => onOpen(a.name)}
-            className="flex flex-row items-center gap-4 cursor-pointer"
-            style={{ borderLeftWidth: 2, borderLeftColor: c }}
+            className="flex flex-row flex-wrap sm:flex-nowrap items-center gap-4 cursor-pointer"
           >
             <Thumb app={a} w={132} h={70} />
             <div className="flex flex-col gap-1.5 min-w-0 flex-1">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: c, flex: "none" }} />
-                <span className="text-ink-1" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.02em" }}>{a.name}</span>
+                <Marker dim={dim} />
+                <span className="text-ink-1 font-medium" style={{ fontSize: 16, letterSpacing: "0.02em" }}>{a.name}</span>
                 <Pill dim="neutral">{a.type.toUpperCase()}</Pill>
                 <SecPill sec={a.security} />
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="bg-surface-1 rounded-[3px] overflow-hidden" style={{ height: 5, width: 180, maxWidth: "40vw", flex: "none" }}>
-                  <div style={{ width: `${pct}%`, height: "100%", background: c }} />
+                <div className="progress-bar" style={{ width: 180, maxWidth: "40vw", flex: "none" }}>
+                  <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
                 </div>
-                <span style={{ fontSize: 12, color: c, letterSpacing: "0.06em" }}>{total === 0 ? "NO PROBES" : `${a.pass}/${total}`}</span>
+                <span className="mono text-ink-2" style={{ fontSize: 12, letterSpacing: "0.06em" }}>{total === 0 ? "NO PROBES" : `${a.pass}/${total}`}</span>
               </div>
             </div>
-            <span className="text-ink-3" style={{ fontSize: 12, letterSpacing: "0.14em", flex: "none" }}>OPEN ▸</span>
+            <span className="mono text-ink-3" style={{ fontSize: 11, letterSpacing: "0.14em", flex: "none" }}>OPEN ▸</span>
           </Panel>
         );
       })}
       {pager}
-      <Panel className="border-dashed text-ink-3 text-[12px] tracking-[0.1em]">+ ADOPT AN APP · bunker adopt &lt;dir&gt;</Panel>
+      <Panel className="border-dashed mono text-ink-3 text-[11px] tracking-[0.1em]">+ ADOPT AN APP · bunker adopt &lt;dir&gt;</Panel>
     </div>
   );
 }
 
 function Readout({ app, onBack }: { app: App; onBack: () => void }) {
   const dim = stDim(st(app));
-  const c = dimVar(dim);
   const total = app.pass + app.fail;
   const pct = total === 0 ? 0 : Math.round((app.pass / total) * 100);
 
   return (
     <div className="flex flex-col gap-3.5">
-      <button onClick={onBack} className="self-start text-[12px] tracking-[0.14em] cursor-pointer" style={{ background: "none", border: "none", color: "var(--accent-blue)", padding: 0 }}>◂ ALL BAYS</button>
+      <button onClick={onBack} className={`self-start text-[11px] tracking-[0.14em] ${textButton}`} style={{ background: "none", border: "none", padding: 0 }}>◂ ALL BAYS</button>
 
       {(app.shot || app.og) && <Thumb app={app} w={1120} h={280} />}
 
       <div className="flex items-center gap-3 flex-wrap">
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: c, flex: "none" }} />
-        <span className="text-ink-1" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "0.04em" }}>{app.name}</span>
+        <Marker dim={dim} />
+        <span className="text-ink-1 font-medium" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{app.name}</span>
         <Pill dim="neutral">{app.type.toUpperCase()}</Pill>
-        <span style={{ fontSize: 13, color: c, letterSpacing: "0.08em" }}>{total === 0 ? "NO PROBES" : `${app.pass}/${total} · ${pct}%`}</span>
+        <span className="mono text-ink-2" style={{ fontSize: 13, letterSpacing: "0.08em" }}>{total === 0 ? "NO PROBES" : `${app.pass}/${total} · ${pct}%`}</span>
       </div>
 
       <RPanel title="Test Harness · ISA Criteria & Probes" live>
         {app.probes.map((p) => {
           const pd = stDim(p.status === "pass" ? "ok" : p.status === "fail" ? "down" : "idle");
-          const pc = dimVar(pd);
           const tag = p.status === "pass" ? "[OK]" : p.status === "fail" ? "[XX]" : "[--]";
           return (
-            <div key={p.isc} className="flex items-center gap-3 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
-              <span style={{ color: pc, flex: "none", width: 34 }} className="mono">{tag}</span>
+            <div key={p.isc} className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-0.5 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
+              <Marker dim={pd} />
+              <span style={{ flex: "none", width: 34 }} className="mono text-ink-3">{tag}</span>
               <span className="text-ink-3 mono" style={{ flex: "none", width: 52 }}>{p.isc}</span>
               <span className="text-ink-1 flex-1 min-w-0">{p.check}</span>
               <span className="text-ink-3" style={{ flex: "none" }}>{p.detail}</span>
@@ -264,15 +265,15 @@ function Readout({ app, onBack }: { app: App; onBack: () => void }) {
       </RPanel>
 
       <RPanel title="Components · Six Planes" live>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", columnGap: 34, rowGap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", columnGap: 34, rowGap: 16 }}>
           {planesForType(app.type).map((pl) => (
             <div key={pl.plane}>
-              <div className="text-[10px] tracking-[0.2em] mb-1.5" style={{ color: "var(--accent-blue)" }}>{pl.plane}</div>
+              <div className="label-caps mb-1.5">{pl.plane}</div>
               {pl.components.map((cp) => (
                 <div key={cp.name} className="flex items-center gap-2" style={{ padding: "2px 0", fontSize: 13 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: cp.live ? "var(--ok)" : "var(--ink-3)", flex: "none" }} />
+                  <Marker dim={cp.live ? "ok" : "neutral"} />
                   <span className="text-ink-2 flex-1 min-w-0">{cp.name}</span>
-                  <span style={{ fontSize: 9, letterSpacing: "0.1em", color: cp.live ? "var(--ok)" : "var(--warn)", flex: "none" }}>{cp.live ? "LIVE" : "PENDING"}</span>
+                  <span className="mono text-ink-3" style={{ fontSize: 9, letterSpacing: "0.1em", flex: "none" }}>{cp.live ? "LIVE" : "PENDING"}</span>
                 </div>
               ))}
             </div>
@@ -338,13 +339,13 @@ function CostPanel() {
   }, []);
 
   return (
-    <Panel style={{ borderLeftWidth: 2, borderLeftColor: err ? "var(--err)" : "var(--ok)" }}>
+    <Panel>
       <PanelHeader
         title="Monitoring Cost · Cloudflare"
         actions={
           c ? (
             <>
-              <Pill dim="ok">${c.marginalMonthly.toFixed(2)}/mo MARGINAL</Pill>
+              <Pill dim="neutral">${c.marginalMonthly.toFixed(2)}/mo MARGINAL</Pill>
               <Pill dim="neutral">{c.pctOfIncluded < 0.1 ? "<0.1" : c.pctOfIncluded.toFixed(1)}% OF INCLUDED</Pill>
             </>
           ) : (
@@ -352,23 +353,23 @@ function CostPanel() {
           )
         }
       />
-      {err && <span style={{ color: "var(--err)", fontSize: 13 }}>SIGNAL LOST · /api/bunker/cost — {err}</span>}
+      {err && <SignalLost path="/api/bunker/cost" error={err} />}
       {c && (
         <>
           <p className="text-ink-2" style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" }}>
             The uptime and security monitors run {fmtN(c.totalReqPerMonth)} worker requests/month, about{" "}
             {c.pctOfIncluded < 0.1 ? "under 0.1" : c.pctOfIncluded.toFixed(1)}% of the {fmtN(c.includedRequests / 1_000_000)}M included in the
-            plan. Marginal cost is <strong style={{ color: "var(--ok)" }}>$0</strong> — it all sits inside the flat {c.plan}.
+            plan. Marginal cost is <strong className="mono text-ink-1">$0</strong> — it all sits inside the flat {c.plan}.
             Billed purely per-request it would be about ${c.standaloneMonthly.toFixed(2)}/month.
           </p>
           {c.workers.map((w) => (
-            <div key={w.name} className="flex items-center gap-3 border-b border-line-1" style={{ padding: "5px 0", fontSize: 13 }}>
-              <span className="text-ink-1 flex-1 min-w-0">{w.name}</span>
+            <div key={w.name} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b border-line-1" style={{ padding: "5px 0", fontSize: 13 }}>
+              <span className="text-ink-1 flex-1 min-w-0 break-words">{w.name}</span>
               <span className="text-ink-3 mono whitespace-nowrap" style={{ flex: "none" }}>{fmtN(w.reqPerDay)}/day</span>
               <span className="text-ink-2 mono whitespace-nowrap" style={{ flex: "none", width: 120, textAlign: "right" }}>{fmtN(w.reqPerMonth)}/mo</span>
             </div>
           ))}
-          <div className="text-[11px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
+          <div className="mono text-[10px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
             LIVE FROM CLOUDFLARE ANALYTICS · updated {new Date(c.updatedAt).toLocaleTimeString()} · 24h window projected to 30.4 days
           </div>
         </>
@@ -407,7 +408,7 @@ function SiteHealthPanel() {
   const allGreen = d ? d.red === 0 && d.degraded === 0 : false;
 
   return (
-    <Panel style={{ borderLeftWidth: 2, borderLeftColor: err ? "var(--err)" : "var(--accent-blue)" }}>
+    <Panel>
       <PanelHeader
         title="Cloud Uptime · Every Deployed Site"
         actions={
@@ -423,17 +424,16 @@ function SiteHealthPanel() {
           )
         }
       />
-      {err && <span style={{ color: "var(--err)", fontSize: 13 }}>SIGNAL LOST · /api/bunker/sitehealth — {err}</span>}
+      {err && <SignalLost path="/api/bunker/sitehealth" error={err} />}
       {d && (
         <>
           {[...d.apps].sort((a, b) => (siteDim(a.state) === "err" ? -1 : siteDim(b.state) === "err" ? 1 : 0)).map((s) => {
             const sd = siteDim(s.state);
-            const col = dimVar(sd);
             return (
-              <div key={s.name} className="flex items-center gap-3 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: col, flex: "none" }} />
-                <span className="text-ink-1" style={{ flex: "none", minWidth: 220 }}>{s.name}</span>
-                <span style={{ color: col, flex: "none", width: 90, fontSize: 12, letterSpacing: "0.06em" }}>{s.state.toUpperCase()}</span>
+              <div key={s.name} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
+                <Marker dim={sd} />
+                <span className="text-ink-1 break-words" style={{ flex: "0 1 auto", minWidth: "min(220px, 100%)" }}>{s.name}</span>
+                <span className="mono text-ink-2" style={{ flex: "none", width: 90, fontSize: 11, letterSpacing: "0.06em" }}>{s.state.toUpperCase()}</span>
                 <span className="flex-1" />
                 <span className="text-ink-3 whitespace-nowrap" style={{ flex: "none", fontSize: 12 }} title={`since ${new Date(s.since).toLocaleString()}`}>
                   checked {new Date(s.lastCheck).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
@@ -441,7 +441,7 @@ function SiteHealthPanel() {
               </div>
             );
           })}
-          <div className="text-[11px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
+          <div className="mono text-[10px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
             LAST CLOUD CHECK {new Date(d.updatedAt).toLocaleString()} · the site-health worker · 5-min cron · authenticated
           </div>
         </>
@@ -489,7 +489,7 @@ function ArbolPanel() {
   const shown = arbol ? (showAll ? arbol.failing : arbol.failing.slice(0, 10)) : [];
 
   return (
-    <Panel style={{ borderLeftWidth: 2, borderLeftColor: err ? "var(--err)" : "var(--accent-blue)" }}>
+    <Panel>
       <PanelHeader
         title="Cloud Watch · Arbol Infra-Security"
         actions={
@@ -508,15 +508,16 @@ function ArbolPanel() {
           )
         }
       />
-      {err && <span style={{ color: "var(--err)", fontSize: 13 }}>SIGNAL LOST · /api/bunker/arbol — {err}</span>}
+      {err && <SignalLost path="/api/bunker/arbol" error={err} />}
       {arbol && (
         <>
           {shown.map((f, i) => (
-            <div key={f.target + f.check + i} className="flex items-center gap-3 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
-              <span className="mono" style={{ color: `var(--${sevDim(f.severity) === "err" ? "err" : sevDim(f.severity) === "warn" ? "warn" : "ink-3"})`, flex: "none", width: 76 }}>
+            <div key={f.target + f.check + i} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b border-line-1" style={{ padding: "6px 0", fontSize: 13 }}>
+              <Marker dim={sevDim(f.severity)} />
+              <span className="mono text-ink-3" style={{ flex: "none", width: 60 }}>
                 [{({ critical: "CRIT", high: "HIGH", medium: "MED", low: "LOW" } as Record<string, string>)[f.severity] ?? f.severity.toUpperCase().slice(0, 4)}]
               </span>
-              <span className="text-ink-1" style={{ flex: "none", minWidth: 200 }}>{f.target}</span>
+              <span className="text-ink-1 break-words" style={{ flex: "0 1 auto", minWidth: "min(200px, 100%)" }}>{f.target}</span>
               <span className="text-ink-2 flex-1 min-w-0">{f.check}</span>
               <span className="text-ink-3" style={{ flex: "none" }}>{f.category}</span>
             </div>
@@ -524,13 +525,13 @@ function ArbolPanel() {
           {arbol.failing.length > 10 && (
             <button
               onClick={() => setShowAll((v) => !v)}
-              className="self-start text-[12px] tracking-[0.12em] cursor-pointer"
-              style={{ background: "none", border: "none", color: "var(--accent-blue)", padding: "6px 0 0" }}
+              className={`self-start text-[11px] tracking-[0.12em] ${textButton}`}
+              style={{ background: "none", border: "none", padding: "6px 0 0" }}
             >
               {showAll ? "◂ SHOW FEWER" : `SHOW ALL ${arbol.failing.length} FAILING ▸`}
             </button>
           )}
-          <div className="text-[11px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
+          <div className="mono text-[10px] tracking-[0.12em] text-ink-3" style={{ paddingTop: 6 }}>
             LAST CLOUD SCAN {new Date(arbol.timestamp).toLocaleString()} · the infra-security worker · hourly cron
           </div>
         </>
@@ -541,10 +542,10 @@ function ArbolPanel() {
 
 function RPanel({ title, live, children }: { title: string; live: boolean; children: ReactNode }) {
   return (
-    <Panel style={{ borderLeftWidth: 2, borderLeftColor: live ? "var(--ok)" : "var(--warn)" }}>
+    <Panel>
       <PanelHeader
         title={title}
-        actions={<Pill dim={live ? "ok" : "warn"}>{live ? "LIVE" : "PENDING"}</Pill>}
+        actions={<Pill dim={live ? "ok" : "neutral"}>{live ? "LIVE" : "PENDING"}</Pill>}
       />
       {children}
     </Panel>

@@ -31,11 +31,19 @@ interface XY {
 }
 
 const RIBBON_COLORS: Record<string, string> = {
-  e: "#7cd5e6", // exploring
-  b: "#f5c451", // building
-  v: "#22c55e", // verifying
-  d: "#a78bfa", // delegating
-  o: "#55636d", // other
+  e: "var(--accent-blue)", // exploring
+  b: "var(--money)", // building
+  v: "var(--health)", // verifying
+  d: "var(--relationships)", // delegating
+  o: "var(--ink-3)", // other
+};
+
+const RIBBON_LABELS: Record<string, string> = {
+  e: "exploring",
+  b: "building",
+  v: "verifying",
+  d: "delegating",
+  o: "other",
 };
 
 export default function ClimbChart({ state, variant }: ClimbChartProps) {
@@ -125,22 +133,16 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
       }));
   }, [state.activity, variant, start, end, W, PAD]);
 
-  const lineColor = climbComplete ? LIFECYCLE_META.cairn.color : state.active ? "#7cd5e6" : "#55636d";
+  const lineColor = climbComplete || state.active ? "var(--accent-blue)" : "var(--ink-3)";
 
   if (variant === "mini") {
     return (
       <svg width={W} height={H} className="shrink-0" aria-label={`Climb ${pct}%`}>
-        <path d={doneArea} fill={lineColor} opacity={0.08} />
-        <path d={totalPath} fill="none" stroke="#55636d" strokeWidth={1} opacity={0.6} strokeDasharray="2 2" />
-        <path d={donePath} fill="none" stroke={lineColor} strokeWidth={1.5} opacity={0.9} />
+        <path d={doneArea} fill={lineColor} opacity={0.1} />
+        <path d={totalPath} fill="none" stroke="var(--line-3)" strokeWidth={1} strokeDasharray="2 2" />
+        <path d={donePath} fill="none" stroke={lineColor} strokeWidth={1.25} />
         {dots.map((p, i) => (
-          <circle
-            key={i}
-            cx={p.x}
-            cy={p.y}
-            r={1.8}
-            fill={p.point && p.point.done === p.point.total ? LIFECYCLE_META.cairn.color : lineColor}
-          />
+          <circle key={i} cx={p.x} cy={p.y} r={1.5} fill={lineColor} />
         ))}
       </svg>
     );
@@ -155,18 +157,18 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
           const y = H - PAD - (count / maxTotal) * (H - PAD * 2);
           return (
             <g key={i}>
-              <line x1={PAD} x2={W - PAD} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
-              <text x={W - PAD + 2} y={y + 3} fontSize={8} fill="rgba(255,255,255,0.25)" fontFamily="monospace">
+              <line x1={PAD} x2={W - PAD} y1={y} y2={y} stroke="var(--line-1)" strokeWidth={1} strokeDasharray="2 4" />
+              <text x={W - PAD + 2} y={y + 3} fontSize={8} fill="var(--ink-3)" fontFamily="var(--font-mono)">
                 {count}
               </text>
             </g>
           );
         })}
         {/* hill silhouette — total claims */}
-        <path d={totalPath} fill="none" stroke="#55636d" strokeWidth={1.5} strokeDasharray="3 3" opacity={0.8} />
+        <path d={totalPath} fill="none" stroke="var(--line-3)" strokeWidth={1} strokeDasharray="3 3" />
         {/* the ascent — closed claims */}
-        <path d={doneArea} fill={lineColor} opacity={0.07} />
-        <path d={donePath} fill="none" stroke={lineColor} strokeWidth={2} strokeLinejoin="round" />
+        <path d={doneArea} fill={lineColor} opacity={0.1} />
+        <path d={donePath} fill="none" stroke={lineColor} strokeWidth={1.5} strokeLinejoin="round" />
         {/* +n markers where the hill grew */}
         {addMarkers.map((m, i) => (
           <text
@@ -174,14 +176,14 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
             x={Math.min(m.x + 3, W - PAD - 14)}
             y={Math.max(m.y - 4, PAD + 8)}
             fontSize={9}
-            fill="#f5c451"
-            fontFamily="monospace"
+            fill="var(--ink-2)"
+            fontFamily="var(--font-mono)"
           >
             +{m.n}
           </text>
         ))}
         {dots.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={3} fill={p.point && p.point.done === p.point.total ? LIFECYCLE_META.cairn.color : lineColor}>
+          <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="var(--ground)" stroke={lineColor} strokeWidth={1.25}>
             <title>
               {p.point ? `${p.point.done}/${p.point.total} at ${new Date(p.point.ts).toLocaleTimeString()}` : ""}
             </title>
@@ -189,8 +191,16 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
         ))}
         {/* completion marker — resolved from the ascent table, same as the Kitty tab */}
         {climbComplete && (
-          <text x={W - PAD - 4} y={PAD + 8} fontSize={10} textAnchor="end" fill={LIFECYCLE_META.cairn.color}>
-            {LIFECYCLE_META.cairn.icon} {LIFECYCLE_META.cairn.label.toLowerCase()}
+          <text
+            x={W - PAD - 4}
+            y={PAD + 8}
+            fontSize={9}
+            textAnchor="end"
+            fill="var(--ink-2)"
+            fontFamily="var(--font-mono)"
+            letterSpacing="0.16em"
+          >
+            {LIFECYCLE_META.cairn.label.toUpperCase()}
           </text>
         )}
       </svg>
@@ -220,18 +230,29 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
                       width={Math.max(col.w - 1, 1.5)}
                       height={segH}
                       fill={RIBBON_COLORS[s.k]}
-                      opacity={0.85}
-                      rx={0.5}
+                      opacity={0.75}
                     />
                   );
                 })}
               </g>
             );
           })}
-          <text x={PAD} y={8} fontSize={7} fill="rgba(255,255,255,0.3)" fontFamily="monospace">
-            activity
+          <text x={PAD} y={8} fontSize={7} fill="var(--ink-3)" fontFamily="var(--font-mono)" letterSpacing="0.16em">
+            ACTIVITY
           </text>
         </svg>
+      )}
+      {ribbon.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+          {(["e", "b", "v", "d", "o"] as const)
+            .filter((k) => ribbon.some((col) => col.segs.some((seg) => seg.k === k)))
+            .map((k) => (
+              <span key={k} className="inline-flex items-center gap-1.5 mono text-[10px] tracking-[0.1em] text-ink-3">
+                <span className="fig-key" style={{ color: RIBBON_COLORS[k] }} aria-hidden />
+                {RIBBON_LABELS[k]}
+              </span>
+            ))}
+        </div>
       )}
     </div>
   );

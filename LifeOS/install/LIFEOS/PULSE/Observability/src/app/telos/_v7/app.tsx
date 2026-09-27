@@ -116,14 +116,13 @@ interface CommonViewProps {
 export function TreeView({ telos, onTrace, showIds }: CommonViewProps) {
   function row<T>(
     kind: string,
-    color: string,
     items: readonly T[],
     getLabel: (it: T) => string,
     getId: (it: T) => string,
   ) {
     return (
     <div className="tree-row" key={kind}>
-      <div className="tree-row-head" style={{ color }}>
+      <div className="tree-row-head">
         <span className="tree-kind">{kind}</span>
         <span className="tree-count">{items.length}</span>
       </div>
@@ -132,11 +131,10 @@ export function TreeView({ telos, onTrace, showIds }: CommonViewProps) {
           <button
             key={getId(it)}
             className="tree-node"
-            style={{ borderColor: color + "55" }}
             onClick={() => onTrace(getId(it))}
             type="button"
           >
-            {showIds && <span className="mono tree-id" style={{ color }}>{getId(it)}</span>}
+            {showIds && <span className="mono tree-id">{getId(it)}</span>}
             <span className="tree-label">{getLabel(it)}</span>
           </button>
         ))}
@@ -156,17 +154,17 @@ export function TreeView({ telos, onTrace, showIds }: CommonViewProps) {
         </div>
       </header>
       <div className="tree-list">
-        {row("Ideal State", "var(--sky)",      telos.dimensions, (d) => `${d.label} · ${d.cur}→${d.ideal}`, (d) => d.id)}
-        {row("Problems",    "var(--bad)",      telos.problems,   (p) => p.title, (p) => p.id)}
-        {row("Mission",     "var(--warm)",     telos.missions,   (m) => `${m.horizon} — ${m.title}`, (m) => m.id)}
-        {row("Goals",       "var(--ok)",       telos.goals,      (g) => g.title, (g) => g.id)}
-        {row("Metrics",     "var(--azure)",    telos.metrics,    (m) => `${m.label} · ${m.value}${m.unit}`, (m) => m.id)}
-        {row("Challenges",  "var(--warm)",     telos.challenges, (c) => c.title, (c) => c.id)}
-        {row("Strategies",  "var(--accent-2)", telos.strategies, (s) => s.title.split("—")[0].trim(), (s) => s.id)}
-        {row("Projects",    "var(--sky)",      telos.projects,   (p) => p.title, (p) => p.id)}
-        {row("Work",        "var(--text-2)",   allWork,          (w) => w.title, (w) => w.id)}
-        {row("Team",        "var(--accent-2)", telos.team,       (t) => `${t.name} — ${t.role}`, (t) => t.id)}
-        {row("Budget",      "var(--money)",    telos.budget,     (b) => `${b.label} · ${b.value}/${b.of}`, (b) => b.id)}
+        {row("Ideal State", telos.dimensions, (d) => `${d.label} · ${d.cur}→${d.ideal}`, (d) => d.id)}
+        {row("Problems",    telos.problems,   (p) => p.title, (p) => p.id)}
+        {row("Mission",     telos.missions,   (m) => `${m.horizon} — ${m.title}`, (m) => m.id)}
+        {row("Goals",       telos.goals,      (g) => g.title, (g) => g.id)}
+        {row("Metrics",     telos.metrics,    (m) => `${m.label} · ${m.value}${m.unit}`, (m) => m.id)}
+        {row("Challenges",  telos.challenges, (c) => c.title, (c) => c.id)}
+        {row("Strategies",  telos.strategies, (s) => s.title.split("—")[0].trim(), (s) => s.id)}
+        {row("Projects",    telos.projects,   (p) => p.title, (p) => p.id)}
+        {row("Work",        allWork,          (w) => w.title, (w) => w.id)}
+        {row("Team",        telos.team,       (t) => `${t.name} — ${t.role}`, (t) => t.id)}
+        {row("Budget",      telos.budget,     (b) => `${b.label} · ${b.value}/${b.of}`, (b) => b.id)}
       </div>
     </section>
   );
@@ -175,24 +173,23 @@ export function TreeView({ telos, onTrace, showIds }: CommonViewProps) {
 interface GraphPosition {
   x: number;
   y: number;
-  color: string;
   label: string;
   layer: string;
 }
 
-type GraphEdge = [string, string, string];
+type GraphEdge = [string, string];
 
 export function GraphView({ telos, onTrace }: CommonViewProps) {
   // Radial layered layout: Mission at center, expanding outward through layers.
-  const layers: Array<{ key: string; color: string; items: Array<{ id: string; label: string }> }> = [
-    { key: "ideal",   color: "#a8e2ee", items: telos.dimensions.map((d) => ({ id: d.id, label: d.label })) },
-    { key: "problem", color: "#F87171", items: telos.problems.map((p) => ({ id: p.id, label: p.title })) },
-    { key: "mission", color: "#cdeef5", items: telos.missions.filter((m) => m.active).map((m) => ({ id: m.id, label: m.horizon })) },
-    { key: "goal",    color: "#22c55e", items: telos.goals.map((g) => ({ id: g.id, label: g.id })) },
-    { key: "metric",  color: "#3fb2c9", items: telos.metrics.map((m) => ({ id: m.id, label: m.id })) },
-    { key: "strat",   color: "#a8e2ee", items: telos.strategies.map((s) => ({ id: s.id, label: s.id })) },
-    { key: "project", color: "#a8e2ee", items: telos.projects.map((p) => ({ id: p.id, label: p.title })) },
-    { key: "work",    color: "#98a8b3", items: telos.projects.flatMap((p) => p.work).map((w) => ({ id: w.id, label: w.id })) },
+  const layers: Array<{ key: string; items: Array<{ id: string; label: string }> }> = [
+    { key: "ideal",   items: telos.dimensions.map((d) => ({ id: d.id, label: d.label })) },
+    { key: "problem", items: telos.problems.map((p) => ({ id: p.id, label: p.title })) },
+    { key: "mission", items: telos.missions.filter((m) => m.active).map((m) => ({ id: m.id, label: m.horizon })) },
+    { key: "goal",    items: telos.goals.map((g) => ({ id: g.id, label: g.id })) },
+    { key: "metric",  items: telos.metrics.map((m) => ({ id: m.id, label: m.id })) },
+    { key: "strat",   items: telos.strategies.map((s) => ({ id: s.id, label: s.id })) },
+    { key: "project", items: telos.projects.map((p) => ({ id: p.id, label: p.title })) },
+    { key: "work",    items: telos.projects.flatMap((p) => p.work).map((w) => ({ id: w.id, label: w.id })) },
   ];
   const W = 1000;
   const H = 720;
@@ -205,14 +202,13 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
     const n = layer.items.length;
     layer.items.forEach((it, i) => {
       if (li === 2) {
-        positions[it.id] = { x: cx, y: cy, color: layer.color, label: it.label, layer: layer.key };
+        positions[it.id] = { x: cx, y: cy, label: it.label, layer: layer.key };
         return;
       }
       const theta = (i / n) * Math.PI * 2 - Math.PI / 2 + (li % 2 ? Math.PI / n : 0);
       positions[it.id] = {
         x: cx + r * Math.cos(theta),
         y: cy + r * Math.sin(theta),
-        color: layer.color,
         label: it.label,
         layer: layer.key,
       };
@@ -221,21 +217,21 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
 
   const edges: GraphEdge[] = [];
   telos.goals.forEach((g) => {
-    g.dims.forEach((d) => edges.push([d, g.id, "rgba(168,226,238,0.18)"]));
+    g.dims.forEach((d) => edges.push([d, g.id]));
     const m = telos.missions.find((mm) => mm.active);
-    if (m) edges.push([m.id, g.id, "rgba(205,238,245,0.22)"]);
-    g.metrics.forEach((mid) => edges.push([g.id, mid, "rgba(63,178,201,0.25)"]));
+    if (m) edges.push([m.id, g.id]);
+    g.metrics.forEach((mid) => edges.push([g.id, mid]));
   });
   telos.strategies.forEach((s) => {
-    s.implements.forEach((gid) => edges.push([gid, s.id, "rgba(168,226,238,0.22)"]));
+    s.implements.forEach((gid) => edges.push([gid, s.id]));
   });
   telos.projects.forEach((p) => {
-    edges.push([p.strategy, p.id, "rgba(168,226,238,0.26)"]);
-    p.work.forEach((w) => edges.push([p.id, w.id, "rgba(152,168,179,0.22)"]));
+    edges.push([p.strategy, p.id]);
+    p.work.forEach((w) => edges.push([p.id, w.id]));
   });
   const m1 = telos.missions.find((m) => m.active);
   if (m1 && m1.addresses) {
-    m1.addresses.forEach((pid) => edges.push([m1.id, pid, "rgba(248,113,113,0.25)"]));
+    m1.addresses.forEach((pid) => edges.push([m1.id, pid]));
   }
 
   return (
@@ -248,7 +244,7 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
       </header>
       <div className="graph-wrap">
         <svg viewBox={`0 0 ${W} ${H}`} className="graph-svg" preserveAspectRatio="xMidYMid meet">
-          {edges.map(([a, b, c], i) => {
+          {edges.map(([a, b], i) => {
             const pa = positions[a];
             const pb = positions[b];
             if (!pa || !pb) return null;
@@ -259,7 +255,7 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
                 key={i}
                 d={`M ${pa.x} ${pa.y} Q ${mx} ${my} ${pb.x} ${pb.y}`}
                 fill="none"
-                stroke={c}
+                stroke="var(--line-3)"
                 strokeWidth="0.8"
               />
             );
@@ -270,17 +266,18 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
                 cx={p.x}
                 cy={p.y}
                 r={p.layer === "mission" ? 26 : p.layer === "ideal" || p.layer === "problem" ? 8 : 5}
-                fill={p.color}
-                opacity={p.layer === "mission" ? 0.9 : 0.8}
+                fill={p.layer === "mission" ? "var(--primary-soft)" : "var(--ground)"}
+                stroke={p.layer === "mission" ? "var(--accent-blue)" : "var(--ink-3)"}
+                strokeWidth="1"
               />
               {(p.layer === "mission" || p.layer === "ideal" || p.layer === "problem" || p.layer === "project") && (
                 <text
                   x={p.x}
                   y={p.y + (p.layer === "mission" ? 4 : -12)}
-                  fill="var(--text-2)"
+                  fill="var(--ink-2)"
                   fontSize={p.layer === "mission" ? 11 : 10}
                   textAnchor="middle"
-                  fontFamily="var(--sans)"
+                  fontFamily="var(--font-mono)"
                 >
                   {p.label.length > 22 ? p.label.slice(0, 22) + "…" : p.label}
                 </text>
@@ -333,11 +330,11 @@ function App() {
 
   if (!telos) {
     return (
-      <div style={{ padding: 40, color: "#f0e8d8" }}>
+      <div className="telos-loading">
         {error ? (
           <>
-            <div style={{ marginBottom: 12 }}>Can&rsquo;t load TELOS from the Pulse daemon ({error}).</div>
-            <button onClick={refetch} style={{ padding: "6px 14px", cursor: "pointer" }}>Retry</button>
+            <div className="telos-loading-msg">Can&rsquo;t load TELOS from the Pulse daemon ({error}).</div>
+            <button type="button" className="telos-btn" onClick={refetch}>Retry</button>
           </>
         ) : (
           "Loading…"

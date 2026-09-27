@@ -14,7 +14,7 @@ interface SubTabsProps {
   telos: Telos;
 }
 
-export function Spark({ points=[38,42,40,45,48,52,51,56,58,62], color='var(--accent-live)' }: SparkProps) {
+export function Spark({ points=[38,42,40,45,48,52,51,56,58,62], color='var(--accent-blue)' }: SparkProps) {
   const W=160, H=36, max=Math.max(...points), min=Math.min(...points);
   const norm = (v: number, i: number)=>{
     const x = (i/(points.length-1))*W;
@@ -24,7 +24,7 @@ export function Spark({ points=[38,42,40,45,48,52,51,56,58,62], color='var(--acc
   const last = points.at(-1) ?? points[points.length - 1] ?? 0;
   return (
     <svg width={W} height={H} className="spark">
-      <polyline fill="none" stroke={color} strokeWidth="1.6" points={points.map(norm).join(' ')}/>
+      <polyline fill="none" stroke={color} strokeWidth="1.5" points={points.map(norm).join(' ')}/>
       <circle cx={W} cy={H-((last-min)/Math.max(1,(max-min)))*H} r="2.8" fill={color}/>
     </svg>
   );
@@ -60,20 +60,16 @@ export function SubTabs({ telos }: SubTabsProps) {
       </header>
 
       <div className="sub-nav">
-        {telos.subtabs.map(t=>{
-          const d = telos.dimensions.find(x=>x.id===t.dim);
-          return (
-            <button key={t.id} className={'sub-tab'+(t.id===active?' on':'')} onClick={()=>setActive(t.id as SubtabId)}>
-              <span className="sub-swatch" style={{background:`var(${d?.color ?? '--accent'})`}}/>
-              {t.label}
-            </button>
-          );
-        })}
+        {telos.subtabs.map(t=>(
+          <button key={t.id} className={'sub-tab'+(t.id===active?' on':'')} onClick={()=>setActive(t.id as SubtabId)}>
+            {t.label}
+          </button>
+        ))}
       </div>
 
       <div className="sub-card">
         <p className="sub-cite">
-          {tab.label} feeds <span style={{color:`var(${dim.color})`}}>{dim.label}</span>,
+          {tab.label} feeds {dim.label},
           currently sitting at <span className="mono">{tab.cur}</span> out of {tab.ideal} —
           &nbsp;{veloText}.{eta && ` At this pace it lands on ideal in about ${eta} months.`}
         </p>
@@ -83,13 +79,13 @@ export function SubTabs({ telos }: SubTabsProps) {
             <div className="sub-kpis">
               <div className="kpi"><div className="k">where it is</div><div className="v mono">{tab.cur}<span className="u">/{tab.ideal}</span></div></div>
               <div className="kpi"><div className="k">the gap</div><div className="v mono">{tab.ideal-tab.cur}</div></div>
-              <div className="kpi"><div className="k">per month</div><div className="v mono" style={{color:tab.velo>0?'var(--ok)':tab.velo<0?'var(--bad)':'var(--text-3)'}}>{tab.velo>0?'+':''}{tab.velo.toFixed(1)}</div></div>
+              <div className="kpi"><div className="k">per month</div><div className="v mono">{tab.velo>0?'+':''}{tab.velo.toFixed(1)}</div></div>
               <div className="kpi"><div className="k">ideal by</div><div className="v mono">{eta?eta+'mo':'—'}</div></div>
             </div>
           </div>
           <div className="sub-r">
             <div className="spark-head">last twelve months</div>
-            <Spark points={SPARK_SEEDS[active]} color={`var(${dim.color})`}/>
+            <Spark points={SPARK_SEEDS[active]}/>
           </div>
         </div>
       </div>

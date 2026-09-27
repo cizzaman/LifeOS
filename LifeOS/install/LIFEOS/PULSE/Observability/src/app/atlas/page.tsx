@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Waypoints, Boxes, Share2, AlertTriangle, Clock, Database, Lightbulb, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import {
   PageShell,
   PageHeader,
@@ -13,7 +13,7 @@ import {
   EmptyState,
   type TabSpec,
 } from "@/components/ui/chrome";
-import { AtlasGraph, type GNode, type GEdge } from "./AtlasGraph";
+import { AtlasGraph, atlasKindColor, type GNode, type GEdge } from "./AtlasGraph";
 
 /**
  * Atlas tab — the graph-based current-state asset management system.
@@ -50,11 +50,15 @@ interface InsightsPayload {
 
 type Tab = "graph" | "insights" | "browse" | "gaps";
 const TABS: TabSpec<Tab>[] = [
-  { id: "graph", label: "Graph", icon: Waypoints },
-  { id: "insights", label: "Insights", icon: Lightbulb },
-  { id: "browse", label: "Browse", icon: Boxes },
-  { id: "gaps", label: "Gaps", icon: AlertTriangle },
+  { id: "graph", label: "Graph" },
+  { id: "insights", label: "Insights" },
+  { id: "browse", label: "Browse" },
+  { id: "gaps", label: "Gaps" },
 ];
+
+const TOGGLE = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border mono text-[10px] uppercase tracking-[0.1em] cursor-pointer transition-colors";
+const toggleClass = (on: boolean) =>
+  `${TOGGLE} ${on ? "border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)] text-ink-1" : "border-line-2 text-ink-3 hover:text-ink-1 hover:border-[color:var(--accent-blue)]"}`;
 
 const GRAPH_KINDS = ["project", "worker", "domain", "target", "system", "repo", "service", "dns_record"];
 
@@ -69,7 +73,7 @@ function Narrative({ md }: { md: string }) {
         const body = heading ? b.replace(/^##\s+.+\n?/, "") : b;
         return (
           <div key={i}>
-            {heading && <h3 className="text-ink-1 font-medium mb-1">{heading}</h3>}
+            {heading && <h3 className="text-ink-1 mb-1">{heading}</h3>}
             <p className="text-sm text-ink-2 leading-relaxed whitespace-pre-wrap">{body.trim()}</p>
           </div>
         );
@@ -131,12 +135,12 @@ export default function AtlasPage() {
       return next;
     });
 
-  if (!data) return <PageShell><EmptyState icon={Waypoints} title="Loading Atlas…" /></PageShell>;
+  if (!data) return <PageShell><EmptyState title="Loading Atlas…" /></PageShell>;
   if (!data.available) {
     return (
       <PageShell>
-        <PageHeader title="Atlas" icon={Waypoints} subtitle="Graph-based current-state asset management" />
-        <EmptyState icon={Database} title="No snapshot yet" hint={data.error ?? "Run an atlas sync."} />
+        <PageHeader title="Atlas" subtitle="Graph-based current-state asset management" />
+        <EmptyState title="No snapshot yet" hint={data.error ?? "Run an atlas sync."} />
       </PageShell>
     );
   }
@@ -145,13 +149,13 @@ export default function AtlasPage() {
 
   return (
     <PageShell>
-      <PageHeader title="Atlas" icon={Waypoints} subtitle={`Graph-based current-state asset management · snapshot ${ageMin}m ago`} />
+      <PageHeader title="Atlas" subtitle={`Graph-based current-state asset management · snapshot ${ageMin}m ago`} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Assets" value={String(assets.length)} icon={Boxes} />
-        <StatTile label="Edges" value={String(edges.filter((e) => e.status === "active").length)} icon={Share2} />
-        <StatTile label="No auth-curation" value={String(data.unregistered?.length ?? 0)} icon={AlertTriangle} />
-        <StatTile label="Stale" value={String(staleAssets.length)} icon={Clock} />
+        <StatTile label="Assets" value={String(assets.length)} />
+        <StatTile label="Edges" value={String(edges.filter((e) => e.status === "active").length)} />
+        <StatTile label="No auth-curation" value={String(data.unregistered?.length ?? 0)} />
+        <StatTile label="Stale" value={String(staleAssets.length)} />
       </div>
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
@@ -161,16 +165,17 @@ export default function AtlasPage() {
           <PanelHeader title="Estate graph" meta="drag a node · scroll to zoom · hover to isolate its neighborhood" />
           <div className="flex flex-wrap gap-2 pb-3">
             {GRAPH_KINDS.map((k) => (
-              <button key={k} type="button" onClick={() => toggleKind(k)} className="cursor-pointer">
-                <Pill className={kindFilter.has(k) ? "" : "opacity-40"}>{k}</Pill>
+              <button key={k} type="button" onClick={() => toggleKind(k)} className={toggleClass(kindFilter.has(k))}>
+                <span className="fig-key is-round" style={{ color: atlasKindColor(k) }} />
+                {k}
               </button>
             ))}
           </div>
           <AtlasGraph nodes={assets} edges={edges} kindFilter={kindFilter} onSelect={setSelected} />
           {selected && (
-            <div className="pt-3 text-sm">
-              <span className="text-ink-1 font-medium">{selected.display_name}</span>
-              <span className="text-ink-3"> · {selected.kind} · {selected.canonical_key}</span>
+            <div className="pt-3 text-sm break-words">
+              <span className="text-ink-1">{selected.display_name}</span>
+              <span className="mono text-xs text-ink-3"> · {selected.kind} · {selected.canonical_key}</span>
             </div>
           )}
         </Panel>
@@ -205,9 +210,9 @@ export default function AtlasPage() {
                   type="button"
                   onClick={regenerate}
                   disabled={insights?.generating}
-                  className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink-1 cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] border border-line-2 mono text-[10px] uppercase tracking-[0.1em] text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)] cursor-pointer transition-colors disabled:opacity-50"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${insights?.generating ? "animate-spin" : ""}`} /> Regenerate
+                  <RefreshCw className={`w-3 h-3 text-ink-3 ${insights?.generating ? "animate-spin" : ""}`} strokeWidth={1.5} /> Regenerate
                 </button>
               }
             />
@@ -215,7 +220,6 @@ export default function AtlasPage() {
               <Narrative md={insights.narrative} />
             ) : (
               <EmptyState
-                icon={Lightbulb}
                 title={insights?.generating ? "Generating insights…" : "No insights yet"}
                 hint={insights?.generating ? "Running the inference pass over the current graph." : "Click Regenerate to run the inference pass."}
               />
@@ -228,7 +232,7 @@ export default function AtlasPage() {
                 {insights.metrics.blast_zones.map((z: any) => (
                   <div key={z.zone} className="flex items-center justify-between border-b border-line-1 py-1">
                     <span className="text-ink-1">{z.zone}</span>
-                    <span className="text-ink-3 font-mono text-xs">{z.owns} owned</span>
+                    <span className="text-ink-3 mono text-xs">{z.owns} owned</span>
                   </div>
                 ))}
               </div>
@@ -242,27 +246,27 @@ export default function AtlasPage() {
           <PanelHeader title="Assets by kind" meta="every asset carries per-source observations — no single writer of truth" />
           <div className="flex flex-wrap gap-2 pb-3">
             {kinds.map(([k, n]) => (
-              <button key={k} type="button" onClick={() => setTableKind(tableKind === k ? null : k)} className="cursor-pointer">
-                <Pill className={tableKind === k ? "" : "opacity-50"}>{k} · {n}</Pill>
+              <button key={k} type="button" onClick={() => setTableKind(tableKind === k ? null : k)} className={toggleClass(tableKind === k)}>
+                {k} <span className="text-ink-3">{n}</span>
               </button>
             ))}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-ink-3 border-b border-line-2">
-                  <th className="py-1 pr-3 font-normal">Asset</th>
-                  <th className="py-1 pr-3 font-normal">Key</th>
-                  <th className="py-1 pr-3 font-normal">Status</th>
-                  <th className="py-1 font-normal">Observed by</th>
+                <tr className="text-left border-b border-line-2">
+                  <th className="label-caps py-2 pr-3 font-normal">Asset</th>
+                  <th className="label-caps py-2 pr-3 font-normal">Key</th>
+                  <th className="label-caps py-2 pr-3 font-normal">Status</th>
+                  <th className="label-caps py-2 font-normal">Observed by</th>
                 </tr>
               </thead>
               <tbody>
                 {assets.filter((a) => !tableKind || a.kind === tableKind).slice(0, 200).map((a) => (
                   <tr key={a.id} className="border-b border-line-1">
                     <td className="py-1 pr-3 text-ink-1">{a.display_name}</td>
-                    <td className="py-1 pr-3 text-ink-3 font-mono text-xs">{a.canonical_key}</td>
-                    <td className="py-1 pr-3"><span className={a.status === "active" ? "text-[color:var(--ok)]" : "text-[color:var(--warn)]"}>{a.status}</span></td>
+                    <td className="py-1 pr-3 text-ink-3 mono text-xs">{a.canonical_key}</td>
+                    <td className="py-1 pr-3"><Pill dim={a.status === "active" ? "ok" : "warn"}>{a.status}</Pill></td>
                     <td className="py-1 text-xs text-ink-2">{(obsByAsset.get(a.id) ?? []).map((o) => `${o.collector}${o.fresh ? "" : " (gone)"}`).join(", ")}</td>
                   </tr>
                 ))}
@@ -280,7 +284,7 @@ export default function AtlasPage() {
               meta="these domains ARE scanned hourly for hygiene; they just lack a curated target asserting auth boundaries (correct for static sites, a real gap for auth-bearing apps)"
             />
             {(data.unregistered?.length ?? 0) === 0 ? (
-              <EmptyState icon={AlertTriangle} title="Full coverage" />
+              <EmptyState title="Full coverage" />
             ) : (
               <div className="text-sm">
                 {data.unregistered!.map((u) => (
@@ -295,7 +299,7 @@ export default function AtlasPage() {
           <Panel>
             <PanelHeader title={`Stale assets — ${staleAssets.length}`} meta="observed before, not seen by any collector lately" />
             {staleAssets.length === 0 ? (
-              <EmptyState icon={Clock} title="Nothing stale" />
+              <EmptyState title="Nothing stale" />
             ) : (
               <div className="text-sm">
                 {staleAssets.slice(0, 60).map((a) => (

@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import KnowledgeGraph from "@/components/wiki/KnowledgeGraph";
 import { wikiPageUrl } from "@/lib/wiki-links";
-import { Network, Search, ArrowLeft, CornerDownRight, ExternalLink, Tag, X } from "lucide-react";
+import { Search, ArrowLeft, CornerDownRight, ExternalLink, X } from "lucide-react";
 
 interface MemNode { id: string; title: string; category: string; backlinkCount: number; silo: string; type: string; tags: string[]; pagerank: number }
 interface MemEdge { source: string; target: string; kind: string }
@@ -48,8 +48,10 @@ const KIND_LABEL: Record<string, string> = { related: "Declared (typed)", wikili
 const NEIGHBOR_CAP = 36;
 const THEME_NODE_CAP = 140;
 
-const font = { fontFamily: "'Albert Sans', sans-serif" } as const;
-const heading = { fontFamily: "'Outfit', sans-serif" } as const;
+const key = (type: string) => ({ color: TYPE_COLOR[type] ?? "var(--ink-3)" });
+const TOGGLE = "rounded-full border mono text-[10px] uppercase tracking-[0.1em] transition-colors";
+const TOGGLE_OFF = "border-line-2 text-ink-2 hover:text-ink-1 hover:border-[color:var(--accent-blue)]";
+const TOGGLE_ON = "border-[color:var(--accent-blue)] bg-[color:var(--primary-soft)] text-ink-1";
 
 export default function MemoryGraphPage() {
   const [focus, setFocus] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export default function MemoryGraphPage() {
     // first mount or the one-shot measure runs against nothing.
     return (
       <div ref={outerRef} className="flex items-center justify-center" style={{ height: fillHeight ?? "calc(100vh - 160px)" }}>
-        <div className="text-xs text-ink-3" style={font}>Loading memory graph…</div>
+        <div className="label-caps text-ink-3">Loading memory graph…</div>
       </div>
     );
   }
@@ -200,68 +202,65 @@ export default function MemoryGraphPage() {
   return (
     <div ref={outerRef} className="flex flex-col" style={{ height: fillHeight ?? "calc(100vh - 160px)" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-line-2 bg-surface-1 shrink-0">
-        <Network className="w-4 h-4 text-dim-relationships" />
-        <h1 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3 shrink-0 whitespace-nowrap" style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}>Memory Graph</h1>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 border-b border-line-2 shrink-0">
+        <h1 className="label-caps shrink-0 whitespace-nowrap">Memory Graph</h1>
         {theme && !focusNode && (
-          <button onClick={() => setTheme(null)} className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-3 border border-line-2 text-[11px] text-ink-1 hover:border-line-3" style={font}>
-            <Tag className="w-3 h-3 text-dim-relationships" />{theme}
-            <X className="w-3 h-3 text-ink-3" />
+          <button onClick={() => setTheme(null)} className={`flex items-center gap-1.5 px-2.5 py-0.5 ${TOGGLE} ${TOGGLE_ON}`}>
+            {theme}
+            <X className="w-3 h-3 text-ink-3" strokeWidth={1.5} />
           </button>
         )}
-        <div className="relative ml-4 flex-1 max-w-md">
-          <Search className="w-3.5 h-3.5 text-ink-3 absolute left-2 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 min-w-[180px] max-w-md">
+          <Search className="w-3.5 h-3.5 text-ink-3 absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
           <input
             value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any memory item…"
-            className="w-full bg-surface-2 border border-line-2 rounded pl-7 pr-2 py-1 text-[12px] text-ink-1 outline-none focus:border-line-3"
-            style={font}
+            className="w-full bg-transparent border border-line-2 rounded-[10px] pl-8 pr-2 py-1.5 text-[13px] text-ink-1 placeholder:text-ink-3 outline-none focus:border-[color:var(--accent-blue)]"
           />
           {results.length > 0 && (
-            <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto bg-surface-2 border border-line-2 rounded shadow-xl">
+            <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto bg-surface-1 border border-line-3 rounded-[10px] py-1">
               {results.map((r) => (
-                <button key={r.id} onClick={() => go(r.id)} className="flex items-center gap-2 w-full text-left px-2 py-1 text-[12px] text-ink-2 hover:bg-surface-3 hover:text-ink-1" style={font}>
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: TYPE_COLOR[r.type] ?? "#6b7d89" }} />
-                  <span className="truncate">{r.title}</span>
+                <button key={r.id} onClick={() => go(r.id)} className="flex items-baseline gap-2 w-full text-left px-3 py-1.5 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink-1">
+                  <span className="fig-key is-round" style={key(r.type)} />
+                  <span className="min-w-0 break-words">{r.title}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
-        <span className="text-[11px] text-ink-3 shrink-0 whitespace-nowrap ml-auto" style={font}>{data.nodes.length.toLocaleString()} items · {data.edges.length.toLocaleString()} links</span>
+        <span className="mono text-[10px] text-ink-3 shrink-0 whitespace-nowrap ml-auto">{data.nodes.length.toLocaleString()} items · {data.edges.length.toLocaleString()} links</span>
       </div>
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 max-md:flex-col">
         {/* Side panel */}
-        <div className="w-80 shrink-0 overflow-y-auto border-r border-line-2 bg-surface-1 p-3">
+        <div className="w-80 shrink-0 overflow-y-auto border-r border-line-2 p-4 max-md:w-full max-md:max-h-[40vh] max-md:border-r-0 max-md:border-b">
           {!focusNode ? (
             <div>
               {/* Type legend — the color key IS the filter */}
-              <div className="text-[10px] uppercase tracking-[0.14em] text-ink-3 mb-2" style={heading}>Types</div>
-              <div className="space-y-0.5 mb-4">
+              <div className="label-caps mb-2">Types</div>
+              <div className="space-y-0.5 mb-5">
                 {TYPES.filter((t) => (typeCounts[t.key] ?? 0) > 0).map((t) => {
                   const off = hiddenTypes.has(t.key);
                   return (
                     <button key={t.key} onClick={() => toggleType(t.key)}
-                      className={"flex items-center gap-2.5 w-full text-left px-2 py-1 rounded-md hover:bg-surface-3 transition-colors " + (off ? "opacity-35" : "")}>
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-inset ring-white/10" style={{ background: t.color }} />
-                      <span className="flex-1 text-[12px] text-ink-2" style={font}>{t.label}</span>
-                      <span className="text-[10px] tabular-nums text-ink-3" style={font}>{(typeCounts[t.key] ?? 0).toLocaleString()}</span>
+                      className={"flex items-center gap-2.5 w-full text-left px-2 py-1 rounded-[10px] text-ink-2 hover:text-ink-1 transition-colors " + (off ? "opacity-35" : "")}>
+                      <span className="fig-key" style={{ color: t.color }} />
+                      <span className="flex-1 text-[13px]">{t.label}</span>
+                      <span className="mono text-[10px] text-ink-3">{(typeCounts[t.key] ?? 0).toLocaleString()}</span>
                     </button>
                   );
                 })}
               </div>
 
               {/* Themes — human-named clusters from curated tags */}
-              <div className="text-[10px] uppercase tracking-[0.14em] text-ink-3 mb-2" style={heading}>Themes</div>
-              <div className="text-[11px] leading-relaxed text-ink-3 mb-2" style={font}>
+              <div className="label-caps mb-2">Themes</div>
+              <div className="text-[12px] leading-relaxed text-ink-3 mb-3">
                 A theme is a tag running through your notes. Click one to see its members and how they connect.
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {(data.themes ?? []).map((t) => (
                   <button key={t.tag} onClick={() => { setTheme(theme === t.tag ? null : t.tag); setFocus(null); setTrail([]); }}
-                    className={"px-2 py-0.5 rounded-full border text-[11px] transition-colors " + (theme === t.tag ? "border-sky-500/50 bg-sky-500/10 text-sky-300" : "border-line-2 bg-surface-2 text-ink-2 hover:border-line-3 hover:text-ink-1")}
-                    style={font}>
-                    {t.tag} <span className="text-ink-3 tabular-nums">{t.count}</span>
+                    className={`px-2.5 py-0.5 ${TOGGLE} ${theme === t.tag ? TOGGLE_ON : TOGGLE_OFF}`}>
+                    {t.tag} <span className="text-ink-3">{t.count}</span>
                   </button>
                 ))}
               </div>
@@ -269,39 +268,39 @@ export default function MemoryGraphPage() {
           ) : (
             <div>
               <div className="flex items-center gap-2 mb-2">
-                {trail.length > 0 && <button onClick={back} className="text-ink-2 hover:text-ink-1"><ArrowLeft className="w-3.5 h-3.5" /></button>}
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: TYPE_COLOR[focusNode.type] ?? "#6b7d89" }} />
-                <span className="text-[10px] uppercase text-ink-3" style={font}>{TYPES.find((t) => t.key === focusNode.type)?.label ?? focusNode.type}</span>
+                {trail.length > 0 && <button onClick={back} className="text-ink-3 hover:text-ink-1" aria-label="Back"><ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /></button>}
+                <span className="fig-key" style={key(focusNode.type)} />
+                <span className="label-caps">{TYPES.find((t) => t.key === focusNode.type)?.label ?? focusNode.type}</span>
               </div>
-              <div className="text-[14px] text-ink-1 font-medium mb-1 leading-snug" style={heading}>{focusNode.title}</div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-[11px] text-ink-3" style={font}>{neighborIds.length} connections</span>
+              <div className="font-display font-medium text-[16px] text-ink-1 mb-1 leading-snug">{focusNode.title}</div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+                <span className="mono text-[10px] text-ink-3">{neighborIds.length} connections</span>
                 {noteUrl(focusNode) && (
-                  <Link href={noteUrl(focusNode)!} className="flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 transition-colors" style={font}>
-                    <ExternalLink className="w-3 h-3" />
+                  <Link href={noteUrl(focusNode)!} className="flex items-center gap-1 text-[12px] text-ink-1 underline decoration-1 decoration-line-3 underline-offset-[3px] hover:decoration-[color:var(--accent-blue)] transition-colors">
+                    <ExternalLink className="w-3 h-3 text-ink-3" strokeWidth={1.5} />
                     Open note
                   </Link>
                 )}
               </div>
               {focusNode.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-1 mb-4">
                   {focusNode.tags.map((t) => (
                     <button key={t} onClick={() => { setTheme(t.toLowerCase()); setFocus(null); setTrail([]); }}
-                      className="px-1.5 py-0.5 rounded-full border border-line-2 bg-surface-2 text-[10px] text-ink-3 hover:text-ink-1 hover:border-line-3" style={font}>
+                      className={`px-2 py-0.5 ${TOGGLE} ${TOGGLE_OFF}`}>
                       {t.toLowerCase()}
                     </button>
                   ))}
                 </div>
               )}
               {KIND_ORDER.filter((k) => grouped[k]?.length).map((k) => (
-                <div key={k} className="mb-3">
-                  <div className="text-[10px] uppercase tracking-wider text-ink-3 mb-1" style={heading}>{KIND_LABEL[k]} ({grouped[k].length})</div>
+                <div key={k} className="mb-4">
+                  <div className="label-caps mb-1.5">{KIND_LABEL[k]} <span className="text-ink-3">({grouped[k].length})</span></div>
                   <div className="space-y-1.5">
                     {grouped[k].map((n) => (
                       <button key={n.id} onClick={() => go(n.id)} className="flex items-start gap-1.5 w-full text-left group">
-                        <CornerDownRight className="w-3 h-3 text-ink-3 mt-[3px] shrink-0 group-hover:text-dim-relationships" />
-                        <span className="flex-1 min-w-0 text-[12px] text-ink-2 group-hover:text-ink-1" style={{ ...font, lineHeight: 1.35 }}>
-                          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: TYPE_COLOR[n.type] ?? "#6b7d89" }} />
+                        <CornerDownRight className="w-3 h-3 text-ink-3 mt-[3px] shrink-0 group-hover:text-ink-1" strokeWidth={1.5} />
+                        <span className="flex-1 min-w-0 text-[13px] text-ink-2 group-hover:text-ink-1" style={{ lineHeight: 1.35 }}>
+                          <span className="fig-key is-round mr-1.5 align-middle" style={key(n.type)} />
                           {n.title}
                         </span>
                       </button>
@@ -317,7 +316,7 @@ export default function MemoryGraphPage() {
         <div ref={wrapRef} data-canvas-wrap className="flex-1 min-w-0 relative overflow-hidden">
           <KnowledgeGraph nodes={canvas.nodes} edges={canvas.edges} colorMap={TYPE_COLOR} onNodeClick={(slug) => go(slug)} />
           {!focusNode && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-surface-1 border border-line-2 text-[10px] tracking-[0.1em] uppercase text-ink-3 pointer-events-none" style={font}>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2 bg-ground label-caps text-ink-3 text-center pointer-events-none">
               {themeView
                 ? `${theme} — ${themeView.nodes.length}${themeView.total > themeView.nodes.length ? ` of ${themeView.total}` : ""} items`
                 : `Most-connected of each type — ${canvas.nodes.length} of ${data.nodes.length.toLocaleString()}`}

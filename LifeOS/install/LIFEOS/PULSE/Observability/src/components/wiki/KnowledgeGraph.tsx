@@ -36,6 +36,21 @@ const CATEGORY_COLORS: Record<string, string> = {
   book: "#f87171",
 };
 
+/** Canvas can't read CSS vars per stroke, so resolve the Pulse tokens once. */
+function readTokens() {
+  const css = typeof window !== "undefined" ? getComputedStyle(document.documentElement) : null;
+  const v = (name: string, fallback: string) => css?.getPropertyValue(name).trim() || fallback;
+  return {
+    line2: v("--line-2", "#262626"),
+    line3: v("--line-3", "#3a3a3a"),
+    ink1: v("--ink-1", "#f0e8d8"),
+    ink2: v("--ink-2", "#98a8b3"),
+    ink3: v("--ink-3", "#6b7d89"),
+    accent: v("--accent-blue", "#3fb2c9"),
+  };
+}
+type Tokens = ReturnType<typeof readTokens>;
+
 interface SimNode extends GraphNode {
   x: number;
   y: number;
@@ -64,6 +79,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
   const simulationRef = useRef<d3.Simulation<any, any> | null>(null);
   const colorMapRef = useRef(colorMap);
   colorMapRef.current = colorMap;
+  const tokensRef = useRef<Tokens | null>(null);
 
   const stateRef = useRef<{
     simNodes: SimNode[];
@@ -96,9 +112,12 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     const dpr = window.devicePixelRatio || 1;
     const { transform, simNodes, simEdges, neighbors, focused, hovered, dim, width, height } = state;
     const cmap = colorMapRef.current;
+    const tk = (tokensRef.current ??= readTokens());
+    const px = 1 / transform.k; // one screen pixel in world units
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
+    ctx.shadowBlur = 0;
 
     ctx.save();
     ctx.translate(transform.x, transform.y);
@@ -112,24 +131,14 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     // Labels fade in with zoom; highlight state overrides the threshold.
     const zoomLabelAlpha = Math.max(0, Math.min(1, (transform.k - 1.6) / 0.8));
 
-    // Edges
+    // Edges — 1px hairlines; the active node's connections step up to the figure line.
+    ctx.lineWidth = px;
     for (const e of simEdges) {
       const s = e.source as SimNode;
       const t = e.target as SimNode;
       const connects = active !== null && (s.id === active || t.id === active);
-      if (active && !connects) {
-        ctx.globalAlpha = 0.25 * dimAlpha;
-        ctx.strokeStyle = "rgba(58,58,58,1)";
-        ctx.lineWidth = 0.5 / transform.k;
-      } else if (connects) {
-        ctx.globalAlpha = 0.25 + dim * 0.35;
-        ctx.strokeStyle = "rgba(152,168,179,1)";
-        ctx.lineWidth = (0.5 + dim) / transform.k;
-      } else {
-        ctx.globalAlpha = 0.25;
-        ctx.strokeStyle = "rgba(58,58,58,1)";
-        ctx.lineWidth = 0.5 / transform.k;
-      }
+      ctx.globalAlpha = active && !connects ? dimAlpha : 1;
+      ctx.strokeStyle = connects ? tk.line3 : tk.line2;
       ctx.beginPath();
       ctx.moveTo(s.x, s.y);
       ctx.lineTo(t.x, t.y);
@@ -137,21 +146,28 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     }
     ctx.globalAlpha = 1;
 
-    // Nodes
+    // Nodes — outlined marks: 1px stroke in the type colour over a faint fill of it.
     for (const n of simNodes) {
       const isActive = n.id === active;
       const isNeighbor = activeNeighbors?.has(n.id) ?? false;
       const dimmed = active !== null && !isActive && !isNeighbor;
-      const color = cmap?.[n.category] || CATEGORY_COLORS[n.category] || "#6b7d89";
+      const color = cmap?.[n.category] || CATEGORY_COLORS[n.category] || tk.ink3;
+      const base = dimmed ? dimAlpha : 1;
 
-      ctx.globalAlpha = dimmed ? dimAlpha : 1;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, isActive ? n.r * (1 + dim * 0.35) : n.r, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = color;
+      ctx.globalAlpha = base * (isActive ? 0.3 : 0.14);
       ctx.fill();
+      ctx.globalAlpha = base;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = px;
+      ctx.stroke();
       if (isActive) {
-        ctx.strokeStyle = "rgba(255,255,255," + (0.4 + dim * 0.6) + ")";
-        ctx.lineWidth = 1.5 / transform.k;
+        ctx.globalAlpha = dim;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r + 3 * px, 0, Math.PI * 2);
+        ctx.strokeStyle = tk.accent;
         ctx.stroke();
       }
     }
@@ -162,7 +178,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       const fontSize = Math.max(3, 10 / transform.k);
-      ctx.font = `${fontSize}px 'Albert Sans', sans-serif`;
+      ctx.font = `400 ${fontSize}px 'Fira Code', ui-monospace, monospace`;
 
       for (const n of simNodes) {
         const isActive = n.id === active;
@@ -177,9 +193,8 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
         if (alpha <= 0.02) continue;
 
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = isActive ? "#f0e8d8" : isNeighbor ? "#98a8b3" : "#6b7d89";
-        const label = n.title.length > 25 ? n.title.slice(0, 22) + "..." : n.title;
-        ctx.fillText(label, n.x, n.y - n.r - 2);
+        ctx.fillStyle = isActive ? tk.ink1 : tk.ink2;
+        ctx.fillText(n.title, n.x, n.y - n.r - 3 * px);
       }
       ctx.globalAlpha = 1;
     }
@@ -408,14 +423,14 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     Object.assign(tooltipEl.style, {
       position: "absolute",
       pointerEvents: "none",
-      background: "rgba(8, 8, 8, 0.95)",
-      border: "1px solid rgba(58, 58, 58, 0.5)",
-      borderRadius: "8px",
+      background: "var(--surface-1)",
+      border: "1px solid var(--line-3)",
+      borderRadius: "10px",
       padding: "8px 12px",
+      maxWidth: "280px",
       opacity: "0",
       zIndex: "100",
-      backdropFilter: "blur(8px)",
-      fontFamily: "'Albert Sans', sans-serif",
+      fontFamily: "var(--font-sans)",
       transition: "opacity 0.15s",
     });
     canvas.parentElement?.appendChild(tooltipEl);
@@ -423,12 +438,12 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     function showTooltip(n: SimNode, mx: number, my: number) {
       const state = stateRef.current;
       if (!state) return;
-      const color = colorMapRef.current?.[n.category] || CATEGORY_COLORS[n.category] || "#98a8b3";
+      const color = colorMapRef.current?.[n.category] || CATEGORY_COLORS[n.category] || "var(--ink-3)";
       tooltipEl.innerHTML =
-        `<div style="font-family: 'Outfit', sans-serif; font-size: 10px; letter-spacing: 0.05em; color: ${color}">${n.category.replace("-", " ").toUpperCase()}</div>` +
-        `<div style="font-size: 12px; color: #f0e8d8; margin-top: 2px">${n.title}</div>` +
-        (n.backlinkCount > 0 ? `<div style="font-size: 10px; color: #6b7d89; margin-top: 2px">${n.backlinkCount} backlinks</div>` : "") +
-        `<div style="font-size: 9px; color: #55636d; margin-top: 3px">${state.focused === n.id ? "click again to open" : "click to focus · drag to move"}</div>`;
+        `<div class="label-caps" style="display: flex; align-items: center; gap: 6px"><span class="fig-key" style="color: ${color}"></span>${n.category.replace("-", " ")}</div>` +
+        `<div style="font-size: 13px; line-height: 1.4; color: var(--ink-1); margin-top: 4px">${n.title}</div>` +
+        (n.backlinkCount > 0 ? `<div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 2px">${n.backlinkCount} backlinks</div>` : "") +
+        `<div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 4px">${state.focused === n.id ? "click again to open" : "click to focus · drag to move"}</div>`;
       tooltipEl.style.opacity = "1";
       tooltipEl.style.left = mx + 12 + "px";
       tooltipEl.style.top = my - 12 + "px";
