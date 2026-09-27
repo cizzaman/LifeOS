@@ -40,7 +40,7 @@ function getTopGoals(content: string): string[] {
   const lines = content.split("\n")
   const goals: string[] = []
   for (const line of lines) {
-    const match = line.match(/^[-*]\s*\*{0,2}G\d+\*{0,2}:\s*(.+)/)
+    const match = line.match(/^[-*]\s*\*{0,2}G\d+\*{0,2}:\*{0,2}\s*(.+)/)
     if (match && goals.length < 3) {
       goals.push(match[1].replace(/\.\.\.$/, "").trim())
     }

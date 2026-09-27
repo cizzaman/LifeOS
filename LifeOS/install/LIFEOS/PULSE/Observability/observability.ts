@@ -2271,7 +2271,7 @@ function parseGoals(content: string): { id: string, text: string }[] {
   const withIds = content.split("\n")
     .filter(l => /^[-*]\s*\*{0,2}G\d+\*{0,2}:/.test(l))
     .map(l => {
-      const m = l.match(/\*{0,2}(G\d+)\*{0,2}:\s*(.+)/)
+      const m = l.match(/\*{0,2}(G\d+)\*{0,2}:\*{0,2}\s*(.+)/)
       return m ? { id: m[1], text: m[2].trim() } : null
     })
     .filter(Boolean) as { id: string, text: string }[]
@@ -2325,7 +2325,7 @@ function parseSections(content: string): { heading: string, body: string }[] {
   }
 
   for (const line of lines) {
-    const idBullet = line.match(/^-\s+\*{0,2}([A-Z]{1,3}\d+[a-z]?)\*{0,2}:\s*(.+)$/)
+    const idBullet = line.match(/^-\s+\*{0,2}([A-Z]{1,3}\d+[a-z]?)\*{0,2}:\*{0,2}\s*(.+)$/)
     const plainBullet = line.match(/^-\s+(.+)$/)
     const indented = line.match(/^\s+(\S.*)$/)
     const isBlank = line.trim() === ""
