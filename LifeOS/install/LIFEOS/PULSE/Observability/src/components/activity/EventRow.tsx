@@ -75,7 +75,7 @@ function getToolInfo(event: HookEvent): { tool: string; detail?: string } | null
     const info: { tool: string; detail?: string } = { tool: payload.tool_name };
     if (payload.tool_input) {
       if (payload.tool_input.command) {
-        info.detail = payload.tool_input.command.slice(0, 200) + (payload.tool_input.command.length > 200 ? "..." : "");
+        info.detail = payload.tool_input.command;
       } else if (payload.tool_input.file_path) {
         const parts = payload.tool_input.file_path.split("/");
         info.detail = parts.length > 3 ? ".../" + parts.slice(-3).join("/") : payload.tool_input.file_path;

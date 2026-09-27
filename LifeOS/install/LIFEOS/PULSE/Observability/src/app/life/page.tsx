@@ -316,7 +316,7 @@ function DomainGrid({
         />
         <DomainCard title="Telos Goals" href="/telos" dim="creative"
           headline={goalCount > 0 ? `${goalCount} active` : null}
-          secondary={goals?.mission?.[0]?.body?.slice(0, 80) ?? "Telos mission & goals"}
+          secondary={goals?.mission?.[0]?.body ?? "Telos mission & goals"}
           empty={goalCount === 0 ? "Define goals in Telos/" : undefined}
         />
         <DomainCard title="Telos" href="/telos" dim="freedom"

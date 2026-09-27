@@ -689,7 +689,7 @@ export default function AssistantPage() {
                               <div className="text-xs mono text-ink-3 break-all" style={{ marginTop: 2 }}>
                                 {job.schedule}
                                 {job.command && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {job.command}</span>}
-                                {!job.command && job.prompt && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {job.prompt.slice(0, 80)}{job.prompt.length > 80 ? "…" : ""}</span>}
+                                {!job.command && job.prompt && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {job.prompt}</span>}
                               </div>
                             </div>
                             <span className="text-xs mono shrink-0 text-ink-3" title="output target">

@@ -80,7 +80,7 @@ export default function QuickPulseStrip({ pulses }: QuickPulseStripProps) {
         <span className="mono text-[13px] text-ink-1">{last.value}/10</span>
         <span className="text-[13px] text-ink-3">
           {pulses.length} rating{pulses.length > 1 ? "s" : ""} in the last 24h
-          {last.message ? ` — “${last.message.slice(0, 80)}”` : ""}
+          {last.message ? ` — “${last.message}”` : ""}
         </span>
         <span className="mono text-[11px] text-ink-3 ml-auto">{formatRelative(last.timestamp)}</span>
       </div>
