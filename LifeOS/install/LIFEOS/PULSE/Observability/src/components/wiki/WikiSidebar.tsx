@@ -143,7 +143,7 @@ function TreeItem({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
             "flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded-md transition-colors group",
             "text-ink-2 hover:text-ink-1 hover:bg-surface-3"
           )}
-          style={{ paddingLeft: `${depth * 12 + 8}px`, fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ paddingLeft: `${depth * 12 + 8}px`, fontFamily: "'Albert Sans', sans-serif" }}
         >
           <ChevronRight
             className={cn(
@@ -178,7 +178,7 @@ function TreeItem({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
           ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
           : "text-ink-3 hover:text-ink-2 hover:bg-surface-3"
       )}
-      style={{ paddingLeft: `${depth * 12 + 8}px`, fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ paddingLeft: `${depth * 12 + 8}px`, fontFamily: "'Albert Sans', sans-serif" }}
     >
       <span className="w-1 h-1 rounded-full bg-current shrink-0 opacity-40" />
       <span className="truncate">{node.label}</span>
@@ -194,7 +194,7 @@ export default function WikiSidebar({ tree, onSearchClick }: WikiSidebarProps) {
         <button
           onClick={onSearchClick}
           className="flex items-center gap-2 w-full px-3 py-2 text-xs text-ink-3 rounded-lg border border-line-1 bg-surface-2 hover:border-line-3 hover:text-ink-2 transition-colors"
-          style={{ fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif" }}
         >
           <Search className="w-3.5 h-3.5" />
           <span>Search...</span>
@@ -209,7 +209,7 @@ export default function WikiSidebar({ tree, onSearchClick }: WikiSidebarProps) {
         <Link
           href={WIKI_GRAPH_URL}
           className="flex items-center gap-2 px-2 py-1.5 text-xs text-ink-3 rounded-md hover:text-violet-400 hover:bg-violet-500/5 transition-colors"
-          style={{ fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif" }}
         >
           <Network className="w-3.5 h-3.5" />
           <span>Graph</span>
@@ -228,7 +228,7 @@ export default function WikiSidebar({ tree, onSearchClick }: WikiSidebarProps) {
                 <div className="mb-3">
                   <div
                     className="text-[13px] font-medium tracking-[0.2em] text-ink-3 uppercase px-2 mb-2"
-                    style={{ fontFamily: "'advocate-c14', sans-serif" }}
+                    style={{ fontFamily: "'Outfit', sans-serif" }}
                   >
                     Documentation
                   </div>

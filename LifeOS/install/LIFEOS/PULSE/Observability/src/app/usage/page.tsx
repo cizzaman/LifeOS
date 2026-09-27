@@ -104,7 +104,7 @@ export default function UsagePage() {
           {!summary.hasDaily && (
             <div
               className="text-[13px] rounded-lg px-3 py-2"
-              style={{ color: "var(--warn)", border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.05)" }}
+              style={{ color: "var(--warn)", border: "1px solid rgba(245,196,81,0.2)", background: "rgba(245,196,81,0.05)" }}
             >
               No per-day rollup yet. Run <code className="mono text-warn">bun ~/.claude/LIFEOS/TOOLS/UsageAggregator.ts</code> (or wait for the nightly job) to populate token/cost history.
             </div>

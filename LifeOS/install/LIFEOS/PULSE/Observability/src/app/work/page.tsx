@@ -50,25 +50,25 @@ interface KanbanData {
 
 // Algorithm phase hues use the v8 dimension palette.
 const PHASE_COLOR: Record<string, string> = {
-  OBSERVE: "#7DD3FC",
-  THINK: "#7DD3FC",
-  PLAN: "#B794F4",
-  BUILD: "#F87B7B",
-  EXECUTE: "#E0A458",
-  VERIFY: "#2DD4BF",
-  LEARN: "#34D399",
-  COMPLETE: "#34D399",
-  DEFERRED: "#A8A5C8",
+  OBSERVE: "#a8e2ee",
+  THINK: "#a8e2ee",
+  PLAN: "#a78bfa",
+  BUILD: "#f97316",
+  EXECUTE: "#f5c451",
+  VERIFY: "#3fb2c9",
+  LEARN: "#22c55e",
+  COMPLETE: "#22c55e",
+  DEFERRED: "#98a8b3",
 };
 
 // Effort pill accents use green for easy, gold for heavy, coral for heaviest.
 const EFFORT_COLOR: Record<string, string> = {
-  fast: "#34D399",
-  standard: "#34D399",
-  advanced: "#E0A458",
-  deep: "#E0A458",
-  extended: "#E0A458",
-  comprehensive: "#F87B7B",
+  fast: "#22c55e",
+  standard: "#22c55e",
+  advanced: "#f5c451",
+  deep: "#f5c451",
+  extended: "#f5c451",
+  comprehensive: "#f97316",
 };
 
 function progressPct(p?: string): number {
@@ -95,7 +95,7 @@ function Banner({
   projectCount: number;
 }) {
   return (
-    <Panel className="border-l-[3px] [border-left-color:var(--creative)]">
+    <Panel className="border-l-2 [border-left-color:var(--creative)]">
       <div className="flex items-start gap-6 flex-wrap">
         <Briefcase className="w-10 h-10 shrink-0" style={{ color: "var(--creative)" }} />
         <div className="flex-1 min-w-0">
@@ -198,14 +198,14 @@ function AlgorithmSessions({ sessions }: { sessions?: AlgorithmSession[] }) {
 // they are two renderings of one dataset, never two fetches.
 
 const COLUMN_COLOR: Record<string, string> = {
-  Inbox: "#A8A5C8",
-  Queued: "#B794F4",
-  Ready: "#7DD3FC",
-  "In-Progress": "#E0A458",
-  Blocked: "#F87B7B",
-  "In-Review": "#A855F7",
-  Complete: "#34D399",
-  Done: "#34D399",
+  Inbox: "#98a8b3",
+  Queued: "#a78bfa",
+  Ready: "#a8e2ee",
+  "In-Progress": "#f5c451",
+  Blocked: "#f97316",
+  "In-Review": "#a78bfa",
+  Complete: "#22c55e",
+  Done: "#22c55e",
 };
 
 // Canonical kanban pipeline order — Status sort uses this, NOT alphabetical.
@@ -246,10 +246,10 @@ function priorityLabel(labels: string[]): string | null {
 }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  P0: "#F87B7B",
-  P1: "#E0A458",
-  P2: "#E5C07B",
-  P3: "#6B7280",
+  P0: "#f97316",
+  P1: "#f5c451",
+  P2: "#fbd57a",
+  P3: "#6b7d89",
 };
 
 function propValue(labels: string[]): string | null {
@@ -265,14 +265,14 @@ function propValue(labels: string[]): string | null {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  feature: "#7DD3FC",
-  problem: "#F87B7B",
-  research: "#A855F7",
-  project: "#E0A458",
-  decision: "#60A5FA",
-  reminder: "#E5C07B",
+  feature: "#a8e2ee",
+  problem: "#f97316",
+  research: "#a78bfa",
+  project: "#f5c451",
+  decision: "#5cc4d8",
+  reminder: "#fbd57a",
   "metric-alert": "#FB923C",
-  queue: "#6B7280",
+  queue: "#6b7d89",
 };
 
 // The canonical Type:* on an issue. Prefers a real type over the generic
@@ -394,7 +394,7 @@ function KanbanView({ data }: { data: KanbanData }) {
               className="bg-surface-2 border border-line-2 rounded-xl"
               style={{
                 padding: 0,
-                borderLeft: `3px solid ${color}`,
+                borderLeft: `2px solid ${color}`,
                 display: "flex",
                 flexDirection: "column",
                 width: 220,
@@ -612,7 +612,7 @@ function WorkList({ data }: { data: KanbanData }) {
         )}
         {sorted.map((it) => {
           const isClosed = it.state === "CLOSED";
-          const color = COLUMN_COLOR[it.column] ?? "#A8A5C8";
+          const color = COLUMN_COLOR[it.column] ?? "#98a8b3";
           const prio = priorityLabel(it.labels || []);
           const prop = propValue(it.labels || []);
           const tv = typeValue(it.labels || []);
@@ -675,7 +675,7 @@ function WorkList({ data }: { data: KanbanData }) {
                   {tv ? (
                     <span
                       className="pill"
-                      style={{ fontSize: 10, padding: "1px 7px", color: TYPE_COLOR[tv] ?? "#A8A5C8", borderColor: `${TYPE_COLOR[tv] ?? "#A8A5C8"}55`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      style={{ fontSize: 10, padding: "1px 7px", color: TYPE_COLOR[tv] ?? "#98a8b3", borderColor: `${TYPE_COLOR[tv] ?? "#98a8b3"}55`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                     >
                       {tv}
                     </span>
@@ -790,7 +790,7 @@ function WorkItemsPanel() {
         <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
           <Kanban className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Work
         </h2>
-        <Panel className="border-l-[3px] [border-left-color:var(--err)]">
+        <Panel className="border-l-2 [border-left-color:var(--err)]">
           <p className="text-sm text-err">Failed to load /api/work — {error}</p>
         </Panel>
       </section>
@@ -814,7 +814,7 @@ function WorkItemsPanel() {
         <h2 className="text-sm font-medium uppercase tracking-widest text-ink-3 mb-4 flex items-center gap-2">
           <Kanban className="w-4 h-4" style={{ color: "var(--freedom)" }} /> Work — setup required
         </h2>
-        <Panel className="border-l-[3px] [border-left-color:var(--warn)]">
+        <Panel className="border-l-2 [border-left-color:var(--warn)]">
           <p className="text-sm text-ink-2">{data.reason}</p>
           <ol className="text-sm mt-3 ml-5 space-y-1 text-ink-1" style={{ listStyle: "decimal" }}>
             {(data.instructions || []).map((s, i) => <li key={i}>{s}</li>)}
@@ -858,7 +858,7 @@ function WorkItemsPanel() {
       />
 
       {data.stale && (
-        <Panel className="border-l-[3px] [border-left-color:var(--warn)] mb-3 py-3">
+        <Panel className="border-l-2 [border-left-color:var(--warn)] mb-3 py-3">
           <p className="text-xs text-warn">
             ⚠ Stale data — {data.stale_reason || "gh fetch failed; showing cached snapshot"}
           </p>
@@ -921,7 +921,7 @@ export default function WorkPage() {
     return (
       <PageShell>
         <PageHeader title="Work" icon={Briefcase} subtitle="Focus, work items, sessions, and projects" />
-        <Panel className="border-l-[3px] [border-left-color:var(--err)]">
+        <Panel className="border-l-2 [border-left-color:var(--err)]">
           <h2 className="font-medium text-err">Failed to load work</h2>
           <p className="text-sm text-err">{error}</p>
         </Panel>

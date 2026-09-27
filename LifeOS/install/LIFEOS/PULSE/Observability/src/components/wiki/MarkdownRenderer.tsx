@@ -34,7 +34,7 @@ const components: Components = {
   h1: ({ children }) => (
     <h1
       className="text-2xl font-bold tracking-wide text-ink-1 mb-6 pb-3 border-b border-line-2"
-      style={{ fontFamily: "'advocate-c14', sans-serif" }}
+      style={{ fontFamily: "'Outfit', sans-serif" }}
     >
       {children}
     </h1>
@@ -42,7 +42,7 @@ const components: Components = {
   h2: ({ children }) => (
     <h2
       className="text-xl font-semibold tracking-wide text-ink-1 mt-8 mb-4"
-      style={{ fontFamily: "'advocate-c14', sans-serif" }}
+      style={{ fontFamily: "'Outfit', sans-serif" }}
     >
       {children}
     </h2>
@@ -50,7 +50,7 @@ const components: Components = {
   h3: ({ children }) => (
     <h3
       className="text-lg font-semibold text-ink-1 mt-6 mb-3"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </h3>
@@ -58,7 +58,7 @@ const components: Components = {
   h4: ({ children }) => (
     <h4
       className="text-base font-semibold text-ink-2 mt-5 mb-2"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </h4>
@@ -66,7 +66,7 @@ const components: Components = {
   p: ({ children }) => (
     <p
       className="text-sm text-ink-2 leading-relaxed mb-4"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </p>
@@ -79,7 +79,7 @@ const components: Components = {
         <Link
           href={`/system?doc=${slug}`}
           className="inline-flex items-center px-1.5 py-0.5 text-xs rounded bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:bg-sky-500/20 hover:text-sky-300 transition-colors"
-          style={{ fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif" }}
         >
           {children}
         </Link>
@@ -140,7 +140,7 @@ const components: Components = {
   th: ({ children }) => (
     <th
       className="px-3 py-2 text-left text-sky-400 font-medium tracking-wide border-b border-line-2"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </th>
@@ -148,7 +148,7 @@ const components: Components = {
   td: ({ children }) => (
     <td
       className="px-3 py-2 text-ink-2 border-b border-line-1"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </td>
@@ -175,7 +175,7 @@ const components: Components = {
   ),
   li: ({ children }) => (
     <li className="text-sm text-ink-2 leading-relaxed relative pl-3 before:content-['▸'] before:absolute before:left-0 before:text-sky-500/60 before:text-[13px] before:top-[3px]"
-      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', sans-serif" }}
     >
       {children}
     </li>

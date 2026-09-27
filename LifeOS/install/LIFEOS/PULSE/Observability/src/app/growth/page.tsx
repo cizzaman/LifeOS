@@ -71,7 +71,7 @@ function mmdd(d: string): string {
 
 function Hero({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
   return (
-    <Panel style={{ borderLeft: `3px solid ${GREEN}` }}>
+    <Panel style={{ borderLeft: `2px solid ${GREEN}` }}>
       <div className="flex items-start gap-6 flex-wrap">
         <TrendingUp className="w-10 h-10 shrink-0" color={GREEN} />
         <div className="flex-1 min-w-0">
@@ -121,7 +121,7 @@ function TrendChart({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
       <h2 className="text-sm font-medium uppercase tracking-widest mb-4 text-ink-3">
         New Subscribers · 30 Days
       </h2>
-      <Panel style={{ borderLeft: `3px solid ${GREEN}` }}>
+      <Panel style={{ borderLeft: `2px solid ${GREEN}` }}>
         <div style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ left: 0, right: 12, top: 8 }}>
@@ -157,7 +157,7 @@ function Channels({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
       <h2 className="text-sm font-medium uppercase tracking-widest mb-4 text-ink-3">
         Where They Came From · 30 Days
       </h2>
-      <Panel style={{ borderLeft: `3px solid ${BLUE}` }}>
+      <Panel style={{ borderLeft: `2px solid ${BLUE}` }}>
         <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows.map(([name, count]) => ({ name, count }))} layout="vertical" margin={{ left: 20, right: 40 }}>
@@ -187,7 +187,7 @@ function Channels({ nl }: { nl: NonNullable<GrowthData["newsletter"]> }) {
 
 function NotConnected({ icon: Icon, accent, label, envVar, note }: { icon: LucideIcon; accent: string; label: string; envVar: string; note: string }) {
   return (
-    <Panel className="p-4" style={{ borderLeft: `3px solid var(--line-2)`, opacity: 0.75 }}>
+    <Panel className="p-4" style={{ borderLeft: `2px solid var(--line-2)`, opacity: 0.75 }}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-4 h-4 shrink-0" color={accent} />
         <h3 className="text-xs uppercase tracking-wider text-ink-3">{label}</h3>
@@ -214,7 +214,7 @@ export default function GrowthPage() {
     return (
       <PageShell>
         <PageHeader title="Growth" subtitle="Audience across newsletter, YouTube, and web." />
-        <Panel style={{ borderLeft: `3px solid ${RED}` }}>
+        <Panel style={{ borderLeft: `2px solid ${RED}` }}>
           <h2 className="font-medium" style={{ color: RED }}>Failed to load growth</h2>
           <p className="text-sm text-err">{error}</p>
         </Panel>
@@ -256,7 +256,7 @@ export default function GrowthPage() {
           </div>
         </>
       ) : (
-        <Panel style={{ borderLeft: `3px solid ${RED}` }}>
+        <Panel style={{ borderLeft: `2px solid ${RED}` }}>
           <h2 className="font-medium" style={{ color: RED }}>Newsletter not connected</h2>
           <p className="text-sm text-ink-2">Set BEEHIIV_API_KEY and BEEHIIV_PUB_ID in ~/.claude/.env.</p>
         </Panel>

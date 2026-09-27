@@ -161,7 +161,7 @@ function ArbolLanding({
                     key={worker.name}
                     href={`/arbol?name=${encodeURIComponent(worker.name)}`}
                     className="flex items-center gap-2 bg-surface-2 border border-line-2 rounded-xl px-3.5 py-2.5 transition-colors duration-200 hover:bg-surface-3 hover:border-line-3"
-                    style={{ borderLeft: `3px solid ${cfg.color}` }}
+                    style={{ borderLeft: `2px solid ${cfg.color}` }}
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: cfg.color }} />
                     <span className="mono truncate text-ink-1 text-[13px]">

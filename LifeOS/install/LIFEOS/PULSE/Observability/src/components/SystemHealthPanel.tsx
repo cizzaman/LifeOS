@@ -73,7 +73,7 @@ export default function SystemHealthPanel() {
     return (
       <Panel>
         <PanelHeader title="System Health" icon={Stethoscope} />
-        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           Doctor surface unavailable.
         </p>
       </Panel>
@@ -84,7 +84,7 @@ export default function SystemHealthPanel() {
     return (
       <Panel>
         <PanelHeader title="System Health" icon={Stethoscope} />
-        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <p className="text-[13px] text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           Loading…
         </p>
       </Panel>
@@ -113,18 +113,18 @@ export default function SystemHealthPanel() {
 
       {/* Heartbeat absent — no doctor run yet */}
       {!heartbeat.present && (
-        <p className="mb-4 text-[13px]" style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--warn)" }}>
+        <p className="mb-4 text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--warn)" }}>
           {heartbeat.hint}
         </p>
       )}
 
       {/* Capabilities */}
       {!manifest.present ? (
-        <p className="text-[13px]" style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--ink-3)" }}>
+        <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ink-3)" }}>
           {manifest.hint}
         </p>
       ) : manifest.capabilities.length === 0 ? (
-        <p className="text-[13px]" style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--ink-3)" }}>
+        <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ink-3)" }}>
           No capabilities probed yet — bun LIFEOS/TOOLS/Doctor.ts
         </p>
       ) : (
@@ -143,7 +143,7 @@ export default function SystemHealthPanel() {
                   <div className="flex items-center gap-2">
                     <span
                       className="text-[13px] leading-snug text-ink-1 flex-1 min-w-0 truncate"
-                      style={{ fontFamily: "'concourse-t3', sans-serif" }}
+                      style={{ fontFamily: "'Albert Sans', sans-serif" }}
                     >
                       {cap.title}
                     </span>
@@ -152,7 +152,7 @@ export default function SystemHealthPanel() {
                     </span>
                   </div>
                   {cap.state !== "declined" && cap.detail && (
-                    <div className="text-[12px] leading-snug text-ink-3 mt-1" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+                    <div className="text-[12px] leading-snug text-ink-3 mt-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
                       {cap.detail}
                     </div>
                   )}
@@ -173,12 +173,12 @@ export default function SystemHealthPanel() {
       <div className="mt-4 pt-3 border-t border-line-2">
         <div
           className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3 mb-2"
-          style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
         >
           Hook reconciliation
         </div>
         {reconcile.unwired.length === 0 && reconcile.missing.length === 0 ? (
-          <p className="text-[13px]" style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--ok)" }}>
+          <p className="text-[13px]" style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--ok)" }}>
             ✅ hooks fully reconciled — every declared hook is registered
           </p>
         ) : (

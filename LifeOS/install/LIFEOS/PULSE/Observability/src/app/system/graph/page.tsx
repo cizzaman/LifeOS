@@ -41,7 +41,7 @@ export default function GraphPage() {
   if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-xs text-ink-3" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <div className="text-xs text-ink-3" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           Loading graph...
         </div>
       </div>
@@ -55,20 +55,20 @@ export default function GraphPage() {
         <Network className="w-4 h-4 text-dim-relationships" />
         <h1
           className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-          style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
         >
           KNOWLEDGE GRAPH
         </h1>
-        <span className="text-[13px] text-ink-3 ml-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <span className="text-[13px] text-ink-3 ml-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           {data.nodes.length} nodes · {data.edges.length} edges
         </span>
 
         {/* Legend — dot colors are the graph node color scale (intentional) */}
         <div className="ml-auto flex items-center gap-1.5">
           {[
-            { label: "System", color: "#22d3ee" },
-            { label: "People", color: "#38bdf8" },
-            { label: "Companies", color: "#fbbf24" },
+            { label: "System", color: "#5cc4d8" },
+            { label: "People", color: "#5cc4d8" },
+            { label: "Companies", color: "#f5c451" },
             { label: "Ideas", color: "#a78bfa" },
           ].map((item) => (
             <Pill key={item.label} dim="neutral">

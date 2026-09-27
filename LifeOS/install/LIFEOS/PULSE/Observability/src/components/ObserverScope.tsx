@@ -26,9 +26,9 @@ export default function ObserverScope() {
       <div
         className="flex items-center gap-2 px-4 py-2 rounded-full text-[12px] tracking-[0.14em] font-medium"
         style={{
-          background: "rgba(251,191,36,0.12)",
-          border: "1px solid rgba(251,191,36,0.35)",
-          color: "rgb(251,191,36)",
+          background: "rgba(245,196,81,0.12)",
+          border: "1px solid rgba(245,196,81,0.35)",
+          color: "rgb(245,196,81)",
           backdropFilter: "blur(6px)",
         }}
       >

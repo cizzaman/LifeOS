@@ -19,55 +19,55 @@ export interface ChartConfig {
 // ─── Agent Color Map ───
 
 const AGENT_COLORS: Record<string, string> = {
-  pentester: "#EF4444",
-  engineer: "#3B82F6",
-  designer: "#A855F7",
-  architect: "#A855F7",
-  intern: "#06B6D4",
-  artist: "#06B6D4",
-  "perplexity-researcher": "#EAB308",
-  "claude-researcher": "#EAB308",
-  "gemini-researcher": "#EAB308",
-  main: "#3B82F6",
-  da: "#3B82F6",
-  pai: "#3B82F6",
-  "claude-code": "#3B82F6",
+  pentester: "#f87171",
+  engineer: "#3fb2c9",
+  designer: "#a78bfa",
+  architect: "#a78bfa",
+  intern: "#3fb2c9",
+  artist: "#3fb2c9",
+  "perplexity-researcher": "#f5c451",
+  "claude-researcher": "#f5c451",
+  "gemini-researcher": "#f5c451",
+  main: "#3fb2c9",
+  da: "#3fb2c9",
+  pai: "#3fb2c9",
+  "claude-code": "#3fb2c9",
 };
 
 // ─── Tool Color Map ───
 
 const TOOL_COLORS: Record<string, string> = {
-  Read: "#7aa2f7",
-  Write: "#9ece6a",
-  Edit: "#e0af68",
-  Bash: "#bb9af7",
-  Grep: "#f7768e",
-  Glob: "#ff9e64",
-  Task: "#73daca",
-  WebFetch: "#7dcfff",
-  WebSearch: "#7dcfff",
-  Skill: "#c0caf5",
-  SlashCommand: "#c0caf5",
-  TodoWrite: "#e0af68",
-  AskUserQuestion: "#bb9af7",
-  NotebookEdit: "#9ece6a",
-  NotebookRead: "#7aa2f7",
-  BashOutput: "#bb9af7",
-  KillShell: "#f7768e",
-  ExitPlanMode: "#9ece6a",
+  Read: "#5cc4d8",
+  Write: "#22c55e",
+  Edit: "#f5c451",
+  Bash: "#a78bfa",
+  Grep: "#f87171",
+  Glob: "#f97316",
+  Task: "#5cc4d8",
+  WebFetch: "#7cd5e6",
+  WebSearch: "#7cd5e6",
+  Skill: "#d9d2c4",
+  SlashCommand: "#d9d2c4",
+  TodoWrite: "#f5c451",
+  AskUserQuestion: "#a78bfa",
+  NotebookEdit: "#22c55e",
+  NotebookRead: "#5cc4d8",
+  BashOutput: "#a78bfa",
+  KillShell: "#f87171",
+  ExitPlanMode: "#22c55e",
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  PreToolUse: "#e0af68",
-  PostToolUse: "#ff9e64",
-  Completed: "#9ece6a",
-  Notification: "#ff9e64",
-  Stop: "#f7768e",
-  SubagentStop: "#bb9af7",
+  PreToolUse: "#f5c451",
+  PostToolUse: "#f97316",
+  Completed: "#22c55e",
+  Notification: "#f97316",
+  Stop: "#f87171",
+  SubagentStop: "#a78bfa",
   PreCompact: "#1abc9c",
-  UserPromptSubmit: "#7dcfff",
-  SessionStart: "#7aa2f7",
-  SessionEnd: "#7aa2f7",
+  UserPromptSubmit: "#7cd5e6",
+  SessionStart: "#5cc4d8",
+  SessionEnd: "#5cc4d8",
 };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -198,7 +198,7 @@ export class ChartRenderer {
   drawAxes() {
     const area = this.getChartArea();
     this.ctx.save();
-    this.ctx.strokeStyle = "#444444";
+    this.ctx.strokeStyle = "#3a3a3a";
     this.ctx.lineWidth = 0.5;
     this.ctx.globalAlpha = 0.5;
     this.ctx.beginPath();
@@ -215,7 +215,7 @@ export class ChartRenderer {
 
     // Grid lines
     this.ctx.save();
-    this.ctx.strokeStyle = "#444444";
+    this.ctx.strokeStyle = "#3a3a3a";
     this.ctx.lineWidth = 0.5;
     this.ctx.globalAlpha = 0.5;
     labels.forEach((_, i) => {
@@ -228,8 +228,8 @@ export class ChartRenderer {
     this.ctx.restore();
 
     // Text labels
-    this.ctx.fillStyle = "#565f89";
-    this.ctx.font = '400 11px system-ui, -apple-system, sans-serif';
+    this.ctx.fillStyle = "#55636d";
+    this.ctx.font = '400 11px "Albert Sans", system-ui, sans-serif';
     this.ctx.textBaseline = "top";
     labels.forEach((label, i) => {
       const x = area.x + i * spacing;
@@ -264,7 +264,7 @@ export class ChartRenderer {
 
       // Vertical guide line
       this.ctx.save();
-      this.ctx.strokeStyle = "#444444";
+      this.ctx.strokeStyle = "#3a3a3a";
       this.ctx.lineWidth = 0.5;
       this.ctx.globalAlpha = 0.5;
       this.ctx.beginPath();
@@ -287,12 +287,12 @@ export class ChartRenderer {
 
       // Get dominant app name
       let appName = "";
-      let agentColor = "#7aa2f7";
+      let agentColor = "#5cc4d8";
       if (point.apps && Object.keys(point.apps).length > 0) {
         const dominant = Object.entries(point.apps).sort((a, b) => b[1] - a[1])[0];
         appName = dominant[0];
         const agentNameOnly = appName.split(":")[0].toLowerCase();
-        agentColor = AGENT_COLORS[agentNameOnly] || "#7aa2f7";
+        agentColor = AGENT_COLORS[agentNameOnly] || "#5cc4d8";
       }
 
       const rawDisplayName = appName ? appName.split(":")[0] : "";
@@ -318,18 +318,18 @@ export class ChartRenderer {
       const padding = 8;
 
       // Agent pill
-      this.ctx.font = '600 11px "SF Mono", Monaco, monospace';
+      this.ctx.font = '600 11px "Fira Code", ui-monospace, monospace';
       const agentTextW = displayName ? this.ctx.measureText(displayName).width : 0;
       const agentPillW = displayName ? agentTextW + pillPadding * 2 : 0;
 
       // Event type pill
       const eventTypeLabel = entries.length > 0 ? (EVENT_TYPE_LABELS[entries[0][0]] || entries[0][0]) : "";
-      this.ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+      this.ctx.font = '600 11px "Albert Sans", system-ui, sans-serif';
       const eventTextW = eventTypeLabel ? this.ctx.measureText(eventTypeLabel).width : 0;
       const eventPillW = eventTypeLabel ? 10 + 4 + eventTextW + pillPadding * 2 : 0;
 
       // Tool pill
-      this.ctx.font = '500 11px "SF Mono", Monaco, monospace';
+      this.ctx.font = '500 11px "Fira Code", ui-monospace, monospace';
       const toolTextW = toolName ? this.ctx.measureText(toolName).width : 0;
       const toolPillW = toolName ? 10 + 4 + toolTextW + pillPadding * 2 : 0;
 
@@ -392,7 +392,7 @@ export class ChartRenderer {
 
       // PILL 1: Agent Name
       if (displayName) {
-        this.ctx.font = '600 11px "SF Mono", Monaco, monospace';
+        this.ctx.font = '600 11px "Fira Code", ui-monospace, monospace';
         const w = this.ctx.measureText(displayName).width + pillPadding * 2;
         const py = labelY - pillHeight / 2;
 
@@ -409,8 +409,8 @@ export class ChartRenderer {
 
       // PILL 2: Event Type
       if (eventTypeLabel) {
-        const eventColor = EVENT_TYPE_COLORS[entries[0][0]] || "#7aa2f7";
-        this.ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        const eventColor = EVENT_TYPE_COLORS[entries[0][0]] || "#5cc4d8";
+        this.ctx.font = '600 11px "Albert Sans", system-ui, sans-serif';
         const tw = this.ctx.measureText(eventTypeLabel).width;
         const w = 10 + 4 + tw + pillPadding * 2;
         const py = labelY - pillHeight / 2;
@@ -428,8 +428,8 @@ export class ChartRenderer {
 
       // PILL 3: Tool
       if (toolName) {
-        const toolColor = TOOL_COLORS[toolName] || "#7aa2f7";
-        this.ctx.font = '500 11px "SF Mono", Monaco, monospace';
+        const toolColor = TOOL_COLORS[toolName] || "#5cc4d8";
+        this.ctx.font = '500 11px "Fira Code", ui-monospace, monospace';
         const tw = this.ctx.measureText(toolName).width;
         const w = 10 + 4 + tw + pillPadding * 2;
         const py = labelY - pillHeight / 2;

@@ -142,7 +142,7 @@ export default function ContentPage() {
                   : failed
                     ? "var(--err)"
                     : done
-                      ? "rgba(74,222,128,0.4)"
+                      ? "rgba(34,197,94,0.4)"
                       : "var(--line-2)";
                 return (
                   <Panel

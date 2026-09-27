@@ -233,7 +233,7 @@ function LifecycleTrack({ status, score }: { status: string; score: number | nul
           key={s.label}
           className={i === stage ? "w-3 h-[5px] rounded-full animate-pulse" : "w-3 h-[5px] rounded-full"}
           style={{
-            background: i < stage ? `var(--${s.dim === "ok" ? "ok" : s.dim})` : "rgba(168,165,200,0.18)",
+            background: i < stage ? `var(--${s.dim === "ok" ? "ok" : s.dim})` : "rgba(152,168,179,0.18)",
             opacity: i < stage ? 0.9 : 1,
           }}
         />

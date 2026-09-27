@@ -37,9 +37,9 @@ interface LifeosLogoProps {
 }
 
 export function LifeosLogo({ size = 22 }: LifeosLogoProps) {
-  const NAVY = "#002B9D";
-  const AZ = "#3B82F6";
-  const SKY = "#9ACBFF";
+  const NAVY = "#1f6f80";
+  const AZ = "#3fb2c9";
+  const SKY = "#a8e2ee";
   const W = 100;
   const rowH = 18;
   const gap = 2;
@@ -185,14 +185,14 @@ type GraphEdge = [string, string, string];
 export function GraphView({ telos, onTrace }: CommonViewProps) {
   // Radial layered layout: Mission at center, expanding outward through layers.
   const layers: Array<{ key: string; color: string; items: Array<{ id: string; label: string }> }> = [
-    { key: "ideal",   color: "#7DD3FC", items: telos.dimensions.map((d) => ({ id: d.id, label: d.label })) },
+    { key: "ideal",   color: "#a8e2ee", items: telos.dimensions.map((d) => ({ id: d.id, label: d.label })) },
     { key: "problem", color: "#F87171", items: telos.problems.map((p) => ({ id: p.id, label: p.title })) },
-    { key: "mission", color: "#BAE6FD", items: telos.missions.filter((m) => m.active).map((m) => ({ id: m.id, label: m.horizon })) },
-    { key: "goal",    color: "#4ADE80", items: telos.goals.map((g) => ({ id: g.id, label: g.id })) },
-    { key: "metric",  color: "#3B82F6", items: telos.metrics.map((m) => ({ id: m.id, label: m.id })) },
-    { key: "strat",   color: "#A5B4FC", items: telos.strategies.map((s) => ({ id: s.id, label: s.id })) },
-    { key: "project", color: "#9ACBFF", items: telos.projects.map((p) => ({ id: p.id, label: p.title })) },
-    { key: "work",    color: "#9BB0D6", items: telos.projects.flatMap((p) => p.work).map((w) => ({ id: w.id, label: w.id })) },
+    { key: "mission", color: "#cdeef5", items: telos.missions.filter((m) => m.active).map((m) => ({ id: m.id, label: m.horizon })) },
+    { key: "goal",    color: "#22c55e", items: telos.goals.map((g) => ({ id: g.id, label: g.id })) },
+    { key: "metric",  color: "#3fb2c9", items: telos.metrics.map((m) => ({ id: m.id, label: m.id })) },
+    { key: "strat",   color: "#a8e2ee", items: telos.strategies.map((s) => ({ id: s.id, label: s.id })) },
+    { key: "project", color: "#a8e2ee", items: telos.projects.map((p) => ({ id: p.id, label: p.title })) },
+    { key: "work",    color: "#98a8b3", items: telos.projects.flatMap((p) => p.work).map((w) => ({ id: w.id, label: w.id })) },
   ];
   const W = 1000;
   const H = 720;
@@ -221,17 +221,17 @@ export function GraphView({ telos, onTrace }: CommonViewProps) {
 
   const edges: GraphEdge[] = [];
   telos.goals.forEach((g) => {
-    g.dims.forEach((d) => edges.push([d, g.id, "rgba(125,211,252,0.18)"]));
+    g.dims.forEach((d) => edges.push([d, g.id, "rgba(168,226,238,0.18)"]));
     const m = telos.missions.find((mm) => mm.active);
-    if (m) edges.push([m.id, g.id, "rgba(186,230,253,0.22)"]);
-    g.metrics.forEach((mid) => edges.push([g.id, mid, "rgba(59,130,246,0.25)"]));
+    if (m) edges.push([m.id, g.id, "rgba(205,238,245,0.22)"]);
+    g.metrics.forEach((mid) => edges.push([g.id, mid, "rgba(63,178,201,0.25)"]));
   });
   telos.strategies.forEach((s) => {
-    s.implements.forEach((gid) => edges.push([gid, s.id, "rgba(165,180,252,0.22)"]));
+    s.implements.forEach((gid) => edges.push([gid, s.id, "rgba(168,226,238,0.22)"]));
   });
   telos.projects.forEach((p) => {
-    edges.push([p.strategy, p.id, "rgba(154,203,255,0.26)"]);
-    p.work.forEach((w) => edges.push([p.id, w.id, "rgba(155,176,214,0.22)"]));
+    edges.push([p.strategy, p.id, "rgba(168,226,238,0.26)"]);
+    p.work.forEach((w) => edges.push([p.id, w.id, "rgba(152,168,179,0.22)"]));
   });
   const m1 = telos.missions.find((m) => m.active);
   if (m1 && m1.addresses) {
@@ -333,7 +333,7 @@ function App() {
 
   if (!telos) {
     return (
-      <div style={{ padding: 40, color: "#E8EFFF" }}>
+      <div style={{ padding: 40, color: "#f0e8d8" }}>
         {error ? (
           <>
             <div style={{ marginBottom: 12 }}>Can&rsquo;t load TELOS from the Pulse daemon ({error}).</div>

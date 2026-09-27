@@ -123,12 +123,12 @@ type Dimension = "health" | "money" | "freedom" | "creative" | "relationships" |
 // --health/--money/… design tokens) because these feed Recharts SVG gradient
 // stops and fill attributes, which cannot resolve CSS custom properties.
 const DIMENSION_COLOR: Record<Dimension, string> = {
-  health: "#34D399",
-  money: "#E0A458",
-  freedom: "#7DD3FC",
-  creative: "#F87B7B",
-  relationships: "#B794F4",
-  rhythms: "#2DD4BF",
+  health: "#22c55e",
+  money: "#f5c451",
+  freedom: "#a8e2ee",
+  creative: "#f97316",
+  relationships: "#a78bfa",
+  rhythms: "#3fb2c9",
 };
 
 const RING_GRADIENT: Record<string, [string, string]> = {
@@ -222,17 +222,18 @@ function DomainCard({
   const color = DIMENSION_COLOR[dimension];
   return (
     <Link href={href} className="h-full">
-      <Panel hover className={`h-full group flex flex-col gap-2${pulse ? " pulse" : ""}`} style={{ borderLeft: `3px solid ${color}` }}>
+      <Panel hover className={`h-full group flex flex-col gap-2${pulse ? " pulse" : ""}`}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Icon className="w-4 h-4 shrink-0" color={color} />
-            <h2 className="text-[14px] font-medium uppercase tracking-wider text-ink-3 whitespace-nowrap truncate">{title}</h2>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span aria-hidden className="inline-block w-[7px] h-[7px] shrink-0" style={{ background: color }} />
+            <Icon className="w-3.5 h-3.5 shrink-0 text-ink-3" strokeWidth={1.5} />
+            <h2 className="label-caps whitespace-nowrap truncate">{title}</h2>
           </div>
-          <ArrowUpRight className="w-4 h-4 shrink-0 text-ink-3 transition-colors" />
+          <ArrowUpRight className="w-4 h-4 shrink-0 text-ink-3 transition-colors group-hover:text-ink-1" strokeWidth={1.5} />
         </div>
         {headline ? (
           <>
-            <div className="text-2xl font-medium tabular-nums leading-tight" style={{ color }} data-sensitive>{headline}</div>
+            <div className="tabular-nums text-ink-1" style={{ font: "500 28px/1.2 var(--font-display)", letterSpacing: "-0.03em" }} data-sensitive>{headline}</div>
             {secondary && <div className="text-xs text-ink-2 leading-relaxed line-clamp-2" data-sensitive>{secondary}</div>}
           </>
         ) : empty ? (
@@ -412,7 +413,7 @@ function ActiveGoals({ goals }: { goals: GoalsData | null }) {
         <PanelHeader title="Active Goals" />
         <Link href="/telos" className="text-xs text-ink-3 hover:text-ink-2">see all →</Link>
       </div>
-      <Panel style={{ borderLeft: `3px solid ${DIMENSION_COLOR.relationships}` }}>
+      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.relationships}` }}>
         <div className="space-y-3" data-sensitive>
           {items.map(g => (
             <div key={g.id} className="flex items-center gap-4">
@@ -435,7 +436,7 @@ function NextActionsSpark({ home }: { home: HomeData | null }) {
   const spark = home?.spark;
   return (
     <section className="grid gap-3 sm:grid-cols-2">
-      <Panel style={{ borderLeft: `3px solid ${DIMENSION_COLOR.rhythms}` }}>
+      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.rhythms}` }}>
         <div className="flex items-center gap-2 mb-1">
           <CheckSquare className="w-4 h-4" color={DIMENSION_COLOR.rhythms} />
           <h3 className="text-sm font-medium uppercase tracking-widest" style={{ color: DIMENSION_COLOR.rhythms }}>Next Actions</h3>
@@ -453,7 +454,7 @@ function NextActionsSpark({ home }: { home: HomeData | null }) {
           <p className="text-xs text-ink-3 italic">No actions in `current.md` yet.</p>
         )}
       </Panel>
-      <Panel style={{ borderLeft: `3px solid ${DIMENSION_COLOR.creative}` }}>
+      <Panel style={{ borderLeft: `2px solid ${DIMENSION_COLOR.creative}` }}>
         <div className="flex items-center gap-2 mb-1">
           <Lightbulb className="w-4 h-4" color={DIMENSION_COLOR.creative} />
           <h3 className="text-sm font-medium uppercase tracking-widest" style={{ color: DIMENSION_COLOR.creative }}>Spark</h3>
@@ -539,7 +540,7 @@ export default function LifePage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "3px solid var(--err)" }}>
+        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
           <div className="flex items-center gap-2 mb-2 text-err">
             <AlertCircle className="w-4 h-4" />
             <h2 className="font-medium">Dashboard unavailable</h2>

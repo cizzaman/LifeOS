@@ -1037,7 +1037,7 @@ export default function AssistantPage() {
                       <div key={i} className="flex items-start gap-3">
                         <div
                           className="w-2 h-2 rounded-full mt-2 shrink-0"
-                          style={{ backgroundColor: `rgba(248, 123, 123, ${Math.max(0.2, confidence)})` }}
+                          style={{ backgroundColor: `rgba(249, 115, 22, ${Math.max(0.2, confidence)})` }}
                         />
                         <div className="min-w-0 flex-1">
                           <div className="text-sm text-ink-1">{topic}</div>
@@ -1094,7 +1094,7 @@ export default function AssistantPage() {
                     {entry.learning && (
                       <div
                         className="text-sm italic pl-3 text-ink-2"
-                        style={{ borderLeft: "2px solid rgba(45,212,191,0.4)" }}
+                        style={{ borderLeft: "2px solid rgba(63,178,201,0.4)" }}
                       >
                         {entry.learning}
                       </div>
@@ -1119,7 +1119,7 @@ export default function AssistantPage() {
             ) : (
               <div
                 className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shrink-0"
-                style={{ backgroundColor: "rgba(248,123,123,0.14)", color: "var(--creative)" }}
+                style={{ backgroundColor: "rgba(249,115,22,0.14)", color: "var(--creative)" }}
               >
                 {identity.display_name.charAt(0)}
               </div>

@@ -31,11 +31,11 @@ interface XY {
 }
 
 const RIBBON_COLORS: Record<string, string> = {
-  e: "#7dcfff", // exploring
-  b: "#e0af68", // building
-  v: "#34d399", // verifying
-  d: "#bb9af7", // delegating
-  o: "#565f89", // other
+  e: "#7cd5e6", // exploring
+  b: "#f5c451", // building
+  v: "#22c55e", // verifying
+  d: "#a78bfa", // delegating
+  o: "#55636d", // other
 };
 
 export default function ClimbChart({ state, variant }: ClimbChartProps) {
@@ -125,13 +125,13 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
       }));
   }, [state.activity, variant, start, end, W, PAD]);
 
-  const lineColor = climbComplete ? LIFECYCLE_META.cairn.color : state.active ? "#7dcfff" : "#565f89";
+  const lineColor = climbComplete ? LIFECYCLE_META.cairn.color : state.active ? "#7cd5e6" : "#55636d";
 
   if (variant === "mini") {
     return (
       <svg width={W} height={H} className="shrink-0" aria-label={`Climb ${pct}%`}>
         <path d={doneArea} fill={lineColor} opacity={0.08} />
-        <path d={totalPath} fill="none" stroke="#565f89" strokeWidth={1} opacity={0.6} strokeDasharray="2 2" />
+        <path d={totalPath} fill="none" stroke="#55636d" strokeWidth={1} opacity={0.6} strokeDasharray="2 2" />
         <path d={donePath} fill="none" stroke={lineColor} strokeWidth={1.5} opacity={0.9} />
         {dots.map((p, i) => (
           <circle
@@ -163,7 +163,7 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
           );
         })}
         {/* hill silhouette — total claims */}
-        <path d={totalPath} fill="none" stroke="#565f89" strokeWidth={1.5} strokeDasharray="3 3" opacity={0.8} />
+        <path d={totalPath} fill="none" stroke="#55636d" strokeWidth={1.5} strokeDasharray="3 3" opacity={0.8} />
         {/* the ascent — closed claims */}
         <path d={doneArea} fill={lineColor} opacity={0.07} />
         <path d={donePath} fill="none" stroke={lineColor} strokeWidth={2} strokeLinejoin="round" />
@@ -174,7 +174,7 @@ export default function ClimbChart({ state, variant }: ClimbChartProps) {
             x={Math.min(m.x + 3, W - PAD - 14)}
             y={Math.max(m.y - 4, PAD + 8)}
             fontSize={9}
-            fill="#e0af68"
+            fill="#f5c451"
             fontFamily="monospace"
           >
             +{m.n}

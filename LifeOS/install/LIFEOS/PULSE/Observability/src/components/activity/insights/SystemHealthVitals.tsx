@@ -103,7 +103,7 @@ export default function SystemHealthVitals() {
   if (!health) return null;
 
   return (
-    <div className="flex items-center gap-6 px-4 py-1.5 bg-[rgba(15,26,51,0.5)] border-b border-white/[0.04] shrink-0">
+    <div className="flex items-center gap-6 px-4 py-1.5 bg-[rgba(17,17,17,0.5)] border-b border-white/[0.04] shrink-0">
       <VitalMetric
         icon={Volume2}
         label="Voice"

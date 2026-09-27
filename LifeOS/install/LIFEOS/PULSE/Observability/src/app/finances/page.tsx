@@ -247,17 +247,17 @@ function fmtPct(rate: number | null | undefined): string {
 // coloring keys off these exact values). Semantic dimension/status/chrome
 // colors elsewhere on the page come from the design tokens in globals.css. ───
 
-const DIMENSION_PALETTE = ["#34D399", "#E0A458", "#7DD3FC", "#F87B7B", "#B794F4", "#2DD4BF"];
-const SANKEY_INCOME_PALETTE = ["#34D399", "#E0A458"];
-const SANKEY_OUTFLOW_PALETTE = ["#F0A35E", "#F87B7B"];
+const DIMENSION_PALETTE = ["#22c55e", "#f5c451", "#a8e2ee", "#f97316", "#a78bfa", "#3fb2c9"];
+const SANKEY_INCOME_PALETTE = ["#22c55e", "#f5c451"];
+const SANKEY_OUTFLOW_PALETTE = ["#fbd57a", "#f97316"];
 
 const SANKEY_COLORS: Record<string, string> = {
-  "Gross Income": "#E0A458",
-  "Net": "#7DD3FC",
-  "Expenses": "#F87B7B",
-  "Vendors": "#F0A35E",
-  "Obligations": "#F87B7B",
-  "Other": "#F0A35E",
+  "Gross Income": "#f5c451",
+  "Net": "#a8e2ee",
+  "Expenses": "#f97316",
+  "Vendors": "#fbd57a",
+  "Obligations": "#f97316",
+  "Other": "#fbd57a",
 };
 
 const INCOME_ICON: Record<string, LucideIcon> = {
@@ -353,7 +353,7 @@ function LineRow({ line, tone }: { line: ResolvedLine; tone: "income" | "outboun
   const accentClass =
     tone === "income" ? "[border-left-color:var(--money)]" : "[border-left-color:var(--creative)]";
   return (
-    <Panel className={`p-4 border-l-[3px] ${accentClass}`}>
+    <Panel className={`p-4 border-l-2 ${accentClass}`}>
       <div className="flex items-start gap-3">
         <Icon className="w-4 h-4 mt-1 shrink-0" color={toneColor} />
         <div className="flex-1 min-w-0">
@@ -387,7 +387,7 @@ function LineRow({ line, tone }: { line: ResolvedLine; tone: "income" | "outboun
 function StreamCard({ stream }: { stream: Stream }) {
   const Icon = pickIcon(stream.label, INCOME_ICON, Wallet);
   return (
-    <Panel className="p-4 border-l-[3px] [border-left-color:var(--money)]">
+    <Panel className="p-4 border-l-2 [border-left-color:var(--money)]">
       <div className="flex items-start gap-3">
         <Icon className="w-4 h-4 mt-1 shrink-0" color="var(--money)" />
         <div className="flex-1 min-w-0">
@@ -421,7 +421,7 @@ function IncomeHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative border-l-[3px] [border-left-color:var(--money)]">
+    <Panel className="relative border-l-2 [border-left-color:var(--money)]">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
@@ -459,7 +459,7 @@ function OutboundHero({
   freshness?: FreshnessData;
 }) {
   return (
-    <Panel className="relative border-l-[3px] [border-left-color:var(--creative)]">
+    <Panel className="relative border-l-2 [border-left-color:var(--creative)]">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
@@ -507,7 +507,7 @@ function OverallHero({
   const post = periodView === "monthly" ? data.net_post_tax_monthly : data.net_post_tax_annual;
   const preColor = pre >= 0 ? "var(--freedom)" : "var(--creative)";
   return (
-    <Panel className="relative border-l-[3px] [border-left-color:var(--freedom)]">
+    <Panel className="relative border-l-2 [border-left-color:var(--freedom)]">
       <div className="absolute top-5 right-5 md:top-6 md:right-6 z-10">
         <FreshnessIndicator freshness={freshness} />
       </div>
@@ -559,7 +559,7 @@ function OverallHero({
 
 function TrendChart({ trend }: { trend: TrendPoint[] }) {
   return (
-    <Panel className="border-l-[3px] [border-left-color:var(--money)]">
+    <Panel className="border-l-2 [border-left-color:var(--money)]">
       <PanelHeader icon={ArrowLeftRight} title="Income vs Expenses — 12 Month Trend" />
       <div className="w-full h-64" data-sensitive>
         <ResponsiveContainer width="100%" height="100%">
@@ -622,7 +622,7 @@ function SankeyNode(props: SankeyNodeProps) {
         ? SANKEY_OUTFLOW_PALETTE[colorIndex % SANKEY_OUTFLOW_PALETTE.length]
         : payload?.category === "net"
           ? DIMENSION_PALETTE[2]
-        : "#6B80AB");
+        : "#6b7d89");
   const isLeft = x < 300;
   return (
     <g>
@@ -688,7 +688,7 @@ function SankeyLink(props: SankeyLinkProps) {
   } = props;
   const sourceName = payload?.source?.name ?? "";
   const targetName = payload?.target?.name ?? "";
-  const color = SANKEY_COLORS[targetName] || SANKEY_COLORS[sourceName] || "#6B80AB";
+  const color = SANKEY_COLORS[targetName] || SANKEY_COLORS[sourceName] || "#6b7d89";
   return (
     <path
       d={`M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
@@ -835,7 +835,7 @@ function SectionGroup({
       </div>
       <div className="prob-grid">
         {items.map((item, i) => (
-          <Panel key={i} className={`border-l-[3px] ${accentClass}`}>
+          <Panel key={i} className={`border-l-2 ${accentClass}`}>
             <h3 className="text-sm font-medium mb-1">{item.heading}</h3>
             <div
               className="text-xs whitespace-pre-wrap line-clamp-5 text-ink-2"
@@ -861,7 +861,7 @@ function AccountCategory({ item }: { item: Section }) {
   const Icon = ACCOUNT_ICON[item.heading] || DollarSign;
   const subs = parseSubheadings(item.body);
   return (
-    <Panel className="border-l-[3px] [border-left-color:var(--money)]">
+    <Panel className="border-l-2 [border-left-color:var(--money)]">
       <div className="flex items-center gap-2 mb-1">
         <Icon className="w-4 h-4" color="var(--money)" />
         <h3 className="text-sm font-medium uppercase tracking-wider">{item.heading}</h3>
@@ -964,7 +964,7 @@ function InsightLineRow({ line, accent }: { line: InsightLine; accent: string })
     line.confidence === "high" ? "var(--health)" : line.confidence === "medium" ? "var(--money)" : "var(--ink-2)";
   return (
     <div
-      className="bg-surface-2 border border-line-2 rounded-xl p-3.5 border-l-[3px]"
+      className="bg-surface-2 border border-line-2 rounded-xl p-3.5 border-l-2"
       style={{ borderLeftColor: accent }}
     >
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
@@ -1326,7 +1326,7 @@ function PlanBody({ body }: { body: string }) {
 function FlywheelLoop({ stages }: { stages: { n: number; stage: string; text: string }[] }) {
   if (!stages.length) return null;
   // Distinct per-stage loop colors (chart-style scale, not semantic tokens).
-  const palette = ["#4F8CFF", "#3FB68B", "#E0A458", "#B98CFF", "#4FC3E0", "#F2789F"];
+  const palette = ["#3fb2c9", "#3FB68B", "#f5c451", "#a78bfa", "#4FC3E0", "#F2789F"];
   return (
     <section>
       <div className="flex items-center gap-2 mb-4">
@@ -1381,7 +1381,7 @@ function PlanTab({ data }: { data: FinancesDataV2 }) {
       </div>
 
       {about && (
-        <Panel className="border-l-[3px] [border-left-color:var(--money)]">
+        <Panel className="border-l-2 [border-left-color:var(--money)]">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-4 h-4" color="var(--money)" />
             <span className="text-xs uppercase tracking-widest text-ink-2">{about.heading}</span>
@@ -1486,7 +1486,7 @@ export default function FinancesPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel className="border-l-[3px] [border-left-color:var(--err)]">
+        <Panel className="border-l-2 [border-left-color:var(--err)]">
           <h2 className="font-medium text-err">Failed to load finances</h2>
           <p className="text-sm text-err">{error}</p>
         </Panel>

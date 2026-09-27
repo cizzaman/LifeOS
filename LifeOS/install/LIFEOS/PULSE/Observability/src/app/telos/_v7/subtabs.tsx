@@ -14,7 +14,7 @@ interface SubTabsProps {
   telos: Telos;
 }
 
-export function Spark({ points=[38,42,40,45,48,52,51,56,58,62], color='var(--accent)' }: SparkProps) {
+export function Spark({ points=[38,42,40,45,48,52,51,56,58,62], color='var(--accent-live)' }: SparkProps) {
   const W=160, H=36, max=Math.max(...points), min=Math.min(...points);
   const norm = (v: number, i: number)=>{
     const x = (i/(points.length-1))*W;

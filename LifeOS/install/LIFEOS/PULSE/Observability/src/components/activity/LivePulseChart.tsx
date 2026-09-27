@@ -51,42 +51,42 @@ const TOOL_ICON_MAP: Record<string, LucideIcon> = {
 };
 
 const TOOL_STYLE_MAP: Record<string, { bg: string; text: string }> = {
-  Read: { bg: "bg-[#7dcfff]/10", text: "text-[#7dcfff]" },
-  Write: { bg: "bg-[#7dcfff]/10", text: "text-[#7dcfff]" },
-  Edit: { bg: "bg-[#7dcfff]/10", text: "text-[#7dcfff]" },
-  Grep: { bg: "bg-[#bb9af7]/10", text: "text-[#bb9af7]" },
-  Glob: { bg: "bg-[#bb9af7]/10", text: "text-[#bb9af7]" },
-  Bash: { bg: "bg-[#9ece6a]/10", text: "text-[#9ece6a]" },
-  BashOutput: { bg: "bg-[#9ece6a]/10", text: "text-[#9ece6a]" },
-  WebFetch: { bg: "bg-[#ff9e64]/10", text: "text-[#ff9e64]" },
-  WebSearch: { bg: "bg-[#ff9e64]/10", text: "text-[#ff9e64]" },
-  Task: { bg: "bg-[#f7768e]/10", text: "text-[#f7768e]" },
-  TodoWrite: { bg: "bg-[#f7768e]/10", text: "text-[#f7768e]" },
+  Read: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
+  Write: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
+  Edit: { bg: "bg-[#7cd5e6]/10", text: "text-[#7cd5e6]" },
+  Grep: { bg: "bg-[#a78bfa]/10", text: "text-[#a78bfa]" },
+  Glob: { bg: "bg-[#a78bfa]/10", text: "text-[#a78bfa]" },
+  Bash: { bg: "bg-[#22c55e]/10", text: "text-[#22c55e]" },
+  BashOutput: { bg: "bg-[#22c55e]/10", text: "text-[#22c55e]" },
+  WebFetch: { bg: "bg-[#f97316]/10", text: "text-[#f97316]" },
+  WebSearch: { bg: "bg-[#f97316]/10", text: "text-[#f97316]" },
+  Task: { bg: "bg-[#f87171]/10", text: "text-[#f87171]" },
+  TodoWrite: { bg: "bg-[#f87171]/10", text: "text-[#f87171]" },
 };
 
-const DEFAULT_STYLE = { bg: "bg-[rgba(107,128,171,0.1)]", text: "text-[var(--ink-2)]" };
+const DEFAULT_STYLE = { bg: "bg-[rgba(107,125,137,0.1)]", text: "text-[var(--ink-2)]" };
 
 // ─── Agent Colors ───
 
 const AGENT_HEX_COLORS: Record<string, string> = {
-  pentester: "#EF4444",
-  engineer: "#3B82F6",
-  designer: "#A855F7",
-  architect: "#A855F7",
-  intern: "#06B6D4",
-  artist: "#06B6D4",
-  "perplexity-researcher": "#EAB308",
-  "claude-researcher": "#EAB308",
-  "gemini-researcher": "#EAB308",
-  main: "#3B82F6",
-  da: "#3B82F6",
-  pai: "#3B82F6",
-  "claude-code": "#3B82F6",
+  pentester: "#f87171",
+  engineer: "#3fb2c9",
+  designer: "#a78bfa",
+  architect: "#a78bfa",
+  intern: "#3fb2c9",
+  artist: "#3fb2c9",
+  "perplexity-researcher": "#f5c451",
+  "claude-researcher": "#f5c451",
+  "gemini-researcher": "#f5c451",
+  main: "#3fb2c9",
+  da: "#3fb2c9",
+  pai: "#3fb2c9",
+  "claude-code": "#3fb2c9",
 };
 
 function getHexColorForApp(name: string): string {
   const key = name.split(":")[0].toLowerCase();
-  return AGENT_HEX_COLORS[key] || "#7aa2f7";
+  return AGENT_HEX_COLORS[key] || "#5cc4d8";
 }
 
 // ─── Format Helpers ───
@@ -223,7 +223,7 @@ export default function LivePulseChart({
     animationDuration: 300,
     barWidth: 3,
     barGap: 1,
-    colors: { primary: "#3B82F6", glow: "#60A5FA", axis: "#333", text: "#565f89" },
+    colors: { primary: "#3fb2c9", glow: "#5cc4d8", axis: "#333", text: "#55636d" },
   });
 
   const getDimensions = (): ChartDimensions => ({
@@ -321,9 +321,9 @@ export default function LivePulseChart({
               <span className="text-sm font-medium text-[var(--ink-3)]">—</span>
             ) : (
               skills.slice(0, 3).map((s) => (
-                <div key={s.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#bb9af7]/10">
-                  <Settings2 size={14} className="text-[#bb9af7]" />
-                  <span className="font-medium text-[#bb9af7]">{s.name}</span>
+                <div key={s.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#a78bfa]/10">
+                  <Settings2 size={14} className="text-[#a78bfa]" />
+                  <span className="font-medium text-[#a78bfa]">{s.name}</span>
                 </div>
               ))
             )}
@@ -335,15 +335,15 @@ export default function LivePulseChart({
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-sm text-[var(--ink-3)] font-medium uppercase">WORKFLOWS:</span>
             {workflows.length === 0 ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,128,171,0.2)]">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,125,137,0.2)]">
                 <Hammer size={14} className="text-[var(--ink-3)]" />
                 <span className="font-medium text-[var(--ink-3)]">None</span>
               </div>
             ) : (
               workflows.slice(0, 3).map((w) => (
-                <div key={w.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#7aa2f7]/10">
-                  <Hammer size={14} className="text-[#7aa2f7]" />
-                  <span className="font-medium text-[#7aa2f7]">{w.name}</span>
+                <div key={w.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[#5cc4d8]/10">
+                  <Hammer size={14} className="text-[#5cc4d8]" />
+                  <span className="font-medium text-[#5cc4d8]">{w.name}</span>
                 </div>
               ))
             )}
@@ -358,7 +358,7 @@ export default function LivePulseChart({
               ["Read", "Edit", "Bash"].map((t) => {
                 const Icon = TOOL_ICON_MAP[t] || Wrench;
                 return (
-                  <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,128,171,0.2)]">
+                  <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm bg-[rgba(107,125,137,0.2)]">
                     <Icon size={14} className="text-[var(--ink-3)]" />
                     <span className="font-medium text-[var(--ink-3)]">{t}</span>
                   </div>
@@ -384,10 +384,10 @@ export default function LivePulseChart({
           {/* Tokens */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm shrink-0"
-            style={{ backgroundColor: "rgba(224,175,104,0.15)" }}
+            style={{ backgroundColor: "rgba(245,196,81,0.15)" }}
           >
-            <Cpu size={14} className="text-[#e0af68]" />
-            <span className="font-medium text-[#e0af68]">
+            <Cpu size={14} className="text-[#f5c451]" />
+            <span className="font-medium text-[#f5c451]">
               {formatTokens(totalTokens.input)}/{formatTokens(totalTokens.output)}
             </span>
           </div>
@@ -395,10 +395,10 @@ export default function LivePulseChart({
           {/* Cost */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm shrink-0"
-            style={{ backgroundColor: "rgba(158,206,106,0.15)" }}
+            style={{ backgroundColor: "rgba(34,197,94,0.15)" }}
           >
-            <DollarSign size={14} className="text-[#9ece6a]" />
-            <span className="font-medium text-[#9ece6a]">${estimatedCost.toFixed(2)}</span>
+            <DollarSign size={14} className="text-[#22c55e]" />
+            <span className="font-medium text-[#22c55e]">${estimatedCost.toFixed(2)}</span>
           </div>
         </div>
 
@@ -408,7 +408,7 @@ export default function LivePulseChart({
             ["User", "Agent"].map((name) => (
               <div
                 key={name}
-                className="flex-1 min-w-0 text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-2 justify-center bg-[rgba(107,128,171,0.2)]"
+                className="flex-1 min-w-0 text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-2 justify-center bg-[rgba(107,125,137,0.2)]"
               >
                 <Moon size={10} className="shrink-0 text-[var(--ink-3)]" />
                 <span className="font-mono truncate text-[var(--ink-3)]">{name}</span>

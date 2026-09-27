@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 import AppHeader from "@/components/AppHeader";
 import ObserverScope from "@/components/ObserverScope";
 import SecurityBanner from "@/components/SecurityBanner";
@@ -31,7 +29,7 @@ export default function RootLayout({
             a reload with observer on never flashes personal data. */}
         <script dangerouslySetInnerHTML={{ __html: observerScopeScript() }} />
       </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans`}>
+      <body className="font-sans">
         <Providers>
           <SecurityBanner />
           <AppHeader />

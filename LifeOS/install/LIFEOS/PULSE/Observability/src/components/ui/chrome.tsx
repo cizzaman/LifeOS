@@ -32,40 +32,33 @@ const DIM_COLOR: Record<Dim, string> = {
   neutral: "var(--ink-2)",
 };
 
-const DIM_TINT: Record<Dim, string> = {
-  health: "rgba(52,211,153,0.14)",
-  money: "rgba(224,164,88,0.14)",
-  freedom: "rgba(125,211,252,0.14)",
-  creative: "rgba(248,123,123,0.14)",
-  relationships: "rgba(183,148,244,0.14)",
-  rhythms: "rgba(45,212,191,0.14)",
-  blue: "rgba(59,130,246,0.15)",
-  ok: "rgba(74,222,128,0.14)",
-  warn: "rgba(251,191,36,0.14)",
-  err: "rgba(248,113,113,0.14)",
-  neutral: "rgba(168,165,200,0.10)",
-};
-
-const DIM_BORDER: Record<Dim, string> = {
-  health: "rgba(52,211,153,0.3)",
-  money: "rgba(224,164,88,0.3)",
-  freedom: "rgba(125,211,252,0.3)",
-  creative: "rgba(248,123,123,0.3)",
-  relationships: "rgba(183,148,244,0.3)",
-  rhythms: "rgba(45,212,191,0.3)",
-  blue: "rgba(154,203,255,0.3)",
-  ok: "rgba(74,222,128,0.3)",
-  warn: "rgba(251,191,36,0.3)",
-  err: "rgba(248,113,113,0.3)",
-  neutral: "rgba(168,165,200,0.22)",
-};
-
 export function dimStyle(dim: Dim, active = true): CSSProperties {
-  return {
-    background: active ? DIM_TINT[dim] : "rgba(168,165,200,0.08)",
-    color: active ? DIM_COLOR[dim] : "var(--ink-2)",
-    border: `1px solid ${active ? DIM_BORDER[dim] : "rgba(168,165,200,0.22)"}`,
-  };
+  const color = DIM_COLOR[dim];
+  return active
+    ? {
+        background: `color-mix(in srgb, ${color} 10%, transparent)`,
+        color,
+        border: `1px solid color-mix(in srgb, ${color} 45%, var(--line-2))`,
+      }
+    : { background: "transparent", color: "var(--ink-2)", border: "1px solid var(--line-2)" };
+}
+
+/** The figure marker from the Work illustrations: a 7px outlined square or circle. */
+export function Marker({ dim = "blue", shape = "square", filled = true }: { dim?: Dim; shape?: "square" | "circle"; filled?: boolean }) {
+  const color = DIM_COLOR[dim];
+  return (
+    <span
+      aria-hidden
+      className="inline-block shrink-0"
+      style={{
+        width: 7,
+        height: 7,
+        border: `1px solid ${color}`,
+        background: filled ? color : "transparent",
+        borderRadius: shape === "circle" ? "50%" : 0,
+      }}
+    />
+  );
 }
 
 /* ── PageShell — the outer frame of every route page ── */
@@ -90,7 +83,7 @@ export function PageShell({
   );
 }
 
-/* ── PageHeader — serif title, muted subtitle, right-side actions ── */
+/* ── PageHeader — display title, muted subtitle, right-side actions ── */
 
 export function PageHeader({
   title,
@@ -109,10 +102,10 @@ export function PageHeader({
     <div className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-3", className)}>
       <div className="min-w-0">
         <h1 className="flex items-center gap-3 text-ink-1">
-          {Icon && <Icon className="w-6 h-6 text-ink-3 shrink-0" />}
+          {Icon && <Icon className="w-5 h-5 text-ink-3 shrink-0" strokeWidth={1.5} />}
           {title}
         </h1>
-        {subtitle && <p className="mt-0.5 text-sm text-ink-2">{subtitle}</p>}
+        {subtitle && <p className="mt-1.5 text-sm text-ink-2">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>
@@ -153,8 +146,8 @@ export function Panel({
   return (
     <Tag
       className={cn(
-        "bg-surface-2 border border-line-2 rounded-xl p-5",
-        hover && "transition-colors duration-200 hover:bg-surface-3 hover:border-line-3",
+        "bg-surface-2 border border-line-2 rounded-[10px] p-5",
+        hover && "transition-colors duration-200 hover:border-line-3",
         onClick && "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-blue)]",
         className
       )}
@@ -187,7 +180,7 @@ export function PanelHeader({
       {Icon && <Icon className="w-4 h-4 text-ink-3 shrink-0" />}
       <span
         className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-        style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}
+        style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
       >
         {title}
       </span>
@@ -218,21 +211,22 @@ export function StatTile({
   className?: string;
 }) {
   return (
-    <Panel className={cn("p-4 flex flex-col gap-1.5", className)}>
+    <Panel className={cn("p-4 flex flex-col gap-2", className)}>
       <div className="flex items-center gap-2">
-        {Icon && <Icon className="w-4 h-4 text-ink-3 shrink-0" />}
-        <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">{label}</span>
+        <span aria-hidden className="inline-block w-[17px] shrink-0" style={{ borderTop: `3px solid ${DIM_COLOR[dim ?? "blue"]}` }} />
+        {Icon && <Icon className="w-3.5 h-3.5 text-ink-3 shrink-0" strokeWidth={1.5} />}
+        <span className="label-caps">{label}</span>
       </div>
-      <div className="flex items-baseline gap-1.5">
+      <div className="flex flex-wrap items-baseline gap-2">
         <span
-          className="text-[28px] leading-none font-semibold mono"
-          style={dim ? { color: DIM_COLOR[dim] } : { color: "var(--ink-1)" }}
+          className="leading-none text-ink-1"
+          style={{ font: "500 clamp(30px, 3vw, 40px)/1.1 var(--font-display)", letterSpacing: "-0.04em" }}
         >
           {value}
         </span>
-        {unit && <span className="text-sm text-ink-2">{unit}</span>}
+        {unit && <span className="text-[13px] text-ink-2">{unit}</span>}
       </div>
-      {sub && <div className="text-[12px] text-ink-3">{sub}</div>}
+      {sub && <div className="text-[12px] text-ink-2 leading-relaxed">{sub}</div>}
     </Panel>
   );
 }
@@ -271,15 +265,16 @@ export function TabBar<T extends string>({
             key={id}
             type="button"
             onClick={() => onChange(id)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium cursor-pointer transition-colors duration-150 whitespace-nowrap"
-            style={{
-              ...dimStyle(dim, isActive),
-              ...(isActive ? { color: "var(--ink-1)" } : {}),
-            }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md mono text-[11px] uppercase tracking-[0.14em] cursor-pointer transition-colors duration-150 whitespace-nowrap hover:text-ink-1"
+            style={
+              isActive
+                ? { color: "var(--ink-1)", background: "var(--primary-soft)", border: "1px solid color-mix(in srgb, var(--accent-blue) 55%, var(--line-2))" }
+                : { color: "var(--ink-2)", background: "transparent", border: "1px solid transparent" }
+            }
           >
-            {Icon && <Icon className="w-4 h-4 shrink-0" />}
+            {isActive ? <Marker dim={dim} shape="circle" /> : Icon && <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
             {label}
-            {hint != null && <span className="text-[11px] opacity-70 mono">{hint}</span>}
+            {hint != null && <span className="text-[10.5px] opacity-60">{hint}</span>}
           </button>
         );
       })}
@@ -304,9 +299,9 @@ export function Pill({
   return (
     <span
       title={title}
-      className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[12px] font-medium whitespace-nowrap", className)}
-      style={dimStyle(dim, true)}
+      className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] mono text-[11px] leading-[1.4] whitespace-nowrap text-ink-1 border border-line-2", className)}
     >
+      <Marker dim={dim} shape="circle" />
       {children}
     </span>
   );
@@ -327,9 +322,9 @@ export function EmptyState({
 }) {
   return (
     <div className={cn("flex flex-col items-center justify-center text-center gap-2 py-12", className)}>
-      {Icon && <Icon className="w-8 h-8 text-ink-3" />}
-      <div className="text-ink-2">{title}</div>
-      {hint && <div className="text-[13px] text-ink-3 max-w-md">{hint}</div>}
+      {Icon && <Icon className="w-6 h-6 text-ink-3" strokeWidth={1.25} />}
+      <div className="label-caps">{title}</div>
+      {hint && <div className="text-[13px] text-ink-2 max-w-md leading-relaxed">{hint}</div>}
     </div>
   );
 }

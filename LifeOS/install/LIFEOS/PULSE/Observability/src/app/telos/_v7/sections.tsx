@@ -8,7 +8,7 @@ import type { CSSProperties, ReactNode, MouseEvent as ReactMouseEvent, KeyboardE
 import type { Goal, Telos } from "./data";
 import { Icons } from "./icons";
 
-const CARD_BG: CSSProperties = { background: "#0F1A33", color: "#E8EFFF" };
+const CARD_BG: CSSProperties = { background: "#111111", color: "#f0e8d8" };
 
 interface RBtnProps {
   className?: string;
@@ -60,7 +60,7 @@ function RefRow({ label, ids, onTrace }: { label: string; ids: readonly string[]
         <span key={refId} role="button" tabIndex={0} className="ref-pill mono"
           onClick={(e)=>{e.stopPropagation();onTrace(refId);}}
           onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}
-          style={{padding:'1px 6px',borderRadius:3,background:'rgba(154,203,255,0.10)',color:'#9ACBFF',border:'1px solid rgba(154,203,255,0.20)',fontSize:10,cursor:'pointer'}}>
+          style={{padding:'1px 6px',borderRadius:3,background:'rgba(168,226,238,0.10)',color:'#a8e2ee',border:'1px solid rgba(168,226,238,0.20)',fontSize:10,cursor:'pointer'}}>
           {refId}
         </span>
       )) : <span style={{opacity:0.4}}>none</span>}
@@ -93,7 +93,7 @@ export function Problems({ telos, onTrace, showIds, openFile }: CommonSectionPro
                 <span key={refId} role="button" tabIndex={0} className="ref-pill mono"
                   onClick={(e)=>{e.stopPropagation();onTrace(refId);}}
                   onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();onTrace(refId);}}}
-                  style={{padding:'1px 6px',borderRadius:3,background:'rgba(154,203,255,0.10)',color:'#9ACBFF',border:'1px solid rgba(154,203,255,0.20)',fontSize:10,cursor:'pointer'}}>{refId}</span>
+                  style={{padding:'1px 6px',borderRadius:3,background:'rgba(168,226,238,0.10)',color:'#a8e2ee',border:'1px solid rgba(168,226,238,0.20)',fontSize:10,cursor:'pointer'}}>{refId}</span>
               )) : <span style={{opacity:0.5}}>none</span>}
             </div>
           </RBtn>
@@ -139,7 +139,7 @@ export function MissionGoals({ telos, missionId, onMission, onTrace, onOpenGoal,
       <RBtn
         className="telos-card mission-card"
         onClick={() => openFile ? openFile("TELOS.md") : onTrace(active.id)}
-        style={{ background: "linear-gradient(90deg, rgba(154,203,255,0.08), #0F1A33)" }}
+        style={{ background: "linear-gradient(90deg, rgba(168,226,238,0.08), #111111)" }}
       >
         <div className="mission-eyebrow">Mission · {active.horizon}</div>
         <h3 className="mission-title">
@@ -316,7 +316,7 @@ export function Metrics({ telos, onTrace, showIds, openFile }: CommonSectionProp
                 {m.trend > 0 ? "↗" : m.trend < 0 ? "↘" : "·"} {Math.abs(m.trend)}
               </span>
             </div>
-            <MetricSpark pts={m.spark} color="#9ACBFF" />
+            <MetricSpark pts={m.spark} color="#a8e2ee" />
             <div className="metric-foot muted">
               feeds {m.feeds.join(", ")}
             </div>
@@ -375,7 +375,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     onMouseEnter={() => setHover(c.id)}
                     onMouseLeave={() => setHover(null)}
                     onClick={() => openFile ? openFile("TELOS.md") : onTrace(c.id)}
-                    style={{ borderLeft: "3px solid #9ACBFF" }}
+                    style={{ borderLeft: "2px solid #a8e2ee" }}
                   >
                     <div className="card-row">
                       <span className="card-id mono telos-id-label">{c.id}</span>
@@ -403,7 +403,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     onMouseEnter={() => setHover(s.id)}
                     onMouseLeave={() => setHover(null)}
                     onClick={() => openFile ? openFile("TELOS.md") : onTrace(s.id)}
-                    style={{ borderLeft: "3px solid #3B82F6" }}
+                    style={{ borderLeft: "2px solid #3fb2c9" }}
                   >
                     <div className="card-row">
                       <span className="card-id mono telos-id-label">{s.id}</span>
@@ -420,7 +420,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
           </div>
         </div>
       ) : (
-        <div className="cs-graph" style={{ background: "#0F1A33", border: "1px solid #1A2A4D", borderRadius: 12, padding: 16 }}>
+        <div className="cs-graph" style={{ background: "#111111", border: "1px solid #1f1f1f", borderRadius: 12, padding: 16 }}>
           <svg viewBox="0 0 1000 520" className="force-svg" preserveAspectRatio="xMidYMid meet">
             {telos.challenges.map((c, i) => {
               const y = 60 + i * (420 / Math.max(1, telos.challenges.length - 1));
@@ -433,8 +433,8 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                   onMouseLeave={() => setHover(null)}
                   style={{ cursor: "pointer" }}
                 >
-                  <rect x="40" y={y - 16} width="300" height="32" rx="4" fill="#12203D" stroke="#9ACBFF" strokeOpacity="0.4" />
-                  <text x="55" y={y + 4} fill="#E8EFFF" fontSize="12">{c.title}</text>
+                  <rect x="40" y={y - 16} width="300" height="32" rx="4" fill="#141414" stroke="#a8e2ee" strokeOpacity="0.4" />
+                  <text x="55" y={y + 4} fill="#f0e8d8" fontSize="12">{c.title}</text>
                 </g>
               );
             })}
@@ -449,8 +449,8 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                   onMouseLeave={() => setHover(null)}
                   style={{ cursor: "pointer" }}
                 >
-                  <rect x="660" y={y - 16} width="300" height="32" rx="4" fill="#12203D" stroke="#3B82F6" strokeOpacity="0.45" />
-                  <text x="675" y={y + 4} fill="#E8EFFF" fontSize="12">{s.title.split("—")[0].trim()}</text>
+                  <rect x="660" y={y - 16} width="300" height="32" rx="4" fill="#141414" stroke="#3fb2c9" strokeOpacity="0.45" />
+                  <text x="675" y={y + 4} fill="#f0e8d8" fontSize="12">{s.title.split("—")[0].trim()}</text>
                 </g>
               );
             })}
@@ -465,7 +465,7 @@ export function ChallengeStrategy({ telos, onTrace, showIds, openFile }: Challen
                     key={s.id + cid}
                     d={`M 340 ${cy} C 500 ${cy}, 500 ${sy}, 660 ${sy}`}
                     fill="none"
-                    stroke="#3B82F6"
+                    stroke="#3fb2c9"
                     strokeOpacity={active ? 0.55 : 0.12}
                     strokeWidth={active ? 1.4 : 0.7}
                   />
@@ -565,7 +565,7 @@ export function Budget({ telos, onTrace, showIds, openFile }: CommonSectionProps
                 key={b.id}
                 className={"telos-card budget-row" + (b.warn ? " warn" : "")}
                 onClick={() => openFile ? openFile("TELOS.md") : onTrace(b.id)}
-                style={b.warn ? { borderLeft: "3px solid #F87171" } : {}}
+                style={b.warn ? { borderLeft: "2px solid #F87171" } : {}}
               >
                 <div className="budget-head-row">
                   <span className="mono card-id telos-id-label">{b.id}</span>
@@ -579,7 +579,7 @@ export function Budget({ telos, onTrace, showIds, openFile }: CommonSectionProps
                     className="progress-fill"
                     style={{
                       width: Math.min(100, b.pct) + "%",
-                      background: b.warn ? "linear-gradient(90deg,#F87171,#FBBF24)" : undefined,
+                      background: b.warn ? "linear-gradient(90deg,#F87171,#f5c451)" : undefined,
                     }}
                   />
                 </div>
@@ -723,7 +723,7 @@ export function Preferences({ telos, openFile }: PreferencesProps) {
         <span className="prefs-sub muted">The signals that aren&rsquo;t primitives but color every decision.</span>
         <Icons.Chev
           size={14}
-          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 200ms", marginLeft: "auto", color: "#6B80AB" }}
+          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 200ms", marginLeft: "auto", color: "#6b7d89" }}
         />
       </div>
       {open && (

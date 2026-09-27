@@ -9,23 +9,23 @@ import { Brain, Wrench, Clock, X, Zap, Loader2 } from "lucide-react";
 // ─── Agent Color Map ───
 
 const AGENT_HEX: Record<string, string> = {
-  pentester: "#EF4444",
-  engineer: "#3B82F6",
-  designer: "#A855F7",
-  architect: "#A855F7",
-  intern: "#06B6D4",
-  artist: "#06B6D4",
-  "perplexity-researcher": "#EAB308",
-  "claude-researcher": "#EAB308",
-  "gemini-researcher": "#EAB308",
-  main: "#3B82F6",
-  da: "#3B82F6",
-  pai: "#3B82F6",
-  "claude-code": "#3B82F6",
+  pentester: "#f87171",
+  engineer: "#3fb2c9",
+  designer: "#a78bfa",
+  architect: "#a78bfa",
+  intern: "#3fb2c9",
+  artist: "#3fb2c9",
+  "perplexity-researcher": "#f5c451",
+  "claude-researcher": "#f5c451",
+  "gemini-researcher": "#f5c451",
+  main: "#3fb2c9",
+  da: "#3fb2c9",
+  pai: "#3fb2c9",
+  "claude-code": "#3fb2c9",
 };
 
 function getHexColor(name: string) {
-  return AGENT_HEX[name.split(":")[0].toLowerCase()] || "#7aa2f7";
+  return AGENT_HEX[name.split(":")[0].toLowerCase()] || "#5cc4d8";
 }
 
 function formatGap(ms: number): string {
@@ -136,7 +136,7 @@ export default function AgentSwimLane({ agentName, events, timeRange, onClose }:
       animationDuration: 300,
       barWidth: 3,
       barGap: 1,
-      colors: { primary: "#3B82F6", glow: "#60A5FA", axis: "#333", text: "#565f89" },
+      colors: { primary: "#3fb2c9", glow: "#5cc4d8", axis: "#333", text: "#55636d" },
     });
 
     const resizeObs = new ResizeObserver(() => {

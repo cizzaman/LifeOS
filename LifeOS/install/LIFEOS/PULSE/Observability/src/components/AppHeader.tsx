@@ -63,14 +63,14 @@ export default function AppHeader() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const fontStyle = { fontFamily: "'concourse-t3', sans-serif" };
+  const fontStyle = { fontFamily: "var(--font-mono)" };
   const agentsItem = metaNav[0];
   const AgentsIcon = agentsItem.icon;
 
   return (
     <header
       className="sticky top-0 z-50 backdrop-blur-md"
-      style={{ background: "rgba(6, 11, 26, 0.85)" }}
+      style={{ background: "rgba(10, 10, 10, 0.85)" }}
     >
       {/* ── Tier 1 — persistent global nav (the only always-on menu) ── */}
       <div className="border-b border-line-1">
@@ -78,9 +78,10 @@ export default function AppHeader() {
           <div className="flex items-center min-h-14 py-1.5 gap-4 lg:gap-6">
             <Link href="/" className="flex items-center gap-3 shrink-0">
               <Image src="/lifeos-logo.png" alt="LifeOS" width={28} height={28} className="h-7 w-7 object-contain" />
-              <span className="text-lg tracking-[0.25em] text-ink-1" style={{ fontFamily: "'advocate-c14', sans-serif", fontWeight: 600 }}>
+              <span className="text-lg tracking-[0.25em] text-ink-1" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
                 PULSE
               </span>
+              <span className="fig-hub" aria-hidden><i /></span>
             </Link>
 
             {/* Wraps to additional lines when items overflow — same pattern as the
@@ -96,8 +97,8 @@ export default function AppHeader() {
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 lg:px-3 xl:px-3.5 py-2 text-[13px] lg:text-[14px] xl:text-[15px] tracking-[0.1em] xl:tracking-[0.12em] rounded-md transition-all duration-200 shrink-0",
-                      active ? "bg-white/15 text-ink-1 font-semibold" : "font-medium text-ink-3 hover:text-ink-1 hover:bg-white/5"
+                      "flex items-center gap-1.5 px-2.5 lg:px-3 xl:px-3.5 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
+                      active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                     )}
                     style={fontStyle}
                   >
@@ -113,15 +114,15 @@ export default function AppHeader() {
               <Link
                 href={agentsItem.href}
                 className={cn(
-                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[13px] xl:text-[14px] tracking-[0.12em] rounded-md transition-all duration-200 shrink-0",
+                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
                   inAgents
-                    ? "text-ink-1 font-semibold"
-                    : "font-medium text-ink-2 hover:text-ink-1"
+                    ? "text-ink-1"
+                    : "text-ink-2 hover:text-ink-1"
                 )}
                 style={{
                   ...fontStyle,
-                  background: inAgents ? "rgba(59,130,246,0.15)" : "transparent",
-                  border: inAgents ? "1px solid rgba(154,203,255,0.3)" : "1px solid var(--line-2)",
+                  background: inAgents ? "var(--primary-soft)" : "transparent",
+                  border: inAgents ? "1px solid var(--accent-blue)" : "1px solid var(--line-2)",
                 }}
               >
                 <AgentsIcon className="w-4 h-4 shrink-0" />
@@ -131,10 +132,10 @@ export default function AppHeader() {
               <Link
                 href={systemHome}
                 className={cn(
-                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[13px] xl:text-[14px] tracking-[0.12em] rounded-md transition-all duration-200 shrink-0",
+                  "hidden md:flex items-center gap-1.5 px-3 py-2 text-[11px] xl:text-[11.5px] tracking-[0.16em] uppercase rounded-md transition-all duration-200 shrink-0",
                   inSystem
-                    ? "bg-white/15 text-ink-1 font-semibold"
-                    : "font-medium text-ink-3 hover:text-ink-1 hover:bg-white/5 border border-line-2"
+                    ? "bg-[color:var(--primary-soft)] text-ink-1"
+                    : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04] border border-line-2"
                 )}
                 style={fontStyle}
               >
@@ -145,12 +146,12 @@ export default function AppHeader() {
               <button
                 onClick={toggleObserverMode}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] tracking-[0.1em] transition-all duration-200",
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] tracking-[0.16em] uppercase transition-all duration-200",
                   observerMode
                     ? "text-warn"
-                    : "text-ink-3 hover:text-ink-2 hover:bg-white/5"
+                    : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                 )}
-                style={observerMode ? { background: "rgba(251,191,36,0.14)", border: "1px solid rgba(251,191,36,0.3)" } : undefined}
+                style={observerMode ? { background: "rgba(245,196,81,0.14)", border: "1px solid rgba(245,196,81,0.3)" } : undefined}
                 title={observerMode ? "Observer mode ON — sensitive data hidden" : "Toggle observer mode"}
               >
                 {observerMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -171,11 +172,11 @@ export default function AppHeader() {
           "the section you're in", never as a second permanent global menu.
           Its lighter ground + "SYSTEM" rail make it visually distinct from Tier 1. ── */}
       {inSystem && (
-        <div className="border-b border-line-1" style={{ background: "rgba(15, 26, 51, 0.6)" }}>
+        <div className="border-b border-line-1" style={{ background: "rgba(17, 17, 17, 0.6)" }}>
           <div className="max-w-[1920px] mx-auto px-4 sm:px-6">
             <div className="hidden md:flex items-start min-h-11 py-1.5 gap-3">
               <span
-                className="text-[10px] tracking-[0.18em] text-ink-3 uppercase shrink-0 pr-3 pt-2 border-r border-line-1"
+                className="label-caps shrink-0 pr-3 pt-2 border-r border-line-1"
                 style={fontStyle}
               >
                 System
@@ -189,8 +190,8 @@ export default function AppHeader() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] tracking-[0.08em] rounded transition-colors shrink-0",
-                        active ? "bg-white/10 text-ink-1" : "text-ink-3 hover:text-ink-2 hover:bg-white/5"
+                        "flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] tracking-[0.14em] uppercase rounded transition-colors shrink-0",
+                        active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                       )}
                       style={fontStyle}
                     >
@@ -208,42 +209,42 @@ export default function AppHeader() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1 backdrop-blur-md" style={{ background: "rgba(6, 11, 26, 0.95)" }}>
+        <div ref={mobileMenuRef} className="md:hidden border-b border-line-1 backdrop-blur-md" style={{ background: "rgba(10, 10, 10, 0.95)" }}>
           <nav className="flex flex-col px-4 py-3 gap-1">
-            <div className="text-xs uppercase tracking-wider text-ink-3 px-3 py-1">Sections</div>
+            <div className="label-caps px-3 py-1">Sections</div>
             {tier1.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
               return (
                 <Link key={item.label} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[15px] tracking-[0.12em] rounded-lg transition-colors",
-                    active ? "bg-white/15 text-ink-1 font-semibold" : "font-medium text-ink-2 hover:text-ink-1 hover:bg-white/5"
+                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-lg transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                   )} style={fontStyle}>
                   <Icon className="w-4 h-4" />{item.label}
                 </Link>
               );
             })}
-            <div className="text-xs uppercase tracking-wider text-ink-3 px-3 py-1 mt-2">Meta</div>
+            <div className="label-caps px-3 py-1 mt-2">Meta</div>
             {metaNav.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[15px] tracking-[0.12em] rounded-lg transition-colors",
-                    active ? "bg-white/15 text-ink-1 font-semibold" : "font-medium text-ink-2 hover:text-ink-1 hover:bg-white/5"
+                  className={cn("flex items-center gap-2.5 px-3 py-2.5 text-[12px] tracking-[0.16em] uppercase rounded-lg transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                   )} style={fontStyle}>
                   <Icon className="w-4 h-4" />{item.label}
                 </Link>
               );
             })}
-            <div className="text-xs uppercase tracking-wider text-ink-3 px-3 py-1 mt-2">System</div>
+            <div className="label-caps px-3 py-1 mt-2">System</div>
             {system.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}
-                  className={cn("flex items-center gap-2.5 px-3 py-2 text-[13px] tracking-[0.08em] rounded-lg transition-colors",
-                    active ? "bg-white/10 text-ink-1" : "text-ink-3 hover:text-ink-2 hover:bg-white/5"
+                  className={cn("flex items-center gap-2.5 px-3 py-2 text-[11px] tracking-[0.14em] uppercase rounded-lg transition-colors",
+                    active ? "bg-[color:var(--primary-soft)] text-ink-1" : "text-ink-2 hover:text-ink-1 hover:bg-white/[0.04]"
                   )} style={fontStyle}>
                   <Icon className="w-3.5 h-3.5" />{item.label}
                 </Link>

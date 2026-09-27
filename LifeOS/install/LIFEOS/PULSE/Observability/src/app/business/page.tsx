@@ -170,7 +170,7 @@ function SectionGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {sections.map((s, i) => (
-        <Panel key={i} style={{ borderLeft: `3px solid ${accent}` }}>
+        <Panel key={i} style={{ borderLeft: `2px solid ${accent}` }}>
           <PanelHeader title={s.heading} icon={Icon} className="mb-2" />
           <div className="text-xs whitespace-pre-wrap line-clamp-6 text-ink-2" data-sensitive>
             {s.body}
@@ -193,7 +193,7 @@ export default function BusinessPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "3px solid var(--err)" }}>
+        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
           <h2 className="font-medium" style={{ color: "var(--err)" }}>
             Failed to load business
           </h2>

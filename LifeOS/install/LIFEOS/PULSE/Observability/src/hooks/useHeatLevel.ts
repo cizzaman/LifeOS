@@ -5,11 +5,11 @@ import { useMemo } from "react";
 // ─── Heat Color Scale (Tokyo Night) ───
 
 const HEAT_COLORS = {
-  cold: "#565f89",
-  cool: "#7aa2f7",
-  warm: "#9d7cd8",
-  hot: "#e0af68",
-  fire: "#f7768e",
+  cold: "#55636d",
+  cool: "#5cc4d8",
+  warm: "#a78bfa",
+  hot: "#f5c451",
+  fire: "#f87171",
   inferno: "#ff5555",
 };
 

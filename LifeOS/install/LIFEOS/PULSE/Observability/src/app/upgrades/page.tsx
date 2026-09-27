@@ -124,7 +124,7 @@ function UpgradeCard({
         <div className="flex-1 min-w-0">
           <h3
             className="text-sm font-medium text-ink-1 leading-snug normal-case"
-            style={{ fontFamily: "'concourse-t3', sans-serif" }}
+            style={{ fontFamily: "'Albert Sans', sans-serif" }}
           >
             {item.claim || item.id}
           </h3>

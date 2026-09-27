@@ -59,7 +59,7 @@ interface GoalCardProps {
 }
 
 function GoalCard({ g, dim, hover, active, onHover, onOpen, showIds }: GoalCardProps) {
-  const color = dim ? `var(${dim.color})` : "var(--accent)";
+  const color = dim ? `var(${dim.color})` : "var(--accent-live)";
   const faded = hover.size > 0 && !active;
   return (
     <div

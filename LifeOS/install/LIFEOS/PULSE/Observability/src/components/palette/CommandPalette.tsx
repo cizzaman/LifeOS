@@ -57,8 +57,8 @@ const WIKI_ICONS: Record<string, LucideIcon> = {
 // the WIKI scope chip so the old muscle memory keeps working.
 const WIKI_SCOPED_PREFIXES = ["/docs", "/memory/knowledge", "/system"];
 
-const font = { fontFamily: "'concourse-t3', sans-serif" };
-const mono = { fontFamily: "'triplicate-a-code', monospace" };
+const font = { fontFamily: "'Albert Sans', sans-serif" };
+const mono = { fontFamily: "'Fira Code', monospace" };
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -247,13 +247,13 @@ export default function CommandPalette() {
   const renderRow = (row: Row, idx: number) => {
     const isSelected = idx === clampedIndex;
     const base = `w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors border-l-2 ${
-      isSelected ? "bg-[#3b82f6]/10 border-[#3b82f6]" : "border-transparent hover:bg-surface-3"
+      isSelected ? "bg-[#3fb2c9]/10 border-[#3fb2c9]" : "border-transparent hover:bg-surface-3"
     }`;
     if (row.kind === "page") {
       const Icon = row.entry.icon;
       return (
         <button key={`page-${row.entry.href}`} onClick={() => activate(row, false)} className={base}>
-          <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#3b82f6]" : "text-ink-3"}`} />
+          <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#3fb2c9]" : "text-ink-3"}`} />
           <span
             className={`flex-1 truncate text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`}
             style={font}
@@ -274,7 +274,7 @@ export default function CommandPalette() {
     const Icon = WIKI_ICONS[row.result.category] ?? FileText;
     return (
       <button key={`wiki-${row.result.category}-${row.result.slug}`} onClick={() => activate(row, false)} className={base}>
-        <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#a855f7]" : "text-ink-3"}`} />
+        <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#a78bfa]" : "text-ink-3"}`} />
         <span className="flex-1 min-w-0 flex flex-col">
           <span className={`truncate text-sm ${isSelected ? "text-ink-1" : "text-ink-2"}`} style={font}>
             {row.result.title}
@@ -302,7 +302,7 @@ export default function CommandPalette() {
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-xl bg-[rgba(15,26,51,0.97)] backdrop-blur-xl border border-line-2 rounded-xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl bg-[rgba(17,17,17,0.97)] backdrop-blur-xl border border-line-2 rounded-xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input row */}
@@ -310,7 +310,7 @@ export default function CommandPalette() {
           <Search className="w-4 h-4 text-ink-3 shrink-0" />
           {scope && (
             <span
-              className="shrink-0 text-[11px] uppercase tracking-widest px-2 py-0.5 rounded bg-[#3b82f6]/15 text-[#3b82f6] border border-[#3b82f6]/30"
+              className="shrink-0 text-[11px] uppercase tracking-widest px-2 py-0.5 rounded bg-[#3fb2c9]/15 text-[#3fb2c9] border border-[#3fb2c9]/30"
               style={mono}
             >
               {scope}
@@ -323,7 +323,7 @@ export default function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder={scope === "wiki" ? "Search docs and knowledge..." : "Jump to anything..."}
-            className="flex-1 bg-transparent text-[15px] text-ink-1 placeholder:text-ink-3 outline-none caret-[#3b82f6]"
+            className="flex-1 bg-transparent text-[15px] text-ink-1 placeholder:text-ink-3 outline-none caret-[#3fb2c9]"
             style={font}
           />
           <kbd className="text-[12px] px-1.5 py-0.5 rounded bg-surface-3 border border-line-2 text-ink-3" style={mono}>

@@ -27,8 +27,8 @@ function formatAge(daysOld: number | null): string {
 }
 
 const TIER_STYLE: Record<FreshnessData["tier"], { dot: string; text: string; border: string; bg: string; Icon: any; label: string }> = {
-  fresh:   { dot: "bg-ok",    text: "text-ok",    border: "border-[rgba(74,222,128,0.25)]",  bg: "bg-[rgba(74,222,128,0.1)]",  Icon: CheckCircle2,   label: "Fresh" },
-  aging:   { dot: "bg-warn",  text: "text-warn",  border: "border-[rgba(251,191,36,0.25)]",  bg: "bg-[rgba(251,191,36,0.1)]",  Icon: Clock,          label: "Aging" },
+  fresh:   { dot: "bg-ok",    text: "text-ok",    border: "border-[rgba(34,197,94,0.25)]",  bg: "bg-[rgba(34,197,94,0.1)]",  Icon: CheckCircle2,   label: "Fresh" },
+  aging:   { dot: "bg-warn",  text: "text-warn",  border: "border-[rgba(245,196,81,0.25)]",  bg: "bg-[rgba(245,196,81,0.1)]",  Icon: Clock,          label: "Aging" },
   stale:   { dot: "bg-err",   text: "text-err",   border: "border-[rgba(248,113,113,0.25)]", bg: "bg-[rgba(248,113,113,0.1)]", Icon: AlertTriangle,  label: "Stale" },
   unknown: { dot: "bg-ink-3", text: "text-ink-2", border: "border-line-2",                   bg: "bg-surface-3",               Icon: HelpCircle,     label: "Unknown" },
 };

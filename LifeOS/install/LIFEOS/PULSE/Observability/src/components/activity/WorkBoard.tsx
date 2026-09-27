@@ -72,11 +72,11 @@ function NoISAChip({ size = "sm" }: { size?: "sm" | "xs" }) {
 // tool-activity.jsonl. Shown only while fresh (< 5 min since last tool call).
 
 const ACTIVITY_META: Record<ActivityClass, { label: string; color: string }> = {
-  exploring: { label: "Exploring", color: "#7dcfff" },
-  building: { label: "Building", color: "#e0af68" },
-  verifying: { label: "Verifying", color: "#34d399" },
-  delegating: { label: "Delegating", color: "#bb9af7" },
-  other: { label: "Working", color: "#c0caf5" },
+  exploring: { label: "Exploring", color: "#7cd5e6" },
+  building: { label: "Building", color: "#f5c451" },
+  verifying: { label: "Verifying", color: "#22c55e" },
+  delegating: { label: "Delegating", color: "#a78bfa" },
+  other: { label: "Working", color: "#d9d2c4" },
 };
 
 const ACTIVITY_FRESH_MS = 5 * 60 * 1000;
@@ -146,8 +146,8 @@ const CLAIM_COLUMNS: {
 }[] = [
   // "In progress" column removed 2026-07-22: no writer has ever emitted
   // in_progress (parser is pending|completed) — the column was permanently empty.
-  { key: "open", label: "Open", color: "#7dcfff", match: (c) => c.status !== "completed" && c.status !== "failed" },
-  { key: "verified", label: "Verified", color: "#34d399", match: (c) => c.status === "completed" },
+  { key: "open", label: "Open", color: "#7cd5e6", match: (c) => c.status !== "completed" && c.status !== "failed" },
+  { key: "verified", label: "Verified", color: "#22c55e", match: (c) => c.status === "completed" },
 ];
 
 function splitEvidence(c: AlgorithmCriterion): [string, string] {
@@ -163,7 +163,7 @@ function ClaimsKanban({ s }: { s: AlgorithmState }) {
   const cols = [
     ...CLAIM_COLUMNS,
     ...(failed.length > 0
-      ? [{ key: "failed", label: "Failed", color: "#f7768e", match: (c: AlgorithmCriterion) => c.status === "failed" }]
+      ? [{ key: "failed", label: "Failed", color: "#f87171", match: (c: AlgorithmCriterion) => c.status === "failed" }]
       : []),
   ];
 
@@ -708,7 +708,7 @@ function BoardKanban({
         // sticky bottom: the live area rides the viewport — never below the
         // fold no matter the screen height or scroll position. Opaque ground
         // so lanes don't bleed through while scrolling behind it.
-        <div className="mx-3 mb-3 shrink-0 sticky bottom-3 z-20 rounded-lg border border-sky-500/30 bg-[rgba(13,20,40,0.96)] backdrop-blur-md shadow-2xl max-h-[42vh] overflow-y-auto">
+        <div className="mx-3 mb-3 shrink-0 sticky bottom-3 z-20 rounded-lg border border-sky-500/30 bg-[rgba(15,15,15,0.96)] backdrop-blur-md shadow-2xl max-h-[42vh] overflow-y-auto">
           <div className="px-4 py-2 flex items-center gap-2 bg-white/[0.015] sticky top-0 backdrop-blur-sm">
             <span
               className={`w-2 h-2 rounded-full shrink-0 ${displayed.active ? "bg-sky-400 animate-pulse" : "bg-ink-3"}`}
@@ -855,8 +855,8 @@ export default function WorkBoard() {
               onClick={() => setFilter(f.value)}
               className={`px-3 py-1 rounded-full text-[13px] font-medium transition-colors border ${
                 filter === f.value
-                  ? "bg-[rgba(125,207,255,0.12)] text-ink-1 border-[rgba(125,207,255,0.3)]"
-                  : "bg-[rgba(168,165,200,0.05)] text-ink-3 hover:text-ink-2 border-transparent"
+                  ? "bg-[rgba(124,213,230,0.12)] text-ink-1 border-[rgba(124,213,230,0.3)]"
+                  : "bg-[rgba(152,168,179,0.05)] text-ink-3 hover:text-ink-2 border-transparent"
               }`}
             >
               {f.label}
@@ -921,10 +921,10 @@ export default function WorkBoard() {
         {activeClimbs.length > 0 && (
           <div>
             <SectionHeader
-              icon={<Mountain className="w-3.5 h-3.5" style={{ color: "#7dcfff" }} />}
+              icon={<Mountain className="w-3.5 h-3.5" style={{ color: "#7cd5e6" }} />}
               label="Active climbs"
               count={activeClimbs.length}
-              tone="#7dcfff"
+              tone="#7cd5e6"
             />
             {activeClimbs.map((s) => (
               <BoardRow
@@ -940,10 +940,10 @@ export default function WorkBoard() {
         {liveSessions.length > 0 && (
           <div>
             <SectionHeader
-              icon={<Terminal className="w-3.5 h-3.5" style={{ color: "#c0caf5" }} />}
+              icon={<Terminal className="w-3.5 h-3.5" style={{ color: "#d9d2c4" }} />}
               label="Live sessions"
               count={liveSessions.length}
-              tone="#c0caf5"
+              tone="#d9d2c4"
             />
             {/* Live rows drew a chevron that did nothing — same toggle as every
                 other section. ported from public PR #1735, @elhoim */}
@@ -961,10 +961,10 @@ export default function WorkBoard() {
         {resumable.length > 0 && (
           <div>
             <SectionHeader
-              icon={<Clock className="w-3.5 h-3.5" style={{ color: "#e0af68" }} />}
+              icon={<Clock className="w-3.5 h-3.5" style={{ color: "#f5c451" }} />}
               label="Resumable"
               count={resumable.length}
-              tone="#e0af68"
+              tone="#f5c451"
             />
             {resumable.map((s) => (
               <BoardRow

@@ -95,7 +95,7 @@ function SectionHeading({ icon: Icon, children }: { icon: LucideIcon; children: 
   return (
     <h2
       className="flex items-center gap-2 mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-      style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}
+      style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
     >
       <Icon className="w-4 h-4" />
       {children}
@@ -184,7 +184,7 @@ function DocsLanding({ data }: { data: WikiIndex }) {
                     <div className="flex items-center justify-between gap-2">
                       <div
                         className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3"
-                        style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}
+                        style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}
                       >
                         {group.label}
                       </div>

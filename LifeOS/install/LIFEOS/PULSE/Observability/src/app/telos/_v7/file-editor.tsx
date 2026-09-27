@@ -129,7 +129,7 @@ export function FileEditor({ open, filename, onClose, onSaved }: FileEditorProps
       <div
         className="telos-card"
         onClick={(event) => event.stopPropagation()}
-        style={{ width: 900, maxWidth: "90vw", maxHeight: "80vh", padding: 20, background: "#0F1A33", color: "#E8EFFF", border: "1px solid #1A2A4D" }}
+        style={{ width: 900, maxWidth: "90vw", maxHeight: "80vh", padding: 20, background: "#111111", color: "#f0e8d8", border: "1px solid #1f1f1f" }}
       >
         <header style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
           <div style={{ fontFamily: "monospace", fontSize: 14 }}>{filename}</div>
@@ -144,18 +144,18 @@ export function FileEditor({ open, filename, onClose, onSaved }: FileEditorProps
             width: "100%",
             minHeight: "55vh",
             resize: "vertical",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily: "var(--font-mono)",
             fontSize: 14,
             lineHeight: 1.5,
-            background: "#0F1A33",
-            color: "#E8EFFF",
-            border: "1px solid #1A2A4D",
+            background: "#111111",
+            color: "#f0e8d8",
+            border: "1px solid #1f1f1f",
             padding: 20,
             outline: "none",
           }}
         />
         <footer style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14 }}>
-          <div style={{ color: error ? "#F87171" : "#9BB0D6", fontSize: 13 }}>
+          <div style={{ color: error ? "#F87171" : "#98a8b3", fontSize: 13 }}>
             {error ?? status ?? (loading ? "Loading..." : dirty ? "Unsaved changes" : "Ready")}
           </div>
           <button type="button" onClick={closeWithConfirm} disabled={saving} style={{ marginLeft: "auto" }}>Cancel</button>

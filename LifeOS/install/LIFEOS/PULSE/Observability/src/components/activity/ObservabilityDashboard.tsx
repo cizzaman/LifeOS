@@ -83,7 +83,7 @@ export default function ObservabilityDashboard() {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const heatLevelRef = useRef<{ intensity: number; color: string; label: string }>({
     intensity: 0,
-    color: "#565f89",
+    color: "#55636d",
     label: "Idle",
   });
   const eventsPerMinuteRef = useRef(0);

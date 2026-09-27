@@ -75,7 +75,7 @@ function FileCard({ file }: { file: HealthFile }) {
   const meta = fileMeta(file.name);
   const Icon = meta.icon;
   return (
-    <Panel hover style={{ borderLeft: "3px solid var(--health)" }}>
+    <Panel hover style={{ borderLeft: "2px solid var(--health)" }}>
       <PanelHeader
         title={meta.label}
         icon={Icon}
@@ -157,7 +157,7 @@ function SupplementCard({ s }: { s: Supplement }) {
   const dim = (s.category && CATEGORY_DIM[s.category]) || "health";
   const inactive = s.status && !/^active/i.test(s.status);
   return (
-    <Panel hover style={{ borderLeft: `3px solid var(--${dim})` }}>
+    <Panel hover style={{ borderLeft: `2px solid var(--${dim})` }}>
       <PanelHeader
         title={s.name}
         icon={PillIcon}
@@ -255,7 +255,7 @@ function SupplementsTab({ sections }: { sections: Section[] }) {
       })}
 
       {notes && (
-        <Panel style={{ borderLeft: "3px solid var(--rhythms)" }}>
+        <Panel style={{ borderLeft: "2px solid var(--rhythms)" }}>
           <PanelHeader title="Notes" icon={FileText} />
           <div className="text-xs text-ink-2 whitespace-pre-line" data-sensitive>
             {notes.replace(/^- /gm, "• ")}
@@ -368,7 +368,7 @@ export default function HealthPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "3px solid var(--err)" }}>
+        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
           <h2 className="font-medium text-err">Failed to load health</h2>
           <p className="text-sm text-ink-2">{error}</p>
         </Panel>

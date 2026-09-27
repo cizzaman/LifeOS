@@ -20,11 +20,11 @@ const KIND_COLOR: Record<string, string> = {
   target: "var(--warn)",
   system: "var(--err)",
   repo: "#a78bfa",
-  service: "#22d3ee",
+  service: "#5cc4d8",
   machine: "var(--err)",
-  d1_database: "#f472b6",
-  r2_bucket: "#f472b6",
-  kv_namespace: "#f472b6",
+  d1_database: "#f87171",
+  r2_bucket: "#f87171",
+  kv_namespace: "#f87171",
   device: "var(--ink-3)",
 };
 const colorFor = (k: string) => KIND_COLOR[k] ?? "var(--ink-3)";

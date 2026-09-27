@@ -38,9 +38,9 @@ function aqiTextColor(aqi: number | null): string {
   if (aqi === null) return "var(--ink-3)";
   if (aqi <= 50) return "var(--ok)";
   if (aqi <= 100) return "var(--warn)";
-  if (aqi <= 150) return "#F59E0B";
+  if (aqi <= 150) return "#f5c451";
   if (aqi <= 200) return "var(--err)";
-  if (aqi <= 300) return "#A855F7";
+  if (aqi <= 300) return "#a78bfa";
   return "#B91C1C";
 }
 
@@ -52,7 +52,7 @@ function co2Color(co2: number | null): string {
   if (co2 === null) return "var(--ink-3)";
   if (co2 < 800) return "var(--ok)";
   if (co2 < 1200) return "var(--warn)";
-  if (co2 < 2000) return "#F59E0B";
+  if (co2 < 2000) return "#f5c451";
   return "var(--err)";
 }
 
@@ -89,7 +89,7 @@ function Banner({ air }: { air: AirData | null }) {
   return (
     <Panel
       className="relative p-8"
-      style={{ background: "linear-gradient(90deg, rgba(52,211,153,0.08), var(--surface-1))" }}
+      style={{ background: "linear-gradient(90deg, rgba(34,197,94,0.08), var(--surface-1))" }}
     >
       <div className="absolute top-5 right-5 text-[12px] text-ink-3 mono">cached {fetched}</div>
       <div className="flex items-start gap-6 flex-wrap">
@@ -152,7 +152,7 @@ function MonitorCard({ m }: { m: AirMonitor }) {
   const co2Lbl = co2Label(co2);
   const accent = aqiBorderColor(aqi);
   return (
-    <Panel className="p-5" style={{ borderLeft: `3px solid ${accent}` }}>
+    <Panel className="p-5" style={{ borderLeft: `2px solid ${accent}` }}>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon className="w-5 h-5" style={{ color: "var(--health)" }} />
@@ -239,9 +239,9 @@ function Legend() {
         {[
           { color: "var(--ok)", label: "0–50 Good" },
           { color: "var(--warn)", label: "51–100 Moderate" },
-          { color: "#F59E0B", label: "101–150 USG" },
+          { color: "#f5c451", label: "101–150 USG" },
           { color: "var(--err)", label: "151–200 Unhealthy" },
-          { color: "#A855F7", label: "201–300 Very Unhealthy" },
+          { color: "#a78bfa", label: "201–300 Very Unhealthy" },
           { color: "#B91C1C", label: "300+ Hazardous" },
         ].map((band) => (
           <div key={band.label} className="flex items-center gap-2">
@@ -253,7 +253,7 @@ function Legend() {
       <div className="mt-3 pt-3 text-[12px] text-ink-3" style={{ borderTop: "1px solid var(--line-1)" }}>
         <span style={{ color: "var(--ok)" }}>CO₂ &lt; 800</span> fresh ·{" "}
         <span style={{ color: "var(--warn)" }}>800–1200</span> elevated ·{" "}
-        <span style={{ color: "#F59E0B" }}>1200–2000</span> stuffy ·{" "}
+        <span style={{ color: "#f5c451" }}>1200–2000</span> stuffy ·{" "}
         <span style={{ color: "var(--err)" }}>&gt; 2000</span> poor
       </div>
     </Panel>
@@ -281,7 +281,7 @@ export default function AirPage() {
   if (error) {
     return (
       <PageShell>
-        <Panel style={{ borderLeft: "3px solid var(--err)" }}>
+        <Panel style={{ borderLeft: "2px solid var(--err)" }}>
           <div className="text-err text-sm">Air Quality unavailable: {error}</div>
         </Panel>
       </PageShell>

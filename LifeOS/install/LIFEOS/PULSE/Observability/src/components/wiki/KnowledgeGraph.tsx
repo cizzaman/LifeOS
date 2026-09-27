@@ -28,11 +28,11 @@ interface KnowledgeGraphProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "system-doc": "#22d3ee",
-  person: "#38bdf8",
-  company: "#fbbf24",
+  "system-doc": "#5cc4d8",
+  person: "#5cc4d8",
+  company: "#f5c451",
   idea: "#a78bfa",
-  blog: "#f472b6",
+  blog: "#f87171",
   book: "#f87171",
 };
 
@@ -119,15 +119,15 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
       const connects = active !== null && (s.id === active || t.id === active);
       if (active && !connects) {
         ctx.globalAlpha = 0.25 * dimAlpha;
-        ctx.strokeStyle = "rgba(51,65,85,1)";
+        ctx.strokeStyle = "rgba(58,58,58,1)";
         ctx.lineWidth = 0.5 / transform.k;
       } else if (connects) {
         ctx.globalAlpha = 0.25 + dim * 0.35;
-        ctx.strokeStyle = "rgba(148,163,184,1)";
+        ctx.strokeStyle = "rgba(152,168,179,1)";
         ctx.lineWidth = (0.5 + dim) / transform.k;
       } else {
         ctx.globalAlpha = 0.25;
-        ctx.strokeStyle = "rgba(51,65,85,1)";
+        ctx.strokeStyle = "rgba(58,58,58,1)";
         ctx.lineWidth = 0.5 / transform.k;
       }
       ctx.beginPath();
@@ -142,7 +142,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
       const isActive = n.id === active;
       const isNeighbor = activeNeighbors?.has(n.id) ?? false;
       const dimmed = active !== null && !isActive && !isNeighbor;
-      const color = cmap?.[n.category] || CATEGORY_COLORS[n.category] || "#64748b";
+      const color = cmap?.[n.category] || CATEGORY_COLORS[n.category] || "#6b7d89";
 
       ctx.globalAlpha = dimmed ? dimAlpha : 1;
       ctx.beginPath();
@@ -162,7 +162,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       const fontSize = Math.max(3, 10 / transform.k);
-      ctx.font = `${fontSize}px 'concourse-t3', sans-serif`;
+      ctx.font = `${fontSize}px 'Albert Sans', sans-serif`;
 
       for (const n of simNodes) {
         const isActive = n.id === active;
@@ -177,7 +177,7 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
         if (alpha <= 0.02) continue;
 
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = isActive ? "#f1f5f9" : isNeighbor ? "#94a3b8" : "#64748b";
+        ctx.fillStyle = isActive ? "#f0e8d8" : isNeighbor ? "#98a8b3" : "#6b7d89";
         const label = n.title.length > 25 ? n.title.slice(0, 22) + "..." : n.title;
         ctx.fillText(label, n.x, n.y - n.r - 2);
       }
@@ -408,14 +408,14 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     Object.assign(tooltipEl.style, {
       position: "absolute",
       pointerEvents: "none",
-      background: "rgba(2, 6, 23, 0.95)",
-      border: "1px solid rgba(51, 65, 85, 0.5)",
+      background: "rgba(8, 8, 8, 0.95)",
+      border: "1px solid rgba(58, 58, 58, 0.5)",
       borderRadius: "8px",
       padding: "8px 12px",
       opacity: "0",
       zIndex: "100",
       backdropFilter: "blur(8px)",
-      fontFamily: "'concourse-t3', sans-serif",
+      fontFamily: "'Albert Sans', sans-serif",
       transition: "opacity 0.15s",
     });
     canvas.parentElement?.appendChild(tooltipEl);
@@ -423,12 +423,12 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick, hiddenCatego
     function showTooltip(n: SimNode, mx: number, my: number) {
       const state = stateRef.current;
       if (!state) return;
-      const color = colorMapRef.current?.[n.category] || CATEGORY_COLORS[n.category] || "#94a3b8";
+      const color = colorMapRef.current?.[n.category] || CATEGORY_COLORS[n.category] || "#98a8b3";
       tooltipEl.innerHTML =
-        `<div style="font-family: 'advocate-c14', sans-serif; font-size: 10px; letter-spacing: 0.05em; color: ${color}">${n.category.replace("-", " ").toUpperCase()}</div>` +
-        `<div style="font-size: 12px; color: #f1f5f9; margin-top: 2px">${n.title}</div>` +
-        (n.backlinkCount > 0 ? `<div style="font-size: 10px; color: #64748b; margin-top: 2px">${n.backlinkCount} backlinks</div>` : "") +
-        `<div style="font-size: 9px; color: #475569; margin-top: 3px">${state.focused === n.id ? "click again to open" : "click to focus · drag to move"}</div>`;
+        `<div style="font-family: 'Outfit', sans-serif; font-size: 10px; letter-spacing: 0.05em; color: ${color}">${n.category.replace("-", " ").toUpperCase()}</div>` +
+        `<div style="font-size: 12px; color: #f0e8d8; margin-top: 2px">${n.title}</div>` +
+        (n.backlinkCount > 0 ? `<div style="font-size: 10px; color: #6b7d89; margin-top: 2px">${n.backlinkCount} backlinks</div>` : "") +
+        `<div style="font-size: 9px; color: #55636d; margin-top: 3px">${state.focused === n.id ? "click again to open" : "click to focus · drag to move"}</div>`;
       tooltipEl.style.opacity = "1";
       tooltipEl.style.left = mx + 12 + "px";
       tooltipEl.style.top = my - 12 + "px";

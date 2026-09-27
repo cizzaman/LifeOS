@@ -36,7 +36,7 @@ export default function TemplateOnboarding() {
   const cmd = state.interviewCommand || "/interview";
 
   return (
-    <div className="border-b border-blue-500/30 bg-gradient-to-r from-blue-950/60 via-[rgba(6,11,26,0.7)] to-blue-950/60">
+    <div className="border-b border-blue-500/30 bg-gradient-to-r from-blue-950/60 via-[rgba(10,10,10,0.7)] to-blue-950/60">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-start gap-3">
           <div className="rounded-lg bg-blue-500/15 p-2 mt-0.5 shrink-0">

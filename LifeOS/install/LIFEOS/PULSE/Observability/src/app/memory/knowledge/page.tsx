@@ -187,7 +187,7 @@ function KnowledgeHeroSearch({ totalPages }: { totalPages: number }) {
             }}
             placeholder={`Search ${totalPages.toLocaleString()} entries — people, companies, ideas, blogs, books…`}
             className="flex-1 bg-transparent outline-none text-ink-1 placeholder:text-ink-3"
-            style={{ fontSize: 18, fontFamily: "'concourse-t3', sans-serif" }}
+            style={{ fontSize: 18, fontFamily: "'Albert Sans', sans-serif" }}
             autoFocus
           />
           {query && (

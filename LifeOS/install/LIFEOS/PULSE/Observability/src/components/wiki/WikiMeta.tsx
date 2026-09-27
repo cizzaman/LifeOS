@@ -82,7 +82,7 @@ export default function WikiMeta({
       <div>
         <span
           className={`inline-flex items-center gap-1.5 px-2 py-1 text-[13px] rounded-full ${colors.text} ${colors.bg} border ${colors.border}`}
-          style={{ fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif" }}
         >
           <BookOpen className="w-3 h-3" />
           {category.replace("-", " ").toUpperCase()}
@@ -92,10 +92,10 @@ export default function WikiMeta({
       {/* Author */}
       {author && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Author
           </div>
-          <div className="flex items-center gap-2 text-sm text-ink-1" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="flex items-center gap-2 text-sm text-ink-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             <User className="w-3.5 h-3.5 shrink-0 text-ink-3" />
             <span>{author}</span>
           </div>
@@ -105,11 +105,11 @@ export default function WikiMeta({
       {/* Source */}
       {(source || sourceUrl) && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Source
           </div>
           {source && (
-            <div className="flex items-center gap-2 text-sm text-ink-1 mb-1" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+            <div className="flex items-center gap-2 text-sm text-ink-1 mb-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
               <BookOpen className="w-3.5 h-3.5 shrink-0 text-ink-3" />
               <span>{source}</span>
             </div>
@@ -120,7 +120,7 @@ export default function WikiMeta({
               target="_blank"
               rel="noopener"
               className="flex items-center gap-2 text-xs text-sky-400 hover:text-sky-300 hover:underline break-all"
-              style={{ fontFamily: "'concourse-t3', sans-serif" }}
+              style={{ fontFamily: "'Albert Sans', sans-serif" }}
             >
               <LinkIcon className="w-3 h-3 shrink-0" />
               <span className="truncate">{sourceUrl.replace(/^https?:\/\//, "")}</span>
@@ -132,10 +132,10 @@ export default function WikiMeta({
       {/* Post date (original publication) */}
       {postDate && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Published
           </div>
-          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             <Calendar className="w-3 h-3" />
             <span>
               {(() => {
@@ -158,12 +158,12 @@ export default function WikiMeta({
       {/* Quality (knowledge notes only) */}
       {quality !== undefined && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Quality
           </div>
           <div className="flex items-center gap-2">
             <Star className={`w-3.5 h-3.5 ${qualityColor(quality)}`} />
-            <span className={`text-sm font-semibold ${qualityColor(quality)}`} style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+            <span className={`text-sm font-semibold ${qualityColor(quality)}`} style={{ fontFamily: "'Albert Sans', sans-serif" }}>
               {quality}/10
             </span>
           </div>
@@ -173,14 +173,14 @@ export default function WikiMeta({
       {/* Word count & reading time */}
       {wordCount !== undefined && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Length
           </div>
-          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="flex items-center gap-2 text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             <FileText className="w-3 h-3" />
             <span>{wordCount.toLocaleString()} words</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-ink-3 mt-1" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="flex items-center gap-2 text-xs text-ink-3 mt-1" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             <Clock className="w-3 h-3" />
             <span>{readingTime(wordCount)}</span>
           </div>
@@ -190,10 +190,10 @@ export default function WikiMeta({
       {/* Last modified */}
       {lastModified && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Updated
           </div>
-          <div className="text-xs text-ink-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="text-xs text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             {new Date(lastModified).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",
@@ -206,7 +206,7 @@ export default function WikiMeta({
       {/* Tags */}
       {tags && tags.length > 0 && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Tags
           </div>
           <div className="flex flex-wrap gap-1">
@@ -214,7 +214,7 @@ export default function WikiMeta({
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[13px] rounded bg-surface-3 text-ink-2 border border-line-2"
-                style={{ fontFamily: "'concourse-t3', sans-serif" }}
+                style={{ fontFamily: "'Albert Sans', sans-serif" }}
               >
                 <Tag className="w-2.5 h-2.5" />
                 {tag}
@@ -227,7 +227,7 @@ export default function WikiMeta({
       {/* Related (frontmatter cross-links) */}
       {related && related.length > 0 && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Related ({related.length})
           </div>
           <div className="space-y-1">
@@ -238,7 +238,7 @@ export default function WikiMeta({
                   key={rel.slug}
                   href={categoryLink(rel.category, rel.slug)}
                   className={`block px-2 py-1.5 text-[14px] rounded transition-colors ${relColors.text} hover:${relColors.bg}`}
-                  style={{ fontFamily: "'concourse-t3', sans-serif" }}
+                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
                 >
                   {rel.title}
                 </Link>
@@ -251,7 +251,7 @@ export default function WikiMeta({
       {/* Backlinks */}
       {backlinks && backlinks.length > 0 && (
         <div>
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-1.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
             <ArrowLeft className="w-3 h-3 inline mr-1" />
             Linked from ({backlinks.length})
           </div>
@@ -263,7 +263,7 @@ export default function WikiMeta({
                   key={bl.slug}
                   href={categoryLink(bl.category, bl.slug)}
                   className={`block px-2 py-1.5 text-[14px] rounded transition-colors ${blColors.text} hover:${blColors.bg}`}
-                  style={{ fontFamily: "'concourse-t3', sans-serif" }}
+                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
                 >
                   {bl.title}
                 </Link>
@@ -279,7 +279,7 @@ export default function WikiMeta({
           <button
             onClick={() => navigator.clipboard.writeText(filePath)}
             className="flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-ink-2 transition-colors"
-            style={{ fontFamily: "'concourse-t3', sans-serif" }}
+            style={{ fontFamily: "'Albert Sans', sans-serif" }}
             title="Copy file path"
           >
             <Copy className="w-3 h-3" />

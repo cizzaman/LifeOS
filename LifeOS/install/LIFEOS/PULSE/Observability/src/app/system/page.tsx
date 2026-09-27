@@ -128,12 +128,12 @@ function WikiLanding({ data }: { data: WikiIndex }) {
                     system docs stay readable in Observer mode. */}
                 <span
                   className="text-[13px] text-ink-2 group-hover:text-ink-1 transition-colors truncate"
-                  style={{ fontFamily: "'concourse-t3', sans-serif" }}
+                  style={{ fontFamily: "'Albert Sans', sans-serif" }}
                   data-sensitive={page.category !== "system-doc" ? "" : undefined}
                 >
                   {page.title}
                 </span>
-                <span className="ml-auto text-[13px] text-ink-3 shrink-0 tabular-nums" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+                <span className="ml-auto text-[13px] text-ink-3 shrink-0 tabular-nums" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
                   {new Date(page.lastModified).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
                 {page.quality !== undefined && (
@@ -180,7 +180,7 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Bookmark className="w-4 h-4 shrink-0" style={{ color: "var(--creative)" }} />
-          <span className="text-[13px] uppercase tracking-wider" style={{ fontFamily: "'advocate-c14', sans-serif", color: "var(--creative)" }}>
+          <span className="text-[13px] uppercase tracking-wider" style={{ fontFamily: "'Outfit', sans-serif", color: "var(--creative)" }}>
             Bookmark
           </span>
           {detail.favorite && (
@@ -189,7 +189,7 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
         </div>
         <h1
           className="text-xl font-bold text-ink-1 leading-tight"
-          style={{ fontFamily: "'concourse-t3', sans-serif" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif" }}
         >
           {detail.title}
         </h1>
@@ -202,7 +202,7 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity break-all"
-          style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--accent-blue)" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--accent-blue)" }}
         >
           <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           {detail.url.length > 80 ? detail.url.slice(0, 77) + "..." : detail.url}
@@ -224,10 +224,10 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       {/* Excerpt */}
       {detail.excerpt && (
         <Panel className="p-4">
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Excerpt
           </div>
-          <p className="text-sm text-ink-2 leading-relaxed" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <p className="text-sm text-ink-2 leading-relaxed" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             {detail.excerpt}
           </p>
         </Panel>
@@ -236,10 +236,10 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
       {/* Note */}
       {detail.note && (
         <Panel className="p-4">
-          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+          <div className="text-[13px] text-ink-3 uppercase tracking-wider mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
             Note
           </div>
-          <p className="text-sm text-ink-2 leading-relaxed whitespace-pre-wrap" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <p className="text-sm text-ink-2 leading-relaxed whitespace-pre-wrap" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             {detail.note}
           </p>
         </Panel>
@@ -250,13 +250,13 @@ function BookmarkViewer({ detail }: { detail: BookmarkDetail }) {
         {detail.folder && (
           <div>
             <span className="text-ink-3">Folder</span>
-            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'concourse-t3', sans-serif" }}>{detail.folder}</p>
+            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'Albert Sans', sans-serif" }}>{detail.folder}</p>
           </div>
         )}
         {detail.created && (
           <div>
             <span className="text-ink-3">Saved</span>
-            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+            <p className="text-ink-2 mt-0.5" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
               {new Date(detail.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -366,19 +366,19 @@ function LifeosPageInner() {
     const requestedSlug = docSlug || knowledgeSlug || bookmarkSlug || "";
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 max-w-md mx-auto text-center">
-        <div className="text-sm text-err mb-2" style={{ fontFamily: "'advocate-c14', sans-serif" }}>
+        <div className="text-sm text-err mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
           Page not found
         </div>
-        <div className="text-[13px] text-ink-2 mb-4 break-all" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <div className="text-[13px] text-ink-2 mb-4 break-all" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           {requestedSlug}
         </div>
-        <div className="text-[13px] text-ink-3 mb-4" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+        <div className="text-[13px] text-ink-3 mb-4" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
           {errorMessage}
         </div>
         <Link
           href="/system"
           className="text-[13px] underline underline-offset-2 hover:opacity-80"
-          style={{ fontFamily: "'concourse-t3', sans-serif", color: "var(--accent-blue)" }}
+          style={{ fontFamily: "'Albert Sans', sans-serif", color: "var(--accent-blue)" }}
         >
           Back to wiki index
         </Link>
@@ -389,7 +389,7 @@ function LifeosPageInner() {
   // Loading state
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-[13px] text-ink-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+      <div className="text-[13px] text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
         Loading...
       </div>
     </div>
@@ -401,7 +401,7 @@ export default function LifeosPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <div className="text-[13px] text-ink-2" style={{ fontFamily: "'concourse-t3', sans-serif" }}>
+          <div className="text-[13px] text-ink-2" style={{ fontFamily: "'Albert Sans', sans-serif" }}>
             Loading...
           </div>
         </div>

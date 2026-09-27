@@ -33,19 +33,24 @@ const html = `<!DOCTYPE html>
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.7;
-      color: #1a1a1a;
-      background: #fafafa;
+      font-family: "Albert Sans", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #f0e8d8;
+      background: #0a0a0a;
     }
-    h1 { color: #111; font-size: 2.2em; margin-bottom: 0.5em; }
-    h2 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 0.3em; margin-top: 1.5em; }
-    pre { background: #2d2d2d; color: #ccc; padding: 16px; overflow-x: auto; border-radius: 6px; }
-    code { background: #e8e8e8; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
-    pre code { padding: 0; background: none; }
-    blockquote { border-left: 4px solid #3b82f6; margin: 0; padding-left: 20px; color: #555; }
-    strong { color: #000; }
-    hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+    h1, h2, h3 { font-family: "Outfit", "Albert Sans", system-ui, sans-serif; font-weight: 500; color: #f0e8d8; }
+    h1 { font-size: 2em; letter-spacing: -0.02em; margin-bottom: 0.5em; }
+    h2 { border-bottom: 1px solid #262626; padding-bottom: 0.3em; margin-top: 1.5em; }
+    h4, h5, h6 { font: 400 11px/1.4 "Fira Code", ui-monospace, monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #98a8b3; }
+    a { color: #a8e2ee; }
+    pre { background: #111111; color: #d9d2c4; border: 1px solid #262626; padding: 16px; overflow-x: auto; border-radius: 10px; }
+    code { font-family: "Fira Code", ui-monospace, monospace; background: #181818; border: 1px solid #262626; padding: 1px 6px; border-radius: 4px; font-size: 0.88em; }
+    pre code { padding: 0; background: none; border: 0; }
+    blockquote { border-left: 1px solid #3fb2c9; margin: 0; padding-left: 20px; color: #98a8b3; }
+    strong { color: #f0e8d8; font-weight: 600; }
+    hr { border: none; border-top: 1px solid #262626; margin: 2em 0; }
+    table { border-collapse: collapse; } th, td { border: 1px solid #262626; padding: 6px 10px; }
   </style>
 </head>
 <body>

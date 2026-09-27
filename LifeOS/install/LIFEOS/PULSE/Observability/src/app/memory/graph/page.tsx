@@ -32,13 +32,13 @@ function noteUrl(node: MemNode): string | null {
 // Stable type identity: same hue everywhere, every time. Overview slots keep
 // knowledge visible next to the much larger work corpus.
 const TYPES: Array<{ key: string; label: string; color: string; slots: number }> = [
-  { key: "person", label: "People", color: "#38bdf8", slots: 16 },
-  { key: "company", label: "Companies", color: "#fbbf24", slots: 14 },
+  { key: "person", label: "People", color: "#5cc4d8", slots: 16 },
+  { key: "company", label: "Companies", color: "#f5c451", slots: 14 },
   { key: "idea", label: "Ideas", color: "#a78bfa", slots: 20 },
-  { key: "blog", label: "Blogs", color: "#94a3b8", slots: 10 },
+  { key: "blog", label: "Blogs", color: "#98a8b3", slots: 10 },
   { key: "book", label: "Books", color: "#f87171", slots: 5 },
-  { key: "research", label: "Research", color: "#22d3ee", slots: 12 },
-  { key: "isa", label: "ISAs", color: "#34d399", slots: 16 },
+  { key: "research", label: "Research", color: "#5cc4d8", slots: 12 },
+  { key: "isa", label: "ISAs", color: "#22c55e", slots: 16 },
   { key: "lesson", label: "Lessons", color: "#a3e635", slots: 8 },
   { key: "wisdom", label: "Wisdom", color: "#e879f9", slots: 8 },
 ];
@@ -48,8 +48,8 @@ const KIND_LABEL: Record<string, string> = { related: "Declared (typed)", wikili
 const NEIGHBOR_CAP = 36;
 const THEME_NODE_CAP = 140;
 
-const font = { fontFamily: "'concourse-t3', sans-serif" } as const;
-const heading = { fontFamily: "'advocate-c14', sans-serif" } as const;
+const font = { fontFamily: "'Albert Sans', sans-serif" } as const;
+const heading = { fontFamily: "'Outfit', sans-serif" } as const;
 
 export default function MemoryGraphPage() {
   const [focus, setFocus] = useState<string | null>(null);
@@ -202,7 +202,7 @@ export default function MemoryGraphPage() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-line-2 bg-surface-1 shrink-0">
         <Network className="w-4 h-4 text-dim-relationships" />
-        <h1 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3 shrink-0 whitespace-nowrap" style={{ fontFamily: "'concourse-c3', 'concourse-t3', sans-serif" }}>Memory Graph</h1>
+        <h1 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3 shrink-0 whitespace-nowrap" style={{ fontFamily: "'Albert Sans', 'Albert Sans', sans-serif" }}>Memory Graph</h1>
         {theme && !focusNode && (
           <button onClick={() => setTheme(null)} className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-3 border border-line-2 text-[11px] text-ink-1 hover:border-line-3" style={font}>
             <Tag className="w-3 h-3 text-dim-relationships" />{theme}
@@ -220,7 +220,7 @@ export default function MemoryGraphPage() {
             <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto bg-surface-2 border border-line-2 rounded shadow-xl">
               {results.map((r) => (
                 <button key={r.id} onClick={() => go(r.id)} className="flex items-center gap-2 w-full text-left px-2 py-1 text-[12px] text-ink-2 hover:bg-surface-3 hover:text-ink-1" style={font}>
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: TYPE_COLOR[r.type] ?? "#64748b" }} />
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: TYPE_COLOR[r.type] ?? "#6b7d89" }} />
                   <span className="truncate">{r.title}</span>
                 </button>
               ))}
@@ -270,7 +270,7 @@ export default function MemoryGraphPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 {trail.length > 0 && <button onClick={back} className="text-ink-2 hover:text-ink-1"><ArrowLeft className="w-3.5 h-3.5" /></button>}
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: TYPE_COLOR[focusNode.type] ?? "#64748b" }} />
+                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: TYPE_COLOR[focusNode.type] ?? "#6b7d89" }} />
                 <span className="text-[10px] uppercase text-ink-3" style={font}>{TYPES.find((t) => t.key === focusNode.type)?.label ?? focusNode.type}</span>
               </div>
               <div className="text-[14px] text-ink-1 font-medium mb-1 leading-snug" style={heading}>{focusNode.title}</div>
@@ -301,7 +301,7 @@ export default function MemoryGraphPage() {
                       <button key={n.id} onClick={() => go(n.id)} className="flex items-start gap-1.5 w-full text-left group">
                         <CornerDownRight className="w-3 h-3 text-ink-3 mt-[3px] shrink-0 group-hover:text-dim-relationships" />
                         <span className="flex-1 min-w-0 text-[12px] text-ink-2 group-hover:text-ink-1" style={{ ...font, lineHeight: 1.35 }}>
-                          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: TYPE_COLOR[n.type] ?? "#64748b" }} />
+                          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: TYPE_COLOR[n.type] ?? "#6b7d89" }} />
                           {n.title}
                         </span>
                       </button>

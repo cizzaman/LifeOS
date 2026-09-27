@@ -34,53 +34,53 @@ import {
 // ─── Color Maps ───
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  PreToolUse: "#e0af68",
-  PostToolUse: "#ff9e64",
-  Completed: "#9ece6a",
-  Notification: "#ff9e64",
-  Stop: "#f7768e",
-  SubagentStop: "#bb9af7",
+  PreToolUse: "#f5c451",
+  PostToolUse: "#f97316",
+  Completed: "#22c55e",
+  Notification: "#f97316",
+  Stop: "#f87171",
+  SubagentStop: "#a78bfa",
   PreCompact: "#1abc9c",
-  UserPromptSubmit: "#7dcfff",
-  SessionStart: "#7aa2f7",
-  SessionEnd: "#7aa2f7",
+  UserPromptSubmit: "#7cd5e6",
+  SessionStart: "#5cc4d8",
+  SessionEnd: "#5cc4d8",
 };
 
 const TOOL_COLORS: Record<string, string> = {
-  Read: "#7aa2f7",
-  Write: "#9ece6a",
-  Edit: "#e0af68",
-  Bash: "#bb9af7",
-  Grep: "#f7768e",
-  Glob: "#ff9e64",
-  Task: "#73daca",
-  WebFetch: "#7dcfff",
-  WebSearch: "#7dcfff",
-  Skill: "#c0caf5",
-  SlashCommand: "#c0caf5",
-  TodoWrite: "#e0af68",
-  AskUserQuestion: "#bb9af7",
-  NotebookEdit: "#9ece6a",
-  NotebookRead: "#7aa2f7",
-  BashOutput: "#bb9af7",
-  KillShell: "#f7768e",
-  ExitPlanMode: "#9ece6a",
+  Read: "#5cc4d8",
+  Write: "#22c55e",
+  Edit: "#f5c451",
+  Bash: "#a78bfa",
+  Grep: "#f87171",
+  Glob: "#f97316",
+  Task: "#5cc4d8",
+  WebFetch: "#7cd5e6",
+  WebSearch: "#7cd5e6",
+  Skill: "#d9d2c4",
+  SlashCommand: "#d9d2c4",
+  TodoWrite: "#f5c451",
+  AskUserQuestion: "#a78bfa",
+  NotebookEdit: "#22c55e",
+  NotebookRead: "#5cc4d8",
+  BashOutput: "#a78bfa",
+  KillShell: "#f87171",
+  ExitPlanMode: "#22c55e",
 };
 
 const AGENT_HEX: Record<string, string> = {
-  pentester: "#EF4444",
-  engineer: "#3B82F6",
-  designer: "#A855F7",
-  architect: "#A855F7",
-  intern: "#06B6D4",
-  artist: "#06B6D4",
-  "perplexity-researcher": "#EAB308",
-  "claude-researcher": "#EAB308",
-  "gemini-researcher": "#EAB308",
-  main: "#3B82F6",
-  da: "#3B82F6",
-  pai: "#3B82F6",
-  "claude-code": "#3B82F6",
+  pentester: "#f87171",
+  engineer: "#3fb2c9",
+  designer: "#a78bfa",
+  architect: "#a78bfa",
+  intern: "#3fb2c9",
+  artist: "#3fb2c9",
+  "perplexity-researcher": "#f5c451",
+  "claude-researcher": "#f5c451",
+  "gemini-researcher": "#f5c451",
+  main: "#3fb2c9",
+  da: "#3fb2c9",
+  pai: "#3fb2c9",
+  "claude-code": "#3fb2c9",
 };
 
 // ─── Icons ───
@@ -224,12 +224,12 @@ export default function EventRow({ event }: EventRowProps) {
       : "unknown";
 
   const agentKey = (event.agent_name || event.source_app || "unknown").split(":")[0].toLowerCase();
-  const appColor = AGENT_HEX[agentKey] || "#7aa2f7";
-  const eventTypeColor = EVENT_TYPE_COLORS[event.hook_event_type] || "#7aa2f7";
+  const appColor = AGENT_HEX[agentKey] || "#5cc4d8";
+  const eventTypeColor = EVENT_TYPE_COLORS[event.hook_event_type] || "#5cc4d8";
   const HookIcon = HOOK_ICONS[event.hook_event_type] || MessageSquare;
 
   const toolInfo = getToolInfo(event);
-  const toolColor = toolInfo?.tool ? TOOL_COLORS[toolInfo.tool] || "#7aa2f7" : "#7aa2f7";
+  const toolColor = toolInfo?.tool ? TOOL_COLORS[toolInfo.tool] || "#5cc4d8" : "#5cc4d8";
   const ToolIcon = toolInfo?.tool ? TOOL_ICONS[toolInfo.tool] || Code : Code;
 
   const copyPayload = async () => {
@@ -297,9 +297,9 @@ export default function EventRow({ event }: EventRowProps) {
                       fontStyle: event.hook_event_type === "UserPromptSubmit" ? "italic" : undefined,
                       color:
                         event.hook_event_type === "UserPromptSubmit"
-                          ? "#7dcfff"
+                          ? "#7cd5e6"
                           : event.hook_event_type === "Completed"
-                          ? "#9ece6a"
+                          ? "#22c55e"
                           : "var(--ink-2)",
                     }}
                   >

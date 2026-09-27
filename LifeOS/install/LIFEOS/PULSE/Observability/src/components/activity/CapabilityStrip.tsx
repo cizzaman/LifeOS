@@ -91,7 +91,7 @@ function Sparkline({ buckets }: { buckets: number[] }) {
       <polyline
         points={points}
         fill="none"
-        stroke="#7dcfff"
+        stroke="#7cd5e6"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -101,7 +101,7 @@ function Sparkline({ buckets }: { buckets: number[] }) {
         cx={w}
         cy={h - 2 - (buckets[buckets.length - 1] / max) * (h - 4)}
         r="2"
-        fill="#7dcfff"
+        fill="#7cd5e6"
       />
     </svg>
   );
@@ -134,7 +134,7 @@ function Chip({ chip }: { chip: ChipDef }) {
         </span>
       )}
       {chip.tooltip && chip.tooltip.length > 0 && (
-        <div className="absolute top-full left-0 mt-1.5 px-2.5 py-1.5 rounded-md bg-[rgba(20,28,56,0.97)] border border-line-2 text-[13px] text-ink-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 min-w-[160px] max-w-[320px] whitespace-nowrap">
+        <div className="absolute top-full left-0 mt-1.5 px-2.5 py-1.5 rounded-md bg-[rgba(20,20,20,0.97)] border border-line-2 text-[13px] text-ink-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 min-w-[160px] max-w-[320px] whitespace-nowrap">
           {chip.tooltip.map((line, i) => (
             <div key={i} className="leading-snug font-mono">
               {line}
@@ -286,7 +286,7 @@ export default function CapabilityStrip() {
   if (!data) return null;
 
   return (
-    <div className="flex items-center flex-wrap gap-x-5 gap-y-1 px-4 py-1.5 bg-[rgba(15,26,51,0.5)] border-b border-white/[0.04] shrink-0">
+    <div className="flex items-center flex-wrap gap-x-5 gap-y-1 px-4 py-1.5 bg-[rgba(17,17,17,0.5)] border-b border-white/[0.04] shrink-0">
       <span className="text-[13px] font-semibold text-ink-2 tracking-wide shrink-0 uppercase">
         Capabilities
       </span>
