@@ -6,14 +6,18 @@
  *                                          today, week, month, hasDaily }
  *   GET /api/usage/trend?range=daily|weekly|monthly → { range, points:[{label,totalTokens,costUsd,messages}] }
  *   GET /api/usage/models?window=30|all             → { window, models:[{model,messages,totalTokens,costUsd,pct}] }
+ *   GET /api/usage/limits             → { ts, providers:[{id,name,plan,updatedAt,windows:[{label,pct,resetsAt}]}] }
+ *                                          (Claude + Codex subscription windows; read by the iPhone widget)
  *
  * SOURCES (all read-only, produced elsewhere):
  *   - MEMORY/OBSERVABILITY/anthropic-cost.jsonl  — live subscription 5h/7d % + admin cost_report monthly $ (CostTracker cron)
  *   - MEMORY/OBSERVABILITY/usage-daily.jsonl     — DURABLE per-day token/cost/model rollup (UsageAggregator nightly launchd)
+ *   - MEMORY/STATE/usage-cache.json              — Claude 5h/7d utilization (UpdateCounts hook)
+ *   - ~/.codex/sessions/YYYY/MM/DD/*.jsonl       — newest Codex `rate_limits` event (Codex CLI writes it per turn)
  *
  * No secret is read or emitted here — only the already-computed aggregates.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { closeSync, existsSync, openSync, readFileSync, readSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -22,6 +26,8 @@ const CLAUDE_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude");
 const OBS_DIR = join(CLAUDE_DIR, "LIFEOS", "MEMORY", "OBSERVABILITY");
 const ANTHROPIC_COST = join(OBS_DIR, "anthropic-cost.jsonl");
 const USAGE_DAILY = join(OBS_DIR, "usage-daily.jsonl");
+const CLAUDE_USAGE_CACHE = join(CLAUDE_DIR, "LIFEOS", "MEMORY", "STATE", "usage-cache.json");
+const CODEX_SESSIONS = join(process.env.CODEX_HOME || join(homedir(), ".codex"), "sessions");
 const state = { running: false };
 
 interface ModelAgg { messages: number; totalTokens: number; costUsd: number }
@@ -163,6 +169,88 @@ function buildModels(windowArg: string) {
   return { window: windowArg === "all" ? "all" : "30d", models };
 }
 
+// ── Subscription limits (Claude + Codex) ─────────────────────────────────────
+
+interface LimitWindow { label: string; pct: number | null; resetsAt: string | null }
+interface ProviderLimits { id: string; name: string; plan: string | null; updatedAt: string | null; windows: LimitWindow[] }
+
+function windowLabel(minutes: number | null | undefined): string {
+  if (!minutes) return "?";
+  if (minutes % 10080 === 0) return `${minutes / 10080 * 7}d`;
+  if (minutes % 1440 === 0) return `${minutes / 1440}d`;
+  return `${Math.round(minutes / 60)}t`;
+}
+
+function claudeLimits(): ProviderLimits | null {
+  try {
+    const d = JSON.parse(readFileSync(CLAUDE_USAGE_CACHE, "utf8"));
+    const win = (label: string, w: any): LimitWindow => ({ label, pct: w?.utilization ?? null, resetsAt: w?.resets_at ?? null });
+    return {
+      id: "claude", name: "Claude", plan: null,
+      updatedAt: statSync(CLAUDE_USAGE_CACHE).mtime.toISOString(),
+      windows: [win("5t", d.five_hour), win("7d", d.seven_day)],
+    };
+  } catch { return null; }
+}
+
+/** Newest Codex session file: walk the YYYY/MM/DD tree from the end, newest mtime in the last few days. */
+function newestCodexSession(): string | null {
+  const desc = (dir: string) => { try { return readdirSync(dir).sort().reverse(); } catch { return []; } };
+  const days: string[] = [];
+  for (const y of desc(CODEX_SESSIONS)) for (const m of desc(join(CODEX_SESSIONS, y))) for (const d of desc(join(CODEX_SESSIONS, y, m))) {
+    days.push(join(CODEX_SESSIONS, y, m, d));
+    if (days.length >= 7) break;
+  }
+  let best: string | null = null; let bestMs = 0;
+  for (const dir of days) for (const f of desc(dir)) {
+    if (!f.endsWith(".jsonl")) continue;
+    const p = join(dir, f);
+    const ms = statSync(p).mtimeMs;
+    if (ms > bestMs) { best = p; bestMs = ms; }
+  }
+  return best;
+}
+
+/** Last `rate_limits` payload in the tail of a session file. */
+function lastCodexRateLimits(path: string): { rl: any; ts: string | null } | null {
+  const size = statSync(path).size;
+  const len = Math.min(size, 512 * 1024);
+  const buf = Buffer.alloc(len);
+  const fd = openSync(path, "r");
+  try { readSync(fd, buf, 0, len, size - len); } finally { closeSync(fd); }
+  const lines = buf.toString("utf8").split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!lines[i].includes('"rate_limits"')) continue;
+    try {
+      const e = JSON.parse(lines[i]);
+      const rl = e?.payload?.rate_limits;
+      if (rl) return { rl, ts: e.timestamp ?? null };
+    } catch { /* partial first line */ }
+  }
+  return null;
+}
+
+function codexLimits(): ProviderLimits | null {
+  try {
+    const path = newestCodexSession();
+    const found = path && lastCodexRateLimits(path);
+    if (!found) return null;
+    const { rl, ts } = found;
+    const windows = [rl.primary, rl.secondary].filter(Boolean)
+      .sort((a: any, b: any) => (a.window_minutes ?? 0) - (b.window_minutes ?? 0))
+      .map((w: any): LimitWindow => ({
+        label: windowLabel(w.window_minutes),
+        pct: w.used_percent ?? null,
+        resetsAt: w.resets_at ? new Date(w.resets_at * 1000).toISOString() : null,
+      }));
+    return { id: "codex", name: "Codex", plan: rl.plan_type ?? null, updatedAt: ts, windows };
+  } catch { return null; }
+}
+
+function buildLimits() {
+  return { ts: new Date().toISOString(), providers: [claudeLimits(), codexLimits()].filter(Boolean) };
+}
+
 // ── Module contract ──────────────────────────────────────────────────────────
 
 export async function start(): Promise<void> {
@@ -181,6 +269,7 @@ export async function handleRequest(req: Request, pathname: string): Promise<Res
   try {
     if (sub === "/" || sub === "/summary") return Response.json(buildSummary());
     if (sub === "/trend") return Response.json(buildTrend(url.searchParams.get("range") || "daily"));
+    if (sub === "/limits") return Response.json(buildLimits());
     if (sub === "/models") return Response.json(buildModels(url.searchParams.get("window") || "30"));
     if (sub === "/status" || sub === "/health") return Response.json(health());
   } catch (err) {

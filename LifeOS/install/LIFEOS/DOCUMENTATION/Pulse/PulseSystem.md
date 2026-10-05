@@ -66,7 +66,7 @@ Each subsystem runs in its own crash-isolated loop within the single Pulse proce
 | **Telos** | Read-only consumer of the TelosFreshness library — TELOS staleness surfacing. | `modules/telos.ts` |
 | **ThreatModel** | Read-only surface over the private risk register (likelihood × impact, owners, review cadence). | `modules/threatmodel.ts` |
 | **Upgrades** | API for the unified system-improvement queue — one queue, five sources, one lifecycle. | `modules/upgrades.ts` |
-| **Usage** | Read-only surface over Anthropic subscription + token/cost usage. | `modules/usage.ts` |
+| **Usage** | Read-only surface over Anthropic subscription + token/cost usage. `/api/usage/limits` returns Claude and Codex subscription windows for the iPhone widget. | `modules/usage.ts` |
 | **UserIndex** | LifeOS `USER/` indexer — walks the tree, parses frontmatter + body of every `.md`, emits typed JSON; `fs.watch` live refresh. Powers `/life`, `/health`, `/finances` and the Daemon publish feed. | `modules/user-index.ts` |
 | **Wiki** | Backend API for the Documentation, Knowledge, Skills, and Hooks browsers. | `modules/wiki.ts` |
 | **Work** | Agent-visible Kanban over GitHub Issues, backed by the private repo at `WORK.REPO` in `USER/WORK/config.yaml`. | `modules/work.ts` |
@@ -619,6 +619,12 @@ bun run checks/github.ts
     ├── pulse-stdout.log      # Structured JSON logs
     └── pulse-stderr.log      # Error output
 ```
+
+---
+
+## iPhone Widget
+
+`PULSE/Widgets/AiLimits.js` is a Scriptable widget for the iPhone home and lock screen. It reads `GET /api/usage/limits` over Tailscale and shows Claude (5h, 7d) and Codex usage with time to reset. Setup: `PULSE/Widgets/README.md`.
 
 ---
 
