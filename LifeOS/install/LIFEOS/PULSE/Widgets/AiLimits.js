@@ -2,7 +2,7 @@
 // Leser Pulse /api/usage/limits over Tailscale: Claude 5t/7d og Codex-vinduer.
 // Oppsett: se README.md i denne mappen.
 
-const PULSE = args.widgetParameter || "https://linux-surface.tail5af7c2.ts.net:31337";
+const PULSE = args.widgetParameter || "https://agent03.tail5af7c2.ts.net:31337";
 
 const BG = new Color("#111111");
 const FG = new Color("#e8e8e8");
